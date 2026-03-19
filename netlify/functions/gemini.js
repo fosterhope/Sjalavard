@@ -1,5 +1,4 @@
 exports.handler = async function(event) {
-  // Only allow POST
   if (event.httpMethod !== "POST") {
     return { statusCode: 405, body: "Method Not Allowed" };
   }
@@ -14,6 +13,16 @@ exports.handler = async function(event) {
 
   try {
     const body = JSON.parse(event.body);
+
+    // Ensure maxOutputTokens is at least 3000
+    if (body.generationConfig) {
+      body.generationConfig.maxOutputTokens = Math.max(
+        body.generationConfig.maxOutputTokens || 0,
+        3000
+      );
+    } else {
+      body.generationConfig = { maxOutputTokens: 3000 };
+    }
 
     const response = await fetch(
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + GEMINI_KEY,
