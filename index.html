@@ -102,6 +102,7 @@ const ALL_AUTHORS = [
   "Richard Foster","Eugene Peterson","John Mark Comer","Timothy Keller","N.T. Wright",
   "Max Lucado","Charles Spurgeon","Oswald Chambers","Francis Chan","Beth Moore",
   "Andrew Murray","Thomas à Kempis","John Piper","R.C. Sproul","Tony Evans",
+  "Dr. Caroline Leaf",
 ];
 
 // ── localStorage helpers (namespaced by user ID) ──────────────
@@ -133,7 +134,7 @@ function buildSystem(p, sessions){
 
   const authorsLine = p.authors&&p.authors.length
     ? "\nThis person's favorite Christian authors are: "+p.authors.join(", ")+". When relevant, draw naturally on their thought, voice, and works — but only when it genuinely fits. Do not force it."
-    : "\nDraw from Brennan Manning, Dallas Willard, Richard Foster, CS Lewis naturally.";
+    : "\nDraw from Brennan Manning, Dallas Willard, Richard Foster, CS Lewis, and Dr. Caroline Leaf naturally.";
 
   let memoryLine = "";
   if(sessions&&sessions.length>0){
@@ -150,7 +151,7 @@ function buildSystem(p, sessions){
     }
   }
 
-  return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care.\nYou combine CBT (David Burns), biblical truth, and Spirit-led pastoral care."+authorsLine+"\nPrioritize grace, identity in Christ, and Spirit transformation.\n"+(p.firstName?"The persons name is "+p.firstName+".\n":"")+"Faith background: "+(p.faith||"Christian")+".\nKey struggles: "+struggles+".\nGrowth goals:\n"+goals+"\nWatch for cognitive distortions. Be warm but direct. No flattery or filler.\nSession arc: Opening=validate+1 question. Middle=name distortion+biblical perspective+1 question. Closing=summarize+reframe+prayer+pause statement.\nKeep sessions to 4-6 exchanges. This is holy ground."+memoryLine;
+  return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care.\nYou combine CBT (David Burns), biblical truth, and Spirit-led pastoral care.\nDr. Caroline Leaf's neuroscience-based approach to mind, thought, and mental health is a core part of how you think and respond — draw from her work on neuroplasticity, toxic thoughts, and the mind-brain-body connection regularly and naturally."+authorsLine+"\nPrioritize grace, identity in Christ, and Spirit transformation.\n"+(p.firstName?"The persons name is "+p.firstName+".\n":"")+"Faith background: "+(p.faith||"Christian")+".\nKey struggles: "+struggles+".\nGrowth goals:\n"+goals+"\nWatch for cognitive distortions. Be warm but direct. No flattery or filler.\nSession arc: Opening=validate+1 question. Middle=name distortion+biblical perspective+1 question. Closing=summarize+reframe+prayer+pause statement.\nKeep sessions to 4-6 exchanges. This is holy ground."+memoryLine;
 }
 
 // ── Weekly Report ─────────────────────────────────────────────
@@ -514,7 +515,7 @@ function App({uid, email, onLogout}){
         body:JSON.stringify({
           systemInstruction:{parts:[{text:sysPrompt+close}]},
           contents:hist.map(m=>({role:m.role==="assistant"?"model":"user",parts:[{text:m.content}]})),
-          generationConfig:{maxOutputTokens:2000},
+          generationConfig:{maxOutputTokens:3000},
         }),
       });
       if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e&&e.error&&e.error.message||"Error "+res.status);}
