@@ -1023,53 +1023,57 @@ function App({uid, email, onLogout}){
 function Root(){
   const [niUser,setNiUser]=useState(null);
   const [niReady,setNiReady]=useState(false);
+  const [profileDone,setProfileDone]=useState(null);
 
   useEffect(()=>{
-    const ni = window.netlifyIdentity;
-    if(!ni){ setNiReady(true); return; }
-
-    const timeout = setTimeout(()=>setNiReady(true), 3000);
-
-    ni.on("init", user=>{
+    const ni=window.netlifyIdentity;
+    if(!ni){setNiReady(true);return;}
+    const timeout=setTimeout(()=>setNiReady(true),3000);
+    ni.on("init",user=>{
       clearTimeout(timeout);
       setNiUser(user||null);
       setNiReady(true);
     });
-    ni.on("login", user=>{
+    ni.on("login",user=>{
       setNiUser(user);
+      setNiReady(true);
       ni.close();
     });
-    ni.on("logout",()=>setNiUser(null));
-    ni.on("error", err=>{ console.error("Netlify Identity error",err); setNiReady(true); });
-
-    // Race condition fix — widget may have already fired init before React mounted
-    const current = ni.currentUser ? ni.currentUser() : null;
-    if(current){ clearTimeout(timeout); setNiUser(current); setNiReady(true); }
-
+    ni.on("logout",()=>{setNiUser(null);setProfileDone(null);});
+    ni.on("error",err=>{console.error(err);setNiReady(true);});
+    const current=ni.currentUser?ni.currentUser():null;
+    if(current){clearTimeout(timeout);setNiUser(current);setNiReady(true);}
     ni.init();
-    return ()=>clearTimeout(timeout);
+    return()=>clearTimeout(timeout);
   },[]);
+
+  useEffect(()=>{
+    if(!niUser)return;
+    setProfileDone(null);
+    dbProfileDone(niUser.id).then(done=>setProfileDone(done));
+  },[niUser]);
 
   if(!niReady){
     return(
       <div style={{minHeight:"100vh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center"}}>
-        <div style={{textAlign:"center"}}>
-          <SvgMark/>
-          <p style={{color:C.muted,fontSize:13,letterSpacing:1,textTransform:"uppercase"}}>Loading...</p>
-        </div>
+        <div style={{textAlign:"center"}}><SvgMark/><p style={{color:C.muted,fontSize:13,letterSpacing:1,textTransform:"uppercase"}}>Loading...</p></div>
       </div>
     );
   }
 
   if(!niUser) return <Landing/>;
 
-  const uid = niUser.id;
-  const email = niUser.email;
-  const profileDone = lsGet("profile_done",false,uid);
+  if(profileDone===null){
+    return(
+      <div style={{minHeight:"100vh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <div style={{textAlign:"center"}}><SvgMark/><p style={{color:C.muted,fontSize:13,letterSpacing:1,textTransform:"uppercase"}}>Setting up your space...</p></div>
+      </div>
+    );
+  }
 
-  if(!profileDone) return <ProfileSetup uid={uid} email={email} onDone={()=>window.location.reload()}/>;
+  if(!profileDone) return <ProfileSetup uid={niUser.id} email={niUser.email} onDone={()=>setProfileDone(true)}/>;
 
-  return <App uid={uid} email={email} onLogout={()=>setNiUser(null)}/>;
+  return <App uid={niUser.id} email={niUser.email} onLogout={()=>setNiUser(null)}/>;
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(<Root/>);
