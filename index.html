@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sjalavard — Soul Care</title>
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased;}
@@ -13,14 +14,12 @@
     input:focus,textarea:focus{outline:none;}
     button:focus{outline:none;}
     @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-    .fi{animation:fadeIn  ease;}
+    .fi{animation:fadeIn 0.25s ease;}
     ::-webkit-scrollbar{width:4px;}
     ::-webkit-scrollbar-thumb{background:#2d6b8a;border-radius:2px;}
   </style>
 </head>
 <body>
-
-<!-- Netlify Identity form (hidden, for weekly reporting) -->
 <form name="sjalavard-weekly-report" data-netlify="true" netlify-honeypot="bot-field" hidden>
   <input type="hidden" name="form-name" value="sjalavard-weekly-report"/>
   <input type="hidden" name="bot-field"/>
@@ -29,17 +28,25 @@
   <input type="hidden" name="streak"/>
   <input type="hidden" name="top_topics"/>
 </form>
-
 <div id="root"></div>
 <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script type="text/babel" data-presets="react">
 
-const {useState,useEffect,useRef} = React;
+const {useState,useEffect,useRef,useCallback} = React;
 
-// ── API Keys ──────────────────────────────────────────────────
-const GEMINI_KEY = null; // Key is server-side via Netlify function // ← paste your Gemini key here
+// ── Supabase ──────────────────────────────────────────────────
+const SUPABASE_URL = "https://rlwdqrvosbbdwmnrohxd.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJsd2RxcnZvc2JiZHdtbnJvaHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MjA1NjQsImV4cCI6MjA4ODk5NjU2NH0.x1FzJ-qYL-27a-CMABhNzOGlpCH3nbeH42Nls7XkQX8";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+async function dbGetProfile(uid){ try{ const {data}=await sb.from("profiles").select("data").eq("id",uid).single(); return data?data.data:null; }catch{return null;} }
+async function dbSetProfile(uid,email,profile){ try{ await sb.from("profiles").upsert({id:uid,email,data:profile,updated_at:new Date().toISOString()}); }catch(e){console.error(e);} }
+async function dbGetSessions(uid){ try{ const {data}=await sb.from("sessions").select("data,created_at,id").eq("user_id",uid).order("created_at",{ascending:false}); return data?data.map(r=>({...r.data,_id:r.id})):[]; }catch{return[];} }
+async function dbAddSession(uid,session){ try{ await sb.from("sessions").insert({user_id:uid,data:session}); }catch(e){console.error(e);} }
+async function dbDeleteSession(id){ try{ await sb.from("sessions").delete().eq("id",id); }catch(e){console.error(e);} }
+async function dbProfileDone(uid){ try{ const {data}=await sb.from("profiles").select("data").eq("id",uid).single(); return !!(data&&data.data&&data.data.profile_done); }catch{return false;} }
 
 // ── Constants ─────────────────────────────────────────────────
 const FH_URL = "https://fosterhopewebsite.netlify.app";
@@ -105,96 +112,99 @@ const ALL_AUTHORS = [
   "Dr. Caroline Leaf",
 ];
 
-// ── localStorage helpers (namespaced by user ID) ──────────────
+const CRISIS_KEYWORDS = ["suicide","kill myself","end my life","don't want to live","want to die","can't go on","no reason to live","harm myself","self harm","hurt myself"];
+
+const DAILY_VERSES = [
+  {ref:"Isaiah 41:10",text:"Do not fear, for I am with you; do not be dismayed, for I am your God."},
+  {ref:"Philippians 4:6-7",text:"Do not be anxious about anything, but in every situation, by prayer and petition, with thanksgiving, present your requests to God."},
+  {ref:"Psalm 46:10",text:"Be still, and know that I am God."},
+  {ref:"Romans 8:28",text:"And we know that in all things God works for the good of those who love him."},
+  {ref:"Matthew 11:28",text:"Come to me, all you who are weary and burdened, and I will give you rest."},
+  {ref:"Jeremiah 29:11",text:"For I know the plans I have for you, declares the Lord, plans to prosper you and not to harm you."},
+  {ref:"Psalm 23:4",text:"Even though I walk through the darkest valley, I will fear no evil, for you are with me."},
+  {ref:"2 Corinthians 12:9",text:"My grace is sufficient for you, for my power is made perfect in weakness."},
+  {ref:"Lamentations 3:22-23",text:"The steadfast love of the Lord never ceases; his mercies never come to an end; they are new every morning."},
+  {ref:"John 16:33",text:"In this world you will have trouble. But take heart! I have overcome the world."},
+  {ref:"Psalm 34:18",text:"The Lord is close to the brokenhearted and saves those who are crushed in spirit."},
+  {ref:"Romans 15:13",text:"May the God of hope fill you with all joy and peace as you trust in him."},
+  {ref:"1 Peter 5:7",text:"Cast all your anxiety on him because he cares for you."},
+  {ref:"Psalm 139:14",text:"I praise you because I am fearfully and wonderfully made."},
+  {ref:"Proverbs 3:5-6",text:"Trust in the Lord with all your heart and lean not on your own understanding."},
+];
+
+// ── localStorage helpers (draft only) ────────────────────────
 function lsKey(uid,k){return "sj_"+uid+"_"+k;}
-function lsGet(k,d,uid){
-  try{
-    const key = uid ? lsKey(uid,k) : k;
-    const v=localStorage.getItem(key);
-    return v?JSON.parse(v):d;
-  }catch{return d;}
-}
-function lsSet(k,v,uid){
-  try{
-    const key = uid ? lsKey(uid,k) : k;
-    localStorage.setItem(key,JSON.stringify(v));
-  }catch{}
-}
-function lsDel(k,uid){
-  try{
-    const key = uid ? lsKey(uid,k) : k;
-    localStorage.removeItem(key);
-  }catch{}
+function lsGet(k,d,uid){try{const key=uid?lsKey(uid,k):k;const v=localStorage.getItem(key);return v?JSON.parse(v):d;}catch{return d;}}
+function lsSet(k,v,uid){try{const key=uid?lsKey(uid,k):k;localStorage.setItem(key,JSON.stringify(v));}catch{}}
+function lsDel(k,uid){try{const key=uid?lsKey(uid,k):k;localStorage.removeItem(key);}catch{}}
+
+// ── Helpers ───────────────────────────────────────────────────
+function hexToRgb(hex){
+  return parseInt(hex.slice(1,3),16)+","+parseInt(hex.slice(3,5),16)+","+parseInt(hex.slice(5,7),16);
 }
 
-// ── AI System Prompt ──────────────────────────────────────────
+function getGreeting(name){
+  const h=new Date().getHours();
+  const time=h<12?"morning":h<17?"afternoon":"evening";
+  return name?"Good "+time+", "+name+".":"Good "+time+".";
+}
+
+function getDailyVerse(){
+  const day = Math.floor(Date.now()/(1000*60*60*24));
+  return DAILY_VERSES[day % DAILY_VERSES.length];
+}
+
+function hasCrisisContent(text){
+  const lower = text.toLowerCase();
+  return CRISIS_KEYWORDS.some(k=>lower.includes(k));
+}
+
 function buildSystem(p, sessions){
-  const goals = p.goals&&p.goals.length ? p.goals.map((g,i)=>(i+1)+". "+g).join("\n") : "Not specified.";
-  const struggles = p.struggles&&p.struggles.length ? p.struggles.join(", ") : "Not specified.";
-
-  const authorsLine = p.authors&&p.authors.length
-    ? "\nThis person's favorite Christian authors are: "+p.authors.join(", ")+". When relevant, draw naturally on their thought, voice, and works — but only when it genuinely fits. Do not force it."
-    : "\nDraw from Brennan Manning, Dallas Willard, Richard Foster, CS Lewis, and Dr. Caroline Leaf naturally.";
-
-  let memoryLine = "";
+  const goals=p.goals&&p.goals.length?p.goals.map((g,i)=>(i+1)+". "+g).join("\n"):"Not specified.";
+  const struggles=p.struggles&&p.struggles.length?p.struggles.join(", "):"Not specified.";
+  const authorsLine=p.authors&&p.authors.length
+    ?"\nThis person's favorite Christian authors are: "+p.authors.join(", ")+". Draw naturally on their thought when it genuinely fits. Never force a reference."
+    :"\nDraw from Brennan Manning, Dallas Willard, Richard Foster, CS Lewis, and Dr. Caroline Leaf naturally.";
+  let memoryLine="";
   if(sessions&&sessions.length>0){
-    const recent = sessions.slice(0,5).filter(s=>s.opening||s.gratitude);
+    const recent=sessions.slice(0,5).filter(s=>s.opening||s.gratitude);
     if(recent.length>0){
-      memoryLine = "\n\nThis person's recent session history (reference naturally if it connects, never force it):\n";
-      memoryLine += recent.map(s=>{
-        let line = s.date+": ";
-        if(s.opening) line += s.opening.slice(0,120);
-        if(s.moods&&s.moods.length) line += " [Mood: "+s.moods.slice(0,2).join(", ")+"]";
-        if(s.distortion) line += " [Pattern: "+s.distortion+"]";
+      memoryLine="\n\nRecent session history (reference naturally if it connects, never force it):\n";
+      memoryLine+=recent.map(s=>{
+        let line=s.date+": ";
+        if(s.opening) line+=s.opening.slice(0,120);
+        if(s.moods&&s.moods.length) line+=" [Mood: "+s.moods.slice(0,2).join(", ")+"]";
+        if(s.distortion) line+=" [Pattern: "+s.distortion+"]";
+        if(s.actionStep) line+=" [Action step given: "+s.actionStep+"]";
         return line;
       }).join("\n");
     }
   }
-
-  return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care.\nYou combine CBT (David Burns), neuroscience, biblical truth, and Spirit-led pastoral care.\nYour thinking is shaped by a rich library of voices — Brennan Manning on grace, Dallas Willard on spiritual formation, Richard Foster on disciplines, CS Lewis on truth and imagination, Henri Nouwen on the wounded healer, Dr. Caroline Leaf on the neuroscience of thought and mental health, and others. Draw from whichever voice genuinely fits the moment. Never force a reference. Often the insight matters more than the attribution. Let their wisdom inform how you think, not just what you quote."+authorsLine+"\nPrioritize grace, identity in Christ, and Spirit transformation.\n"+(p.firstName?"The persons name is "+p.firstName+".\n":"")+"Faith background: "+(p.faith||"Christian")+".\nKey struggles: "+struggles+".\nGrowth goals:\n"+goals+"\nWatch for cognitive distortions. Be warm but direct. No flattery or filler.\nSession arc: Opening=validate+1 question. Middle=name distortion+biblical perspective+1 question. Closing=summarize+reframe+prayer+pause statement.\nKeep sessions to 4-6 exchanges. This is holy ground."+memoryLine;
+  return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care.\nYou combine CBT (David Burns), neuroscience, biblical truth, and Spirit-led pastoral care.\nYour thinking is shaped by a rich library of voices — Brennan Manning on grace, Dallas Willard on spiritual formation, Richard Foster on disciplines, CS Lewis on truth and imagination, Henri Nouwen on the wounded healer, Dr. Caroline Leaf on the neuroscience of thought and mental health, and others. Draw from whichever voice genuinely fits the moment. Never force a reference. Often the insight matters more than the attribution. Let their wisdom inform how you think, not just what you quote."+authorsLine+"\nPrioritize grace, identity in Christ, and Spirit transformation.\n"+(p.firstName?"The persons name is "+p.firstName+".\n":"")+"Faith background: Christian.\nKey struggles: "+struggles+".\nGrowth goals:\n"+goals+"\nWatch for cognitive distortions. Be warm but direct. No flattery or filler.\nIf someone expresses thoughts of suicide or self-harm, gently acknowledge their pain, express care, and provide crisis resources (988 Suicide and Crisis Lifeline). Do not proceed with coaching until safety is addressed.\nSession arc: Opening=validate+1 question. Middle=name distortion+biblical perspective+1 question. Closing=summarize+reframe+prayer+pause statement.\nKeep sessions to 4-6 exchanges. This is holy ground."+memoryLine;
 }
 
-// ── Weekly Report ─────────────────────────────────────────────
 function sendWeeklyReport(uid, sessions){
   try{
-    const lastKey = "sj_"+uid+"_last_report";
-    const last = localStorage.getItem(lastKey);
-    const now = Date.now();
-    if(last && (now - parseInt(last)) < 7*24*60*60*1000) return;
-    const weekAgo = now - 7*24*60*60*1000;
-    const thisWeek = sessions.filter(s=>{
-      try{ return new Date(s.savedAt||s.date).getTime()>weekAgo; }catch{return false;}
-    });
-    const topics = [];
+    const lastKey="sj_"+uid+"_last_report";
+    const last=localStorage.getItem(lastKey);
+    const now=Date.now();
+    if(last&&(now-parseInt(last))<7*24*60*60*1000) return;
+    const weekAgo=now-7*24*60*60*1000;
+    const thisWeek=sessions.filter(s=>{try{return new Date(s.savedAt||s.date).getTime()>weekAgo;}catch{return false;}});
+    const topics=[];
     sessions.slice(0,10).forEach(s=>{
       if(s.distortion) topics.push(s.distortion);
       if(s.moods) topics.push(...s.moods.slice(0,1));
     });
-    const topTopics = [...new Set(topics)].slice(0,5).join(", ");
-    let streak = 0;
-    const today = new Date(); today.setHours(0,0,0,0);
-    for(let i=0;i<30;i++){
-      const d = new Date(today); d.setDate(d.getDate()-i);
-      const ds = d.toLocaleDateString("en-US");
-      if(sessions.some(s=>s.date===ds||s.date===d.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"}))){ streak++; }
-      else if(i>0){ break; }
-    }
-    const fd = new FormData();
+    const topTopics=[...new Set(topics)].slice(0,5).join(", ");
+    const fd=new FormData();
     fd.append("form-name","sjalavard-weekly-report");
     fd.append("week",new Date().toISOString().slice(0,10));
     fd.append("sessions_this_week",thisWeek.length);
-    fd.append("streak",streak);
     fd.append("top_topics",topTopics);
     fetch("/",{method:"POST",body:fd}).catch(()=>{});
     localStorage.setItem(lastKey,String(now));
   }catch(e){}
-}
-
-// ── Greeting ──────────────────────────────────────────────────
-function getGreeting(name){
-  const h = new Date().getHours();
-  const time = h<12?"morning":h<17?"afternoon":"evening";
-  return name ? "Good "+time+", "+name+"." : "Good "+time+".";
 }
 
 // ── Shared Components ─────────────────────────────────────────
@@ -212,17 +222,12 @@ function SvgMark(){
   );
 }
 
-function Btn({onClick,disabled,children,outline,small,danger}){
-  const bg = danger?C.rose : outline?"transparent" : disabled?C.border:C.acc;
-  const color = danger?"#fff" : outline?C.muted : disabled?C.dim:C.bg;
-  const border = outline?"1px solid "+C.border : "none";
+function Btn({onClick,disabled,children,outline,small,danger,style}){
+  const bg=danger?C.rose:outline?"transparent":disabled?C.border:C.acc;
+  const color=danger?"#fff":outline?C.muted:disabled?C.dim:C.bg;
+  const border=outline?"1px solid "+C.border:"none";
   return(
-    <button onClick={onClick} disabled={disabled} style={{
-      width:small?"auto":"100%", padding:small?"8px 16px":"14px",
-      background:bg, border:border, borderRadius:small?8:12,
-      color:color, fontSize:small?12:15, cursor:disabled?"default":"pointer",
-      fontWeight:700, letterSpacing:0.3, transition:"opacity 0.2s",
-    }}>{children}</button>
+    <button onClick={onClick} disabled={disabled} style={{width:small?"auto":"100%",padding:small?"8px 16px":"14px",background:bg,border:border,borderRadius:small?8:12,color:color,fontSize:small?12:15,cursor:disabled?"default":"pointer",fontWeight:700,letterSpacing:0.3,transition:"opacity 0.2s",...style}}>{children}</button>
   );
 }
 
@@ -247,32 +252,15 @@ function Dots({step,total}){
 function FosterHopeBar(){
   return(
     <div style={{textAlign:"center",marginTop:24,paddingTop:20,borderTop:"1px solid "+C.border}}>
-      <p style={{fontSize:12,color:C.dim,marginBottom:10}}>
-        A ministry tool of{" "}
-        <a href={FH_URL} target="_blank" rel="noopener noreferrer"
-          style={{color:C.acc,textDecoration:"none",fontWeight:600}}>Foster Hope Ministries</a>
-      </p>
-      <a href={FH_URL} target="_blank" rel="noopener noreferrer"
-        style={{display:"inline-block",padding:"7px 20px",border:"1px solid rgba(91,184,212,0.5)",borderRadius:20,color:C.acc,fontSize:12,textDecoration:"none",fontWeight:600}}>
-        ♥ Give to Foster Hope
-      </a>
+      <p style={{fontSize:12,color:C.dim,marginBottom:10}}>A ministry tool of{" "}<a href={FH_URL} target="_blank" rel="noopener noreferrer" style={{color:C.acc,textDecoration:"none",fontWeight:600}}>Foster Hope Ministries</a></p>
+      <a href={FH_URL} target="_blank" rel="noopener noreferrer" style={{display:"inline-block",padding:"7px 20px",border:"1px solid rgba(91,184,212,0.5)",borderRadius:20,color:C.acc,fontSize:12,textDecoration:"none",fontWeight:600}}>♥ Give to Foster Hope</a>
     </div>
   );
 }
 
-function hexToRgb(hex){
-  const r=parseInt(hex.slice(1,3),16);
-  const g=parseInt(hex.slice(3,5),16);
-  const b=parseInt(hex.slice(5,7),16);
-  return r+","+g+","+b;
-}
-
-// ── Landing Screen (unauthenticated) ──────────────────────────
+// ── Landing ───────────────────────────────────────────────────
 
 function Landing(){
-  function openAuth(){
-    if(window.netlifyIdentity) window.netlifyIdentity.open();
-  }
   return(
     <div style={{minHeight:"100vh",background:"linear-gradient(160deg,#0f2537 0%,#0f2d42 55%,#1a3d54 100%)",display:"flex",alignItems:"center",justifyContent:"center",padding:"24px 16px"}}>
       <div style={{width:"100%",maxWidth:420,textAlign:"center"}}>
@@ -281,10 +269,8 @@ function Landing(){
         <p style={{color:C.muted,fontSize:14,letterSpacing:2,textTransform:"uppercase",fontWeight:500,marginBottom:8}}>Soul Care</p>
         <p style={{color:C.dim,fontSize:13,fontStyle:"italic",marginBottom:36}}>"Be still, and know that I am God." — Psalm 46:10</p>
         <Card>
-          <p style={{color:C.muted,fontSize:14,lineHeight:1.8,marginBottom:24}}>
-            A private space for reflection, coaching, and Spirit-led soul care. Your journey stays on your account — private and secure.
-          </p>
-          <Btn onClick={openAuth}>Sign In or Create Account</Btn>
+          <p style={{color:C.muted,fontSize:14,lineHeight:1.8,marginBottom:24}}>A private space for reflection, coaching, and Spirit-led soul care. Your journey stays on your account — private and secure.</p>
+          <Btn onClick={()=>window.netlifyIdentity&&window.netlifyIdentity.open()}>Sign In or Create Account</Btn>
           <FosterHopeBar/>
         </Card>
       </div>
@@ -292,35 +278,31 @@ function Landing(){
   );
 }
 
-// ── Profile Setup (first login) ───────────────────────────────
+// ── Profile Setup ─────────────────────────────────────────────
 
 function ProfileSetup({uid, email, onDone}){
   const [step,setStep]=useState(0);
+  const [tab,setTab]=useState("setup");
+  const [device,setDevice]=useState("iphone");
   const [name,setName]=useState("");
   const [struggles,setStruggles]=useState([]);
   const [goals,setGoals]=useState([]);
   const [authors,setAuthors]=useState([]);
   const [authorsOther,setAuthorsOther]=useState("");
-  const [device,setDevice]=useState("iphone");
-  const [tab,setTab]=useState("setup");
 
-  const toggleS = s => setStruggles(p=>p.includes(s)?p.filter(x=>x!==s):[...p,s]);
-  const toggleG = g => setGoals(p=>p.includes(g)?p.filter(x=>x!==g):[...p,g]);
-  const toggleA = a => {
-    if(authors.includes(a)) setAuthors(p=>p.filter(x=>x!==a));
-    else if(authors.length<10) setAuthors(p=>[...p,a]);
-  };
+  const toggleS=s=>setStruggles(p=>p.includes(s)?p.filter(x=>x!==s):[...p,s]);
+  const toggleG=g=>setGoals(p=>p.includes(g)?p.filter(x=>x!==g):[...p,g]);
+  const toggleA=a=>{if(authors.includes(a))setAuthors(p=>p.filter(x=>x!==a));else if(authors.length<10)setAuthors(p=>[...p,a]);};
 
-  function finishAuthors(){
-    const extras = authorsOther.split(",").map(s=>s.trim()).filter(Boolean);
-    const allAuthors = [...authors,...extras].slice(0,10);
-    const profile = {firstName:name.trim(),struggles,goals,authors:allAuthors};
-    lsSet("profile",profile,uid);
-    lsSet("profile_done",true,uid);
+  async function finish(){
+    const extras=authorsOther.split(",").map(s=>s.trim()).filter(Boolean);
+    const allAuthors=[...authors,...extras].slice(0,10);
+    const profile={firstName:name.trim(),struggles,goals,authors:allAuthors,profile_done:true};
+    await dbSetProfile(uid,email,profile);
     onDone();
   }
 
-  const installSteps = {
+  const installSteps={
     iphone:["Open this page in Safari (not Chrome)","Tap the Share button at the bottom","Tap Add to Home Screen","Name it Sjalavard and tap Add","The icon appears on your home screen"],
     android:["Open this page in Chrome","Tap the three-dot menu top right","Tap Add to Home screen or Install App","Confirm and tap Add","Icon appears on your home screen"],
     mac:["Open this page in Safari","Click File in the menu bar","Click Add to Dock","Sjalavard appears in your Dock","In Chrome: click the install icon in the address bar"],
@@ -378,10 +360,9 @@ function ProfileSetup({uid, email, onDone}){
             <Dots step={0} total={2}/>
             <div style={{textAlign:"center",marginBottom:22}}><SvgMark/><h2 style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:C.white,fontWeight:600,marginBottom:6}}>About You</h2><p style={{color:C.muted,fontSize:14}}>Help Sjal know who you are.</p></div>
             <Card>
-              <div style={{marginBottom:16}}>
+              <div style={{marginBottom:24}}>
                 <label style={{fontSize:11,color:C.muted,letterSpacing:1,textTransform:"uppercase",fontWeight:600,display:"block",marginBottom:7}}>What should Sjalavard call you?</label>
-                <input value={name} onChange={e=>setName(e.target.value)} placeholder="Your first name"
-                  style={{width:"100%",background:C.surf,border:"1.5px solid "+C.border,borderRadius:10,padding:"12px 14px",color:C.white,fontSize:15}}/>
+                <input value={name} onChange={e=>setName(e.target.value)} placeholder="Your first name" style={{width:"100%",background:C.surf,border:"1.5px solid "+C.border,borderRadius:10,padding:"12px 14px",color:C.white,fontSize:15}}/>
                 <p style={{fontSize:11,color:C.dim,marginTop:6}}>Signed in as {email}</p>
               </div>
               <Btn onClick={()=>name.trim()&&setStep(2)} disabled={!name.trim()}>Continue →</Btn>
@@ -395,10 +376,7 @@ function ProfileSetup({uid, email, onDone}){
             <div style={{textAlign:"center",marginBottom:22}}><SvgMark/><h2 style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:C.white,fontWeight:600,marginBottom:6}}>What Do You Wrestle With?</h2><p style={{color:C.muted,fontSize:14}}>Select your common patterns.</p></div>
             <Card>
               <div style={{display:"flex",flexWrap:"wrap",gap:7,marginBottom:22}}>
-                {STRUGGLES.map(s=>{
-                  const on=struggles.includes(s);
-                  return <button key={s} onClick={()=>toggleS(s)} style={{background:on?"rgba(91,184,212,0.2)":C.surf,border:"1.5px solid "+(on?C.acc:C.border),borderRadius:20,padding:"6px 12px",color:on?C.acc:C.muted,fontSize:12,cursor:"pointer",fontWeight:on?700:400}}>{s}</button>;
-                })}
+                {STRUGGLES.map(s=>{const on=struggles.includes(s);return <button key={s} onClick={()=>toggleS(s)} style={{background:on?"rgba(91,184,212,0.2)":C.surf,border:"1.5px solid "+(on?C.acc:C.border),borderRadius:20,padding:"6px 12px",color:on?C.acc:C.muted,fontSize:12,cursor:"pointer",fontWeight:on?700:400}}>{s}</button>;})}
               </div>
               <Btn onClick={()=>setStep(3)} disabled={struggles.length===0}>Continue ({struggles.length} selected) →</Btn>
             </Card>
@@ -411,15 +389,11 @@ function ProfileSetup({uid, email, onDone}){
             <div style={{textAlign:"center",marginBottom:22}}><SvgMark/><h2 style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:C.white,fontWeight:600,marginBottom:6}}>Your Growth Goals</h2><p style={{color:C.muted,fontSize:14}}>What is God calling you toward?</p></div>
             <Card>
               <div style={{display:"flex",flexDirection:"column",gap:7,marginBottom:22}}>
-                {GOALS.map(g=>{
-                  const on=goals.includes(g);
-                  return(
-                    <button key={g} onClick={()=>toggleG(g)} style={{background:on?"rgba(91,184,212,0.15)":C.surf,border:"1.5px solid "+(on?C.acc:C.border),borderRadius:9,padding:"11px 14px",color:on?C.white:C.muted,fontSize:13,cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:10}}>
-                      <span style={{width:16,height:16,borderRadius:4,background:on?C.acc:C.border,flexShrink:0,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:10,color:C.bg,fontWeight:700}}>{on?"✓":""}</span>
-                      {g}
-                    </button>
-                  );
-                })}
+                {GOALS.map(g=>{const on=goals.includes(g);return(
+                  <button key={g} onClick={()=>toggleG(g)} style={{background:on?"rgba(91,184,212,0.15)":C.surf,border:"1.5px solid "+(on?C.acc:C.border),borderRadius:9,padding:"11px 14px",color:on?C.white:C.muted,fontSize:13,cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:10}}>
+                    <span style={{width:16,height:16,borderRadius:4,background:on?C.acc:C.border,flexShrink:0,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:10,color:C.bg,fontWeight:700}}>{on?"✓":""}</span>{g}
+                  </button>
+                );})}
               </div>
               <Btn onClick={()=>setStep(4)} disabled={goals.length===0}>Continue ({goals.length} selected) →</Btn>
             </Card>
@@ -432,26 +406,20 @@ function ProfileSetup({uid, email, onDone}){
             <div style={{textAlign:"center",marginBottom:22}}><SvgMark/><h2 style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:C.white,fontWeight:600,marginBottom:6}}>Your Favorite Christian Authors</h2><p style={{color:C.muted,fontSize:14,lineHeight:1.6}}>Select up to 10. Sjal will weave their voice into sessions when it fits.</p></div>
             <Card>
               <div style={{display:"flex",flexWrap:"wrap",gap:7,marginBottom:18}}>
-                {ALL_AUTHORS.map(a=>{
-                  const on=authors.includes(a);
-                  const maxed=authors.length>=10&&!on;
-                  return(
-                    <button key={a} onClick={()=>!maxed&&toggleA(a)} style={{background:on?"rgba(91,184,212,0.2)":C.surf,border:"1.5px solid "+(on?C.acc:C.border),borderRadius:20,padding:"6px 12px",color:on?C.acc:maxed?C.dim:C.muted,fontSize:12,cursor:maxed?"default":"pointer",fontWeight:on?700:400,opacity:maxed?0.5:1}}>{a}</button>
-                  );
-                })}
+                {ALL_AUTHORS.map(a=>{const on=authors.includes(a);const maxed=authors.length>=10&&!on;return(
+                  <button key={a} onClick={()=>!maxed&&toggleA(a)} style={{background:on?"rgba(91,184,212,0.2)":C.surf,border:"1.5px solid "+(on?C.acc:C.border),borderRadius:20,padding:"6px 12px",color:on?C.acc:maxed?C.dim:C.muted,fontSize:12,cursor:maxed?"default":"pointer",fontWeight:on?700:400,opacity:maxed?0.5:1}}>{a}</button>
+                );})}
               </div>
               <div style={{marginBottom:18}}>
                 <label style={{fontSize:11,color:C.muted,letterSpacing:1,textTransform:"uppercase",fontWeight:600,display:"block",marginBottom:7}}>Others not listed (comma-separated)</label>
-                <input value={authorsOther} onChange={e=>setAuthorsOther(e.target.value)} placeholder="e.g. Dietrich Bonhoeffer, Corrie ten Boom"
-                  style={{width:"100%",background:C.surf,border:"1.5px solid "+C.border,borderRadius:10,padding:"11px 14px",color:C.white,fontSize:14}}/>
+                <input value={authorsOther} onChange={e=>setAuthorsOther(e.target.value)} placeholder="e.g. Dietrich Bonhoeffer, Corrie ten Boom" style={{width:"100%",background:C.surf,border:"1.5px solid "+C.border,borderRadius:10,padding:"11px 14px",color:C.white,fontSize:14}}/>
               </div>
               <p style={{fontSize:11,color:C.dim,marginBottom:16,textAlign:"center"}}>{authors.length}/10 selected</p>
-              <Btn onClick={finishAuthors}>Enter Sjalavard →</Btn>
-              <button onClick={finishAuthors} style={{width:"100%",marginTop:10,padding:"11px",background:"transparent",border:"none",color:C.dim,fontSize:13,cursor:"pointer"}}>Skip</button>
+              <Btn onClick={finish}>Enter Sjalavard →</Btn>
+              <button onClick={finish} style={{width:"100%",marginTop:10,padding:"11px",background:"transparent",border:"none",color:C.dim,fontSize:13,cursor:"pointer"}}>Skip</button>
             </Card>
           </div>
         )}
-
       </div>
     </div>
   );
@@ -460,10 +428,9 @@ function ProfileSetup({uid, email, onDone}){
 // ── Main App ──────────────────────────────────────────────────
 
 function App({uid, email, onLogout}){
-  const profile = lsGet("profile",{},uid);
-  const sessions0 = lsGet("sessions",[],uid);
-  const sysPrompt = buildSystem(profile, sessions0);
-
+  const [profile,setProfile]=useState({});
+  const [sessions,setSessions]=useState([]);
+  const [appReady,setAppReady]=useState(false);
   const [phase,setPhase]=useState("mood");
   const [moods,setMoods]=useState([]);
   const [text,setText]=useState("");
@@ -473,26 +440,48 @@ function App({uid, email, onLogout}){
   const [distortion,setDistortion]=useState(null);
   const [err,setErr]=useState(null);
   const [lastHist,setLastHist]=useState(null);
-  const [sessions,setSessions]=useState(sessions0);
   const [tab,setTab]=useState("session");
   const [restored,setRestored]=useState(false);
   const [gratitude,setGratitude]=useState(["","",""]);
   const [summary,setSummary]=useState("");
   const [summaryLoading,setSummaryLoading]=useState(false);
+  const [actionStep,setActionStep]=useState("");
   const [expanded,setExpanded]=useState(null);
   const [logoutConfirm,setLogoutConfirm]=useState(false);
   const [editAuthors,setEditAuthors]=useState(false);
-  const [editAuthorsList,setEditAuthorsList]=useState(profile.authors||[]);
+  const [editAuthorsList,setEditAuthorsList]=useState([]);
   const [editAuthorsOther,setEditAuthorsOther]=useState("");
+  const [showCrisis,setShowCrisis]=useState(false);
+  const [checkinMood,setCheckinMood]=useState("");
+  const [checkinNote,setCheckinNote]=useState("");
+  const [checkinDone,setCheckinDone]=useState(false);
+  const [prayerEntries,setPrayerEntries]=useState([]);
+  const [prayerInput,setPrayerInput]=useState("");
+  const [prayerTitle,setPrayerTitle]=useState("");
   const bottomRef=useRef(null);
 
   useEffect(()=>{
-    const d=lsGet("draft",null,uid);
-    if(d&&(d.msgs&&d.msgs.length>0||d.text)){
-      setMoods(d.moods||[]);setText(d.text||"");setMsgs(d.msgs||[]);
-      setDistortion(d.distortion||null);setPhase(d.phase||"mood");setRestored(true);
+    async function load(){
+      const [p,s]=await Promise.all([dbGetProfile(uid),dbGetSessions(uid)]);
+      const prof=p||{};
+      setProfile(prof);
+      setSessions(s||[]);
+      setEditAuthorsList(prof.authors||[]);
+      const prayers=lsGet("prayers",[],uid);
+      setPrayerEntries(prayers);
+      const todayKey=new Date().toLocaleDateString("en-US");
+      const ci=lsGet("checkin_"+todayKey,null,uid);
+      if(ci) setCheckinDone(true);
+      const d=lsGet("draft",null,uid);
+      if(d&&(d.msgs&&d.msgs.length>0||d.text)){
+        setMoods(d.moods||[]);setText(d.text||"");setMsgs(d.msgs||[]);
+        setDistortion(d.distortion||null);setPhase(d.phase||"mood");setRestored(true);
+      }
+      sendWeeklyReport(uid,s||[]);
+      setAppReady(false);
+      setAppReady(true);
     }
-    sendWeeklyReport(uid, sessions0);
+    load();
   },[]);
 
   useEffect(()=>{
@@ -503,21 +492,20 @@ function App({uid, email, onLogout}){
   useEffect(()=>{bottomRef.current&&bottomRef.current.scrollIntoView({behavior:"smooth"});},[msgs,loading]);
 
   const moodObjs=moods.map(l=>MOODS.find(m=>m.l===l)).filter(Boolean);
-  const firstName = profile.firstName ? profile.firstName.split(" ")[0] : "";
+  const firstName=profile.firstName?profile.firstName.split(" ")[0]:"";
+  const sysPrompt=buildSystem(profile,sessions);
+  const verse=getDailyVerse();
+
+  function checkForCrisis(t){
+    if(hasCrisisContent(t)) setShowCrisis(true);
+  }
 
   async function callCoach(hist){
     setLoading(true);setLastHist(hist);setErr(null);
     try{
       const count=hist.filter(m=>m.role==="user").length;
       const close=count>=5?"\n\nINSTRUCTION: Close this session now. Summarize key insight, offer a reframe, close with a short prayer, end with 'This feels like a good place to pause.'":"";
-      const res=await fetch("/api/gemini",{
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-          systemInstruction:{parts:[{text:sysPrompt+close}]},
-          contents:hist.map(m=>({role:m.role==="assistant"?"model":"user",parts:[{text:m.content}]})),
-          generationConfig:{maxOutputTokens:3000},
-        }),
-      });
+      const res=await fetch("/api/gemini",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({systemInstruction:{parts:[{text:sysPrompt+close}]},contents:hist.map(m=>({role:m.role==="assistant"?"model":"user",parts:[{text:m.content}]})),generationConfig:{maxOutputTokens:3000}})});
       if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e&&e.error&&e.error.message||"Error "+res.status);}
       const data=await res.json();
       const reply=data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]&&data.candidates[0].content.parts[0].text||"I am here. Take your time.";
@@ -528,6 +516,7 @@ function App({uid, email, onLogout}){
 
   async function startSession(){
     if(!text.trim())return;
+    checkForCrisis(text);
     const ms=moods.map((l,i)=>["Primary","Secondary","Third"][i]+" mood: "+l).join(", ");
     setMsgs([{role:"user",content:text}]);setPhase("coach");
     await callCoach([{role:"user",content:"My moods: "+ms+".\n\n"+text}]);
@@ -535,50 +524,45 @@ function App({uid, email, onLogout}){
 
   async function sendMsg(){
     if(!input.trim()||loading)return;
+    checkForCrisis(input);
     const m=input.trim();setInput("");setErr(null);
     const updated=[...msgs,{role:"user",content:m}];setMsgs(updated);
     const ms=moods.map((l,i)=>["Primary","Secondary","Third"][i]+" mood: "+l).join(", ");
-    await callCoach([
-      {role:"user",content:"Moods: "+ms+". Opening: "+(msgs[0]&&msgs[0].content||"")},
-      ...updated.slice(1).map(x=>({role:x.role==="coach"?"assistant":"user",content:x.content})),
-    ]);
+    await callCoach([{role:"user",content:"Moods: "+ms+". Opening: "+(msgs[0]&&msgs[0].content||"")}, ...updated.slice(1).map(x=>({role:x.role==="coach"?"assistant":"user",content:x.content}))]);
   }
 
   async function generateSummary(){
-    setSummaryLoading(true);
-    setSummary("");
-    setPhase("summary");
+    setSummaryLoading(true);setSummary("");setActionStep("");setPhase("summary");
     try{
-      const distortionLine = distortion ? "Cognitive distortion identified: "+distortion+"." : "No specific cognitive distortion was named.";
-      const history = msgs.map(function(m){ return (m.role==="coach"?"Sjal":"User")+": "+m.content; }).join("\n");
-      const prompt = "Based on this soul care session, write a brief warm closing summary (3-5 sentences). Include: 1) The core theme or struggle they brought. 2) A key insight or reframe from the session. 3) "+distortionLine+" End with one short sentence of encouragement.\n\nSession:\n"+history;
-      const res = await fetch("/api/gemini",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-          contents:[{role:"user",parts:[{text:prompt}]}],
-          generationConfig:{maxOutputTokens:300},
-        }),
-      });
-      const data = await res.json();
-      const reply = data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]&&data.candidates[0].content.parts[0].text;
-      setSummary(reply||"This was a meaningful time. Carry what was shared with you today.");
-    }catch(e){
-      setSummary("This was a meaningful time. Carry what was shared with you today.");
-    }
+      const distortionLine=distortion?"Cognitive distortion identified: "+distortion+".":"No specific cognitive distortion was named.";
+      const history=msgs.map(function(m){return(m.role==="coach"?"Sjal":"User")+": "+m.content;}).join("\n");
+      const prompt="Based on this soul care session, provide two things:\n1) A brief warm closing summary (3-5 sentences) covering: the core theme, a key insight or reframe, and "+distortionLine+" End with one short sentence of encouragement.\n2) On a new line starting with 'ACTION:' write ONE concrete, specific action step the person can take before their next session. Make it simple, doable, and spiritually grounded.\n\nSession:\n"+history;
+      const res=await fetch("/api/gemini",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{role:"user",parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:400}})});
+      const data=await res.json();
+      const reply=data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]&&data.candidates[0].content.parts[0].text||"";
+      const actionMatch=reply.match(/ACTION:\s*(.+)/s);
+      if(actionMatch){
+        setActionStep(actionMatch[1].trim().split("\n")[0]);
+        setSummary(reply.replace(/ACTION:[\s\S]*/,"").trim());
+      }else{
+        setSummary(reply||"This was a meaningful time. Carry what was shared with you today.");
+      }
+    }catch(e){setSummary("This was a meaningful time. Carry what was shared with you today.");}
     setSummaryLoading(false);
   }
 
-  function saveSession(){
+  async function saveSession(){
     const s={
       date:new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"}),
       time:new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"}),
       savedAt:Date.now(),
-      moods:[...moods],distortion,msgs:[...msgs],opening:text,gratitude:[...gratitude],summary,
+      moods:[...moods],distortion,msgs:[...msgs],opening:text,gratitude:[...gratitude],summary,actionStep,
     };
-    const ns=[s,...sessions];setSessions(ns);lsSet("sessions",ns,uid);lsDel("draft",uid);
+    await dbAddSession(uid,s);
+    setSessions(prev=>[s,...prev]);
+    lsDel("draft",uid);
     setPhase("mood");setMoods([]);setText("");setMsgs([]);setInput("");
-    setDistortion(null);setErr(null);setLastHist(null);setRestored(false);setGratitude(["","",""]);setSummary("");
+    setDistortion(null);setErr(null);setLastHist(null);setRestored(false);setGratitude(["","",""]);setSummary("");setActionStep("");
   }
 
   function toggleMood(l){
@@ -587,16 +571,68 @@ function App({uid, email, onLogout}){
     else if(moods.length<3)setMoods(p=>[...p,l]);
   }
 
-  function saveEditedAuthors(){
-    const extras = editAuthorsOther.split(",").map(s=>s.trim()).filter(Boolean);
-    const merged = [...editAuthorsList,...extras].slice(0,10);
-    const updated = {...profile, authors:merged};
-    lsSet("profile",updated,uid);
+  async function saveEditedAuthors(){
+    const extras=editAuthorsOther.split(",").map(s=>s.trim()).filter(Boolean);
+    const merged=[...editAuthorsList,...extras].slice(0,10);
+    const updated={...profile,authors:merged};
+    setProfile(updated);
+    await dbSetProfile(uid,email,updated);
     setEditAuthors(false);
+  }
+
+  function saveCheckin(){
+    if(!checkinMood)return;
+    const todayKey=new Date().toLocaleDateString("en-US");
+    const entry={date:todayKey,mood:checkinMood,note:checkinNote,time:new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})};
+    lsSet("checkin_"+todayKey,entry,uid);
+    setCheckinDone(true);
+  }
+
+  function savePrayer(){
+    if(!prayerInput.trim())return;
+    const entry={id:Date.now(),title:prayerTitle.trim()||"Prayer",text:prayerInput.trim(),date:new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}),answered:false};
+    const updated=[entry,...prayerEntries];
+    setPrayerEntries(updated);
+    lsSet("prayers",updated,uid);
+    setPrayerInput("");setPrayerTitle("");
+  }
+
+  function togglePrayerAnswered(id){
+    const updated=prayerEntries.map(p=>p.id===id?{...p,answered:!p.answered}:p);
+    setPrayerEntries(updated);
+    lsSet("prayers",updated,uid);
+  }
+
+  function deletePrayer(id){
+    const updated=prayerEntries.filter(p=>p.id!==id);
+    setPrayerEntries(updated);
+    lsSet("prayers",updated,uid);
+  }
+
+  // Mood trend data — last 14 days of check-ins
+  function getMoodTrends(){
+    const days=[];
+    const moodScores={"Hopeless":1,"Ashamed":2,"Anxious":2,"Overwhelmed":2,"Angry":3,"Lonely":3,"Fearful":3,"Discouraged":3,"Envious":3,"Jealous":3,"Not Enough":3,"Restless":4,"Worried":4,"Stuck":4,"Offended":4,"Frustrated":4,"Distracted":5,"Weary":5,"Unfocused":5,"Fragmented":5};
+    for(let i=13;i>=0;i--){
+      const d=new Date();d.setDate(d.getDate()-i);
+      const key=d.toLocaleDateString("en-US");
+      const ci=lsGet("checkin_"+key,null,uid);
+      const sessionMoods=sessions.filter(s=>s.date&&s.date.includes(d.toLocaleDateString("en-US",{month:"long",day:"numeric"}))).flatMap(s=>s.moods||[]);
+      const mood=ci?ci.mood:sessionMoods[0]||null;
+      const score=mood?(moodScores[mood]||5):null;
+      days.push({label:d.toLocaleDateString("en-US",{weekday:"short"}).slice(0,1),score,mood,date:key});
+    }
+    return days;
   }
 
   const progPhases=["mood","share","coach","summary","gratitude"];
   const progIdx=progPhases.indexOf(phase);
+
+  if(!appReady) return(
+    <div style={{minHeight:"100vh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <div style={{textAlign:"center"}}><SvgMark/><p style={{color:C.muted,fontSize:13,letterSpacing:1,textTransform:"uppercase"}}>Loading your space...</p></div>
+    </div>
+  );
 
   return(
     <div style={{minHeight:"100vh",background:C.bg,color:C.white}}>
@@ -621,9 +657,9 @@ function App({uid, email, onLogout}){
       </div>
 
       <div style={{background:C.surf,borderBottom:"1px solid "+C.border}}>
-        <div style={{maxWidth:700,margin:"0 auto",padding:"0 20px",display:"flex"}}>
-          {[["session","Session"],["history","Past Sessions"],["profile","My Profile"]].map(([v,l])=>(
-            <button key={v} onClick={()=>setTab(v)} style={{padding:"13px 18px",background:"transparent",border:"none",borderBottom:"2px solid "+(tab===v?C.acc:"transparent"),color:tab===v?C.acc:C.muted,fontSize:13,cursor:"pointer",fontWeight:tab===v?700:400,transition:"all 0.2s"}}>{l}</button>
+        <div style={{maxWidth:700,margin:"0 auto",padding:"0 20px",display:"flex",overflowX:"auto"}}>
+          {[["session","Session"],["journal","Prayer"],["history","Past Sessions"],["profile","My Profile"]].map(([v,l])=>(
+            <button key={v} onClick={()=>setTab(v)} style={{padding:"13px 16px",background:"transparent",border:"none",borderBottom:"2px solid "+(tab===v?C.acc:"transparent"),color:tab===v?C.acc:C.muted,fontSize:13,cursor:"pointer",fontWeight:tab===v?700:400,transition:"all 0.2s",whiteSpace:"nowrap"}}>{l}</button>
           ))}
         </div>
       </div>
@@ -632,7 +668,7 @@ function App({uid, email, onLogout}){
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
           <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:"28px 24px",maxWidth:340,width:"100%",textAlign:"center"}}>
             <p style={{fontSize:16,color:C.white,marginBottom:8,fontWeight:600}}>Sign out of Sjalavard?</p>
-            <p style={{fontSize:13,color:C.muted,marginBottom:22,lineHeight:1.6}}>Your sessions are saved to your account and will be here when you return.</p>
+            <p style={{fontSize:13,color:C.muted,marginBottom:22,lineHeight:1.6}}>Your sessions are saved and will be here when you return.</p>
             <div style={{display:"flex",gap:8}}>
               <button onClick={()=>{if(window.netlifyIdentity)window.netlifyIdentity.logout();onLogout();}} style={{flex:1,padding:"11px",background:C.rose,border:"none",borderRadius:9,color:"#fff",fontSize:13,cursor:"pointer",fontWeight:700}}>Sign Out</button>
               <button onClick={()=>setLogoutConfirm(false)} style={{flex:1,padding:"11px",background:"transparent",border:"1px solid "+C.border,borderRadius:9,color:C.muted,fontSize:13,cursor:"pointer"}}>Cancel</button>
@@ -641,10 +677,52 @@ function App({uid, email, onLogout}){
         </div>
       )}
 
+      {showCrisis&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:600,display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
+          <div style={{background:C.card,border:"1px solid "+C.rose,borderRadius:16,padding:"28px 24px",maxWidth:360,width:"100%"}}>
+            <p style={{fontSize:18,marginBottom:8}}>💙</p>
+            <p style={{fontSize:16,color:C.white,marginBottom:10,fontWeight:600,fontFamily:"'Playfair Display',serif"}}>You are not alone.</p>
+            <p style={{fontSize:13,color:C.muted,marginBottom:18,lineHeight:1.7}}>What you shared suggests you may be in significant pain. Sjal is here for you, and so are others who are trained to help right now.</p>
+            <div style={{background:"rgba(224,128,144,0.1)",border:"1px solid rgba(224,128,144,0.3)",borderRadius:10,padding:"14px 16px",marginBottom:18}}>
+              <p style={{fontSize:13,color:C.white,fontWeight:600,marginBottom:4}}>988 Suicide and Crisis Lifeline</p>
+              <p style={{fontSize:13,color:C.muted,marginBottom:6}}>Call or text <strong style={{color:C.white}}>988</strong> — available 24/7</p>
+              <p style={{fontSize:12,color:C.dim}}>Free, confidential support from trained counselors.</p>
+            </div>
+            <Btn onClick={()=>setShowCrisis(false)}>I understand — continue to Sjal</Btn>
+          </div>
+        </div>
+      )}
+
       <div style={{maxWidth:700,margin:"0 auto",padding:"24px 16px 120px"}}>
 
         {tab==="session"&&(
           <div>
+            {/* Daily verse */}
+            <div style={{background:"rgba(91,184,212,0.06)",border:"1px solid rgba(91,184,212,0.2)",borderRadius:12,padding:"14px 18px",marginBottom:20}}>
+              <p style={{fontSize:10,color:C.acc,letterSpacing:1,fontWeight:700,marginBottom:5}}>TODAY — {verse.ref.toUpperCase()}</p>
+              <p style={{fontSize:13,color:C.muted,fontStyle:"italic",lineHeight:1.7,fontFamily:"'Playfair Display',Georgia,serif"}}>"{verse.text}"</p>
+            </div>
+
+            {/* Daily check-in */}
+            {!checkinDone?(
+              <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:14,padding:"18px 20px",marginBottom:20}}>
+                <p style={{fontSize:13,color:C.white,fontWeight:600,marginBottom:4}}>Daily Check-in</p>
+                <p style={{fontSize:12,color:C.muted,marginBottom:14}}>A quick pulse — how are you today?</p>
+                <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:12}}>
+                  {["Peaceful","Hopeful","Okay","Tired","Anxious","Struggling"].map(m=>(
+                    <button key={m} onClick={()=>setCheckinMood(m)} style={{padding:"6px 14px",background:checkinMood===m?"rgba(91,184,212,0.2)":C.surf,border:"1.5px solid "+(checkinMood===m?C.acc:C.border),borderRadius:20,color:checkinMood===m?C.acc:C.muted,fontSize:12,cursor:"pointer",fontWeight:checkinMood===m?700:400}}>{m}</button>
+                  ))}
+                </div>
+                <input value={checkinNote} onChange={e=>setCheckinNote(e.target.value)} placeholder="One word or sentence (optional)..." style={{width:"100%",background:C.surf,border:"1px solid "+C.border,borderRadius:8,padding:"9px 12px",color:C.white,fontSize:13,marginBottom:10}}/>
+                <button onClick={saveCheckin} disabled={!checkinMood} style={{padding:"8px 20px",background:checkinMood?C.acc:C.border,border:"none",borderRadius:8,color:C.bg,fontSize:12,cursor:checkinMood?"pointer":"default",fontWeight:700}}>Save Check-in</button>
+              </div>
+            ):(
+              <div style={{background:"rgba(91,184,160,0.08)",border:"1px solid rgba(91,184,160,0.25)",borderRadius:10,padding:"10px 16px",marginBottom:20,display:"flex",alignItems:"center",gap:8}}>
+                <span style={{color:C.success,fontSize:14}}>✓</span>
+                <p style={{fontSize:12,color:C.muted,margin:0}}>Daily check-in complete.</p>
+              </div>
+            )}
+
             {restored&&(
               <div style={{background:"rgba(91,184,212,0.1)",border:"1px solid rgba(91,184,212,0.3)",borderRadius:10,padding:"12px 16px",marginBottom:20,display:"flex",justifyContent:"space-between",alignItems:"center",gap:10,flexWrap:"wrap"}}>
                 <p style={{fontSize:13,color:C.acc,margin:0,fontWeight:500}}>Previous session restored.</p>
@@ -665,8 +743,7 @@ function App({uid, email, onLogout}){
                 <p style={{color:C.muted,fontSize:14,marginBottom:24,lineHeight:1.7}}>Select up to 3 moods. First tap is your primary feeling.</p>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:7,marginBottom:20}}>
                   {MOODS.map(m=>{
-                    const rank=moods.indexOf(m.l)+1;
-                    const on=rank>0;
+                    const rank=moods.indexOf(m.l)+1;const on=rank>0;
                     return(
                       <button key={m.l} onClick={()=>toggleMood(m.l)} style={{background:on?"rgba("+hexToRgb(m.c)+",0.15)":C.surf,border:"1.5px solid "+(on?m.c:C.border),borderRadius:9,padding:"11px 4px 9px",cursor:"pointer",textAlign:"center",position:"relative",transition:"all 0.15s"}}>
                         {on&&<div style={{position:"absolute",top:3,right:3,background:m.c,borderRadius:5,width:14,height:14,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:"#fff",fontWeight:800}}>{rank}</div>}
@@ -679,9 +756,7 @@ function App({uid, email, onLogout}){
                   <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:12,padding:"14px 18px",marginBottom:16}}>
                     <div style={{display:"flex",flexWrap:"wrap",gap:7,marginBottom:6}}>
                       {moodObjs.map((m,i)=>(
-                        <span key={m.l} style={{background:"rgba("+hexToRgb(m.c)+",0.15)",border:"1px solid "+m.c+"55",borderRadius:20,padding:"3px 10px",fontSize:11,color:m.c,fontWeight:600}}>
-                          {["Primary","Secondary","Third"][i]} · {m.l}
-                        </span>
+                        <span key={m.l} style={{background:"rgba("+hexToRgb(m.c)+",0.15)",border:"1px solid "+m.c+"55",borderRadius:20,padding:"3px 10px",fontSize:11,color:m.c,fontWeight:600}}>{["Primary","Secondary","Third"][i]} · {m.l}</span>
                       ))}
                     </div>
                     <p style={{fontSize:11,color:C.dim,margin:0}}>{moods.length<3?(3-moods.length)+" more available":"3 moods selected"}</p>
@@ -701,9 +776,7 @@ function App({uid, email, onLogout}){
                 <p style={{color:C.muted,fontSize:14,marginBottom:16,lineHeight:1.7}}>Share freely. Nothing is too big, too small, or too messy.</p>
                 <textarea value={text} onChange={e=>setText(e.target.value)} placeholder="Start wherever feels right..." rows={8}
                   style={{width:"100%",background:C.card,border:"1.5px solid "+C.border,borderRadius:12,padding:"16px",color:C.white,fontSize:15,lineHeight:1.85,resize:"vertical",fontFamily:"'Playfair Display',Georgia,serif"}}/>
-                <div style={{marginTop:12}}>
-                  <Btn onClick={startSession} disabled={!text.trim()}>Begin Session with Sjal →</Btn>
-                </div>
+                <div style={{marginTop:12}}><Btn onClick={startSession} disabled={!text.trim()}>Begin Session with Sjal →</Btn></div>
               </div>
             )}
 
@@ -724,17 +797,13 @@ function App({uid, email, onLogout}){
                   {msgs.map((m,i)=>(
                     <div key={i} className="fi" style={{display:"flex",justifyContent:m.role==="coach"?"flex-start":"flex-end",marginBottom:18,alignItems:"flex-start"}}>
                       {m.role==="coach"&&<div style={{width:34,height:34,borderRadius:"50%",background:C.acc,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,marginRight:10,flexShrink:0,marginTop:2,color:C.bg,fontWeight:700,fontFamily:"'Playfair Display',serif"}}>S</div>}
-                      <div style={{maxWidth:"76%",background:m.role==="coach"?C.card:C.acc,border:m.role==="coach"?"1px solid "+C.border:"none",borderRadius:m.role==="coach"?"4px 16px 16px 16px":"16px 4px 16px 16px",padding:"13px 17px",color:m.role==="coach"?C.white:C.bg,fontSize:14,lineHeight:1.85,fontFamily:m.role==="coach"?"'Playfair Display',Georgia,serif":"'Inter',sans-serif",whiteSpace:"pre-wrap"}}>
-                        {m.content}
-                      </div>
+                      <div style={{maxWidth:"76%",background:m.role==="coach"?C.card:C.acc,border:m.role==="coach"?"1px solid "+C.border:"none",borderRadius:m.role==="coach"?"4px 16px 16px 16px":"16px 4px 16px 16px",padding:"13px 17px",color:m.role==="coach"?C.white:C.bg,fontSize:14,lineHeight:1.85,fontFamily:m.role==="coach"?"'Playfair Display',Georgia,serif":"'Inter',sans-serif",whiteSpace:"pre-wrap"}}>{m.content}</div>
                     </div>
                   ))}
                   {loading&&(
                     <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:18}}>
                       <div style={{width:34,height:34,borderRadius:"50%",background:C.acc,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,color:C.bg,fontWeight:700,fontFamily:"'Playfair Display',serif"}}>S</div>
-                      <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:"4px 16px 16px 16px",padding:"13px 18px"}}>
-                        <span style={{color:C.muted,fontSize:18,letterSpacing:7}}>···</span>
-                      </div>
+                      <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:"4px 16px 16px 16px",padding:"13px 18px"}}><span style={{color:C.muted,fontSize:18,letterSpacing:7}}>···</span></div>
                     </div>
                   )}
                   {err&&!loading&&(
@@ -786,6 +855,15 @@ function App({uid, email, onLogout}){
                         </div>
                       </div>
                     )}
+                    {actionStep&&(
+                      <div style={{background:"rgba(91,184,160,0.08)",border:"1px solid rgba(91,184,160,0.3)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",gap:12,alignItems:"flex-start"}}>
+                        <div style={{fontSize:16,marginTop:1}}>✦</div>
+                        <div>
+                          <p style={{fontSize:11,color:C.success,fontWeight:700,letterSpacing:0.5,marginBottom:4}}>YOUR ACTION STEP</p>
+                          <p style={{fontSize:13,color:C.white,lineHeight:1.6}}>{actionStep}</p>
+                        </div>
+                      </div>
+                    )}
                     <Btn onClick={()=>setPhase("gratitude")}>Continue to Gratitude →</Btn>
                   </div>
                 )}
@@ -807,9 +885,7 @@ function App({uid, email, onLogout}){
                       style={{flex:1,background:C.card,border:"1.5px solid "+C.border,borderRadius:10,padding:"12px 14px",color:C.white,fontSize:14,fontFamily:"'Playfair Display',Georgia,serif"}}/>
                   </div>
                 ))}
-                <div style={{marginTop:16}}>
-                  <Btn onClick={saveSession} disabled={gratitude.filter(g=>g.trim()).length===0}>Complete Session ✦</Btn>
-                </div>
+                <div style={{marginTop:16}}><Btn onClick={saveSession} disabled={gratitude.filter(g=>g.trim()).length===0}>Complete Session ✦</Btn></div>
               </div>
             )}
 
@@ -818,27 +894,81 @@ function App({uid, email, onLogout}){
                 <button onClick={()=>setPhase("coach")} style={{background:"transparent",border:"none",color:C.muted,cursor:"pointer",fontSize:13,marginBottom:22,padding:0}}>← Back to Session</button>
                 <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:26,fontWeight:600,marginBottom:6,letterSpacing:-0.5}}>Name a Pattern</h2>
                 <p style={{color:C.muted,fontSize:14,marginBottom:20,lineHeight:1.7}}>Awareness is the first step toward freedom.</p>
-                {DISTORTIONS.map(d=>{
-                  const on=distortion===d.l;
-                  return(
-                    <button key={d.l} onClick={()=>setDistortion(distortion===d.l?null:d.l)} style={{background:on?"rgba(91,184,212,0.15)":C.surf,border:"1.5px solid "+(on?C.acc:C.border),borderRadius:9,padding:"11px 14px",cursor:"pointer",textAlign:"left",width:"100%",marginBottom:7,transition:"all 0.15s"}}>
-                      <div style={{fontSize:13,color:on?C.acc:C.white,fontWeight:on?600:400}}>{d.l}</div>
-                      <div style={{fontSize:11,color:C.muted,marginTop:2}}>{d.s}</div>
-                    </button>
-                  );
-                })}
-                <div style={{marginTop:14}}>
-                  <Btn onClick={()=>setPhase("coach")}>Return to Session →</Btn>
-                </div>
+                {DISTORTIONS.map(d=>{const on=distortion===d.l;return(
+                  <button key={d.l} onClick={()=>setDistortion(distortion===d.l?null:d.l)} style={{background:on?"rgba(91,184,212,0.15)":C.surf,border:"1.5px solid "+(on?C.acc:C.border),borderRadius:9,padding:"11px 14px",cursor:"pointer",textAlign:"left",width:"100%",marginBottom:7,transition:"all 0.15s"}}>
+                    <div style={{fontSize:13,color:on?C.acc:C.white,fontWeight:on?600:400}}>{d.l}</div>
+                    <div style={{fontSize:11,color:C.muted,marginTop:2}}>{d.s}</div>
+                  </button>
+                );})}
+                <div style={{marginTop:14}}><Btn onClick={()=>setPhase("coach")}>Return to Session →</Btn></div>
               </div>
             )}
+          </div>
+        )}
+
+        {tab==="journal"&&(
+          <div className="fi">
+            <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:26,fontWeight:600,marginBottom:4,letterSpacing:-0.5}}>Prayer Journal</h2>
+            <p style={{color:C.muted,fontSize:13,marginBottom:22}}>A private space to bring your prayers before God.</p>
+            <Card style={{marginBottom:20}}>
+              <div style={{marginBottom:12}}>
+                <input value={prayerTitle} onChange={e=>setPrayerTitle(e.target.value)} placeholder="Title (optional)" style={{width:"100%",background:C.surf,border:"1px solid "+C.border,borderRadius:8,padding:"9px 12px",color:C.white,fontSize:13,marginBottom:8}}/>
+                <textarea value={prayerInput} onChange={e=>setPrayerInput(e.target.value)} placeholder="Write your prayer..." rows={4}
+                  style={{width:"100%",background:C.surf,border:"1px solid "+C.border,borderRadius:8,padding:"10px 12px",color:C.white,fontSize:14,lineHeight:1.75,resize:"vertical",fontFamily:"'Playfair Display',Georgia,serif"}}/>
+              </div>
+              <button onClick={savePrayer} disabled={!prayerInput.trim()} style={{padding:"9px 20px",background:prayerInput.trim()?C.acc:C.border,border:"none",borderRadius:8,color:prayerInput.trim()?C.bg:C.dim,fontSize:13,cursor:prayerInput.trim()?"pointer":"default",fontWeight:700}}>Add Prayer</button>
+            </Card>
+            {prayerEntries.length===0?(
+              <div style={{textAlign:"center",padding:"50px 20px",color:C.muted}}>
+                <div style={{fontSize:36,marginBottom:12,opacity:0.3}}>🙏</div>
+                <p style={{fontSize:14,lineHeight:1.7}}>Your prayers will be kept here.</p>
+              </div>
+            ):prayerEntries.map(p=>(
+              <div key={p.id} style={{background:C.card,border:"1px solid "+(p.answered?"rgba(91,184,160,0.4)":C.border),borderRadius:12,padding:"16px 18px",marginBottom:10,opacity:p.answered?0.75:1}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                  <div>
+                    <p style={{fontSize:13,color:p.answered?C.success:C.white,fontWeight:600,marginBottom:2,textDecoration:p.answered?"line-through":"none"}}>{p.title}</p>
+                    <p style={{fontSize:11,color:C.dim}}>{p.date}</p>
+                  </div>
+                  <div style={{display:"flex",gap:6}}>
+                    <button onClick={()=>togglePrayerAnswered(p.id)} style={{background:p.answered?"rgba(91,184,160,0.15)":"transparent",border:"1px solid "+(p.answered?"rgba(91,184,160,0.4)":C.border),borderRadius:6,padding:"3px 9px",color:p.answered?C.success:C.dim,fontSize:10,cursor:"pointer",fontWeight:600}}>{p.answered?"Answered ✓":"Mark answered"}</button>
+                    <button onClick={()=>deletePrayer(p.id)} style={{background:"transparent",border:"1px solid rgba(224,128,144,0.3)",borderRadius:6,padding:"3px 8px",color:C.rose,fontSize:10,cursor:"pointer"}}>✕</button>
+                  </div>
+                </div>
+                <p style={{fontSize:13,color:C.muted,lineHeight:1.65,fontFamily:"'Playfair Display',Georgia,serif",fontStyle:"italic"}}>{p.text}</p>
+              </div>
+            ))}
           </div>
         )}
 
         {tab==="history"&&(
           <div>
             <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:26,fontWeight:600,marginBottom:4,letterSpacing:-0.5}}>Your Journey</h2>
-            <p style={{color:C.muted,fontSize:13,marginBottom:22}}>{sessions.length} session{sessions.length!==1?"s":""} completed</p>
+            <p style={{color:C.muted,fontSize:13,marginBottom:16}}>{sessions.length} session{sessions.length!==1?"s":""} completed</p>
+
+            {/* Mood trend chart */}
+            {(()=>{
+              const trends=getMoodTrends();
+              const hasData=trends.some(d=>d.score!==null);
+              if(!hasData) return null;
+              const max=5;
+              return(
+                <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:14,padding:"18px 20px",marginBottom:20}}>
+                  <p style={{fontSize:10,color:C.acc,letterSpacing:1,fontWeight:700,marginBottom:14}}>MOOD TREND — LAST 14 DAYS</p>
+                  <div style={{display:"flex",alignItems:"flex-end",gap:4,height:60}}>
+                    {trends.map((d,i)=>(
+                      <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
+                        <div style={{width:"100%",borderRadius:3,background:d.score?C.acc:C.border,height:d.score?(d.score/max*52)+"px":"3px",transition:"height 0.3s",opacity:d.score?1:0.3}}
+                          title={d.mood||"No data"}/>
+                        <span style={{fontSize:8,color:C.dim}}>{d.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p style={{fontSize:10,color:C.dim,marginTop:8}}>Higher = more at peace · Lower = more distress</p>
+                </div>
+              );
+            })()}
+
             {sessions.length===0?(
               <div style={{textAlign:"center",padding:"70px 20px",color:C.muted}}>
                 <div style={{fontSize:40,marginBottom:14,opacity:0.3}}>✦</div>
@@ -867,6 +997,13 @@ function App({uid, email, onLogout}){
                       </div>
                     )}
                     {s.opening&&<p style={{fontSize:13,color:C.muted,lineHeight:1.65,margin:"0 0 10px",fontStyle:"italic"}}>"{s.opening.slice(0,180)}{s.opening.length>180?"...":""}"</p>}
+                    {s.summary&&<p style={{fontSize:13,color:C.muted,lineHeight:1.65,margin:"0 0 10px"}}>{s.summary.slice(0,200)}{s.summary.length>200?"...":""}</p>}
+                    {s.actionStep&&(
+                      <div style={{background:"rgba(91,184,160,0.08)",border:"1px solid rgba(91,184,160,0.2)",borderRadius:8,padding:"8px 12px",marginBottom:10}}>
+                        <p style={{fontSize:10,color:C.success,fontWeight:700,marginBottom:3}}>ACTION STEP</p>
+                        <p style={{fontSize:12,color:C.muted}}>{s.actionStep}</p>
+                      </div>
+                    )}
                     {s.gratitude&&s.gratitude.filter(g=>g).length>0&&(
                       <div style={{background:C.surf,borderRadius:8,padding:"10px 12px",marginBottom:10}}>
                         <p style={{fontSize:10,color:C.acc,margin:"0 0 5px",fontWeight:700,letterSpacing:0.5}}>GRATEFUL FOR</p>
@@ -874,7 +1011,7 @@ function App({uid, email, onLogout}){
                       </div>
                     )}
                     {s.msgs&&s.msgs.length>0&&<p style={{fontSize:10,color:C.dim,margin:"0 0 10px",letterSpacing:0.3}}>{s.msgs.length} EXCHANGES WITH SJAL</p>}
-                    <button onClick={()=>{const u=sessions.filter((_,si)=>si!==i);setSessions(u);lsSet("sessions",u,uid);setExpanded(null);}} style={{background:"transparent",border:"1px solid rgba(224,128,144,0.3)",borderRadius:7,padding:"4px 10px",color:C.rose,fontSize:10,cursor:"pointer",letterSpacing:0.3}}>DELETE</button>
+                    <button onClick={async()=>{if(s._id)await dbDeleteSession(s._id);setSessions(prev=>prev.filter((_,si)=>si!==i));setExpanded(null);}} style={{background:"transparent",border:"1px solid rgba(224,128,144,0.3)",borderRadius:7,padding:"4px 10px",color:C.rose,fontSize:10,cursor:"pointer",letterSpacing:0.3}}>DELETE</button>
                   </div>
                 )}
               </div>
@@ -886,13 +1023,11 @@ function App({uid, email, onLogout}){
           <div className="fi">
             <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:26,fontWeight:600,marginBottom:4,letterSpacing:-0.5}}>My Profile</h2>
             <p style={{color:C.muted,fontSize:13,marginBottom:22}}>How Sjal knows you.</p>
-
             <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:13,padding:"18px 20px",marginBottom:12}}>
               <p style={{fontSize:10,color:C.acc,letterSpacing:1,textTransform:"uppercase",fontWeight:700,marginBottom:10}}>About You</p>
               <p style={{fontSize:14,color:C.white,marginBottom:4}}>{profile.firstName||"Name not set"}</p>
               <p style={{fontSize:11,color:C.dim}}>{email}</p>
             </div>
-
             <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:13,padding:"18px 20px",marginBottom:12}}>
               <p style={{fontSize:10,color:C.acc,letterSpacing:1,textTransform:"uppercase",fontWeight:700,marginBottom:10}}>Your Struggles</p>
               <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
@@ -901,14 +1036,12 @@ function App({uid, email, onLogout}){
                 )):<p style={{color:C.dim,fontSize:13}}>None set</p>}
               </div>
             </div>
-
             <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:13,padding:"18px 20px",marginBottom:12}}>
               <p style={{fontSize:10,color:C.acc,letterSpacing:1,textTransform:"uppercase",fontWeight:700,marginBottom:10}}>Your Goals</p>
               {profile.goals&&profile.goals.length?profile.goals.map((g,i)=>(
                 <p key={i} style={{fontSize:13,color:C.muted,marginBottom:5,lineHeight:1.5}}>· {g}</p>
               )):<p style={{color:C.dim,fontSize:13}}>None set</p>}
             </div>
-
             <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:13,padding:"18px 20px",marginBottom:20}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
                 <p style={{fontSize:10,color:C.acc,letterSpacing:1,textTransform:"uppercase",fontWeight:700}}>Favorite Authors</p>
@@ -925,40 +1058,26 @@ function App({uid, email, onLogout}){
               ):(
                 <div>
                   <div style={{display:"flex",flexWrap:"wrap",gap:7,marginBottom:12}}>
-                    {ALL_AUTHORS.map(a=>{
-                      const on=editAuthorsList.includes(a);
-                      const maxed=editAuthorsList.length>=10&&!on;
-                      return(
-                        <button key={a} onClick={()=>{if(!maxed){if(on)setEditAuthorsList(p=>p.filter(x=>x!==a));else setEditAuthorsList(p=>[...p,a]);}}} style={{background:on?"rgba(91,184,212,0.2)":C.surf,border:"1.5px solid "+(on?C.acc:C.border),borderRadius:20,padding:"5px 11px",color:on?C.acc:maxed?C.dim:C.muted,fontSize:11,cursor:maxed?"default":"pointer",opacity:maxed?0.5:1}}>{a}</button>
-                      );
-                    })}
+                    {ALL_AUTHORS.map(a=>{const on=editAuthorsList.includes(a);const maxed=editAuthorsList.length>=10&&!on;return(
+                      <button key={a} onClick={()=>{if(!maxed){if(on)setEditAuthorsList(p=>p.filter(x=>x!==a));else setEditAuthorsList(p=>[...p,a]);}}} style={{background:on?"rgba(91,184,212,0.2)":C.surf,border:"1.5px solid "+(on?C.acc:C.border),borderRadius:20,padding:"5px 11px",color:on?C.acc:maxed?C.dim:C.muted,fontSize:11,cursor:maxed?"default":"pointer",opacity:maxed?0.5:1}}>{a}</button>
+                    );})}
                   </div>
-                  <input value={editAuthorsOther} onChange={e=>setEditAuthorsOther(e.target.value)} placeholder="Others not listed (comma-separated)"
-                    style={{width:"100%",background:C.surf,border:"1px solid "+C.border,borderRadius:8,padding:"10px 13px",color:C.white,fontSize:13,marginBottom:10}}/>
+                  <input value={editAuthorsOther} onChange={e=>setEditAuthorsOther(e.target.value)} placeholder="Others not listed (comma-separated)" style={{width:"100%",background:C.surf,border:"1px solid "+C.border,borderRadius:8,padding:"10px 13px",color:C.white,fontSize:13,marginBottom:10}}/>
                   <button onClick={saveEditedAuthors} style={{padding:"9px 18px",background:C.acc,border:"none",borderRadius:8,color:C.bg,fontSize:12,cursor:"pointer",fontWeight:700}}>Save Authors</button>
                 </div>
               )}
             </div>
-
             <div style={{background:"rgba(224,128,144,0.08)",border:"1px solid rgba(224,128,144,0.25)",borderRadius:13,padding:"18px 20px",marginBottom:20}}>
               <p style={{fontSize:13,color:C.rose,fontWeight:600,marginBottom:5}}>Account</p>
-              <p style={{fontSize:12,color:C.muted,marginBottom:14,lineHeight:1.6}}>
-                To reset your password, visit{" "}
-                <a href="https://www.sjalavard.com/.netlify/identity/recover" target="_blank" rel="noopener noreferrer" style={{color:C.acc,textDecoration:"none"}}>password recovery</a>.
-              </p>
+              <p style={{fontSize:12,color:C.muted,marginBottom:14,lineHeight:1.6}}>To reset your password, visit{" "}<a href="https://sjalavard.netlify.app/.netlify/identity/recover" target="_blank" rel="noopener noreferrer" style={{color:C.acc,textDecoration:"none"}}>password recovery</a>.</p>
               <button onClick={()=>setLogoutConfirm(true)} style={{background:"transparent",border:"1px solid rgba(224,128,144,0.4)",borderRadius:7,padding:"7px 14px",color:C.rose,fontSize:12,cursor:"pointer",fontWeight:500}}>Sign Out</button>
             </div>
-
             <div style={{textAlign:"center",paddingTop:22,borderTop:"1px solid "+C.border}}>
               <p style={{fontSize:12,color:C.dim,marginBottom:10}}>A ministry tool of <a href={FH_URL} target="_blank" rel="noopener noreferrer" style={{color:C.acc,textDecoration:"none",fontWeight:600}}>Foster Hope Ministries</a></p>
-              <a href={FH_URL} target="_blank" rel="noopener noreferrer"
-                style={{display:"inline-block",padding:"8px 20px",border:"1px solid rgba(91,184,212,0.4)",borderRadius:20,color:C.acc,fontSize:12,textDecoration:"none",fontWeight:600}}>
-                ♥ Give to Foster Hope
-              </a>
+              <a href={FH_URL} target="_blank" rel="noopener noreferrer" style={{display:"inline-block",padding:"8px 20px",border:"1px solid rgba(91,184,212,0.4)",borderRadius:20,color:C.acc,fontSize:12,textDecoration:"none",fontWeight:600}}>♥ Give to Foster Hope</a>
             </div>
           </div>
         )}
-
       </div>
     </div>
   );
@@ -969,53 +1088,44 @@ function App({uid, email, onLogout}){
 function Root(){
   const [niUser,setNiUser]=useState(null);
   const [niReady,setNiReady]=useState(false);
+  const [profileDone,setProfileDone]=useState(null);
 
   useEffect(()=>{
-    const ni = window.netlifyIdentity;
-    if(!ni){ setNiReady(true); return; }
-
-    const timeout = setTimeout(()=>setNiReady(true), 3000);
-
-    ni.on("init", user=>{
-      clearTimeout(timeout);
-      setNiUser(user||null);
-      setNiReady(true);
-    });
-    ni.on("login", user=>{
-      setNiUser(user);
-      ni.close();
-    });
-    ni.on("logout",()=>setNiUser(null));
-    ni.on("error", err=>{ console.error("Netlify Identity error",err); setNiReady(true); });
-
-    // Race condition fix — widget may have already fired init before React mounted
-    const current = ni.currentUser ? ni.currentUser() : null;
-    if(current){ clearTimeout(timeout); setNiUser(current); setNiReady(true); }
-
+    const ni=window.netlifyIdentity;
+    if(!ni){setNiReady(true);return;}
+    const timeout=setTimeout(()=>setNiReady(true),3000);
+    ni.on("init",user=>{clearTimeout(timeout);setNiUser(user||null);setNiReady(true);});
+    ni.on("login",user=>{setNiUser(user);ni.close();});
+    ni.on("logout",()=>{setNiUser(null);setProfileDone(null);});
+    ni.on("error",err=>{console.error(err);setNiReady(true);});
+    const current=ni.currentUser?ni.currentUser():null;
+    if(current){clearTimeout(timeout);setNiUser(current);setNiReady(true);}
     ni.init();
-    return ()=>clearTimeout(timeout);
+    return()=>clearTimeout(timeout);
   },[]);
 
-  if(!niReady){
-    return(
-      <div style={{minHeight:"100vh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center"}}>
-        <div style={{textAlign:"center"}}>
-          <SvgMark/>
-          <p style={{color:C.muted,fontSize:13,letterSpacing:1,textTransform:"uppercase"}}>Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  useEffect(()=>{
+    if(!niReady||!niUser)return;
+    dbProfileDone(niUser.id).then(done=>setProfileDone(done));
+  },[niReady,niUser]);
+
+  if(!niReady) return(
+    <div style={{minHeight:"100vh",background:"#0f2d42",display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <div style={{textAlign:"center"}}><SvgMark/><p style={{color:"#8ab8cc",fontSize:13,letterSpacing:1,textTransform:"uppercase"}}>Loading...</p></div>
+    </div>
+  );
 
   if(!niUser) return <Landing/>;
 
-  const uid = niUser.id;
-  const email = niUser.email;
-  const profileDone = lsGet("profile_done",false,uid);
+  if(profileDone===null) return(
+    <div style={{minHeight:"100vh",background:"#0f2d42",display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <div style={{textAlign:"center"}}><SvgMark/><p style={{color:"#8ab8cc",fontSize:13,letterSpacing:1,textTransform:"uppercase"}}>Loading your space...</p></div>
+    </div>
+  );
 
-  if(!profileDone) return <ProfileSetup uid={uid} email={email} onDone={()=>window.location.reload()}/>;
+  if(!profileDone) return <ProfileSetup uid={niUser.id} email={niUser.email} onDone={()=>setProfileDone(true)}/>;
 
-  return <App uid={uid} email={email} onLogout={()=>setNiUser(null)}/>;
+  return <App uid={niUser.id} email={niUser.email} onLogout={()=>setNiUser(null)}/>;
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(<Root/>);
