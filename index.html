@@ -150,7 +150,7 @@ function buildSystem(p, sessions){
     }
   }
 
-  return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care.\nYou combine CBT (David Burns), biblical truth, and Spirit-led pastoral care."+authorsLine+"\nPrioritize grace, identity in Christ, and Spirit transformation.\n"+(p.firstName?"The persons name is "+p.firstName+".\n":"")+"Faith background: "+(p.faith||"Christian")+".\nKey struggles: "+struggles+".\nGrowth goals:\n"+goals+"\nWatch for cognitive distortions. Be warm but direct. No flattery or filler.\nSession arc: Opening=validate+1 question. Middle=name distortion+biblical perspective+1 question. Closing=summarize+reframe+prayer+pause statement.\nKeep sessions to 4-6 exchanges. This is holy ground."+memoryLine;
+  return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care.\nYou combine CBT (David Burns), biblical truth, and Spirit-led pastoral care."+authorsLine+"\nPrioritize grace, identity in Christ, and Spirit transformation.\n"+(p.firstName?"The persons name is "+p.firstName+".\n":"")+"Faith background: Christian.\nKey struggles: "+struggles+".\nGrowth goals:\n"+goals+"\nWatch for cognitive distortions. Be warm but direct. No flattery or filler.\nSession arc: Opening=validate+1 question. Middle=name distortion+biblical perspective+1 question. Closing=summarize+reframe+prayer+pause statement.\nKeep sessions to 4-6 exchanges. This is holy ground."+memoryLine;
 }
 
 // ── Weekly Report ─────────────────────────────────────────────
@@ -408,7 +408,6 @@ function Landing(){
 function ProfileSetup({uid, email, onDone}){
   const [step,setStep]=useState(0);
   const [name,setName]=useState("");
-  const [faith,setFaith]=useState("");
   const [struggles,setStruggles]=useState([]);
   const [goals,setGoals]=useState([]);
   const [authors,setAuthors]=useState([]);
@@ -426,7 +425,7 @@ function ProfileSetup({uid, email, onDone}){
   function finishAuthors(){
     const extras = authorsOther.split(",").map(s=>s.trim()).filter(Boolean);
     const allAuthors = [...authors,...extras].slice(0,10);
-    const profile = {firstName:name.trim(),faith,struggles,goals,authors:allAuthors};
+    const profile = {firstName:name.trim(),struggles,goals,authors:allAuthors};
     lsSet("profile",profile,uid);
     lsSet("profile_done",true,uid);
     onDone();
@@ -495,11 +494,6 @@ function ProfileSetup({uid, email, onDone}){
                 <input value={name} onChange={e=>setName(e.target.value)} placeholder="Your first name"
                   style={{width:"100%",background:C.surf,border:"1.5px solid "+C.border,borderRadius:10,padding:"12px 14px",color:C.white,fontSize:15}}/>
                 <p style={{fontSize:11,color:C.dim,marginTop:6}}>Signed in as {email}</p>
-              </div>
-              <div style={{marginBottom:16}}>
-                <label style={{fontSize:11,color:C.muted,letterSpacing:1,textTransform:"uppercase",fontWeight:600,display:"block",marginBottom:7}}>Faith Background</label>
-                <input value={faith} onChange={e=>setFaith(e.target.value)} placeholder="e.g. Christian, Pentecostal, exploring..."
-                  style={{width:"100%",background:C.surf,border:"1.5px solid "+C.border,borderRadius:10,padding:"12px 14px",color:C.white,fontSize:15}}/>
               </div>
               <Btn onClick={()=>name.trim()&&setStep(2)} disabled={!name.trim()}>Continue →</Btn>
             </Card>
@@ -950,7 +944,6 @@ function App({uid, email, onLogout}){
             <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:13,padding:"18px 20px",marginBottom:12}}>
               <p style={{fontSize:10,color:C.acc,letterSpacing:1,textTransform:"uppercase",fontWeight:700,marginBottom:10}}>About You</p>
               <p style={{fontSize:14,color:C.white,marginBottom:4}}>{profile.firstName||"Name not set"}</p>
-              <p style={{fontSize:13,color:C.muted,marginBottom:4}}>{profile.faith||"Faith background not set"}</p>
               <p style={{fontSize:11,color:C.dim}}>{email}</p>
             </div>
 
