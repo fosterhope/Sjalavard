@@ -36,16 +36,16 @@ var {useState,useEffect,useRef} = React;
 
 var SB_URL = “https://rlwdqrvosbbdwmnrohxd.supabase.co”;
 var SB_KEY = “eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJsd2RxcnZvc2JiZHdtbnJvaHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MjA1NjQsImV4cCI6MjA4ODk5NjU2NH0.x1FzJ-qYL-27a-CMABhNzOGlpCH3nbeH42Nls7XkQX8”;
-var sb = window.supabase.createClient(SB_URL, SB_KEY);
+var _supabaseLib = window.supabase||window.Supabase||supabase;var sb = _supabaseLib.createClient(SB_URL, SB_KEY);
 
 function getSbWithAuth(){
+try{
 var ni = window.netlifyIdentity;
 var user = ni&&ni.currentUser?ni.currentUser():null;
 var token = user&&user.token&&user.token.access_token;
-if(!token) return sb;
-return window.supabase.createClient(SB_URL, SB_KEY, {
-global:{headers:{Authorization:“Bearer “+token}}
-});
+if(token && sb.rest) sb.rest.headers[“Authorization”] = “Bearer “+token;
+}catch(e){}
+return sb;
 }
 
 async function dbGetProfile(uid){
@@ -1129,7 +1129,11 @@ if(!profileDone) return <ProfileSetup uid={niUser.id} email={niUser.email} onDon
 return <App uid={niUser.id} email={niUser.email} onLogout={function(){setNiUser(null);}}/>;
 }
 
+try{
 ReactDOM.createRoot(document.getElementById(“root”)).render(<Root/>);
+}catch(e){
+document.getElementById(“root”).innerHTML = ‘<div style="padding:40px;color:#8ab8cc;font-family:sans-serif;text-align:center"><p style="font-size:18px;margin-bottom:12px">Something went wrong loading Sjalavard.</p><p style="font-size:13px;color:#4a7a94">’+e.message+’</p><button onclick="location.reload()" style="margin-top:20px;padding:10px 24px;background:#5bb8d4;border:none;border-radius:8px;color:#0f2d42;font-weight:700;cursor:pointer;font-size:14px">Reload</button></div>’;
+}
 </script>
 
 </body>
