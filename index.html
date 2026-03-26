@@ -93,10 +93,14 @@ async function dbDeleteSession(id) {
   }
 }
 async function dbProfileDone(uid) {
+  if(localStorage.getItem("sj_"+uid+"_profile_done") === "true") return true;
   try {
     var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).single();
-    return !!(r.data && r.data.data && r.data.data.profile_done);
+    var done = !!(r.data && r.data.data && r.data.data.profile_done);
+    if(done) localStorage.setItem("sj_"+uid+"_profile_done", "true");
+    return done;
   } catch (e) {
+    console.error("dbProfileDone error:", e);
     return false;
   }
 }
@@ -914,6 +918,7 @@ function ProfileSetup({
         }, 8000);
       });
       await Promise.race([dbSetProfile(uid, email, profile), timeout]);
+      localStorage.setItem("sj_"+uid+"_profile_done", "true");
       onDone();
     } catch (e) {
       setSaving(false);
