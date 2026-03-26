@@ -4024,17 +4024,20 @@ function Root() {
     var timeout = setTimeout(function () {
       setNiReady(true);
     }, 3000);
+    var justLoggedIn = false;
     ni.on("init", function (user) {
       clearTimeout(timeout);
       setNiUser(user || null);
       setNiReady(true);
     });
     ni.on("login", function (user) {
+      justLoggedIn = true;
       setNiUser(user);
       setNiReady(true);
-      ni.close();
+      setTimeout(function(){ ni.close(); justLoggedIn = false; }, 500);
     });
     ni.on("logout", function () {
+      if(justLoggedIn) { console.warn("Ignoring logout fired immediately after login"); return; }
       setNiUser(null);
       setProfileDone(null);
     });
