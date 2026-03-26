@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -93,9 +92,13 @@ async function dbDeleteSession(id) {
   }
 }
 async function dbProfileDone(uid) {
+  // Check localStorage first (survives sign out on same device)
   if(localStorage.getItem("sj_"+uid+"_profile_done") === "true") return true;
+  // Also check legacy key without uid in case uid changed
+  if(localStorage.getItem("sj_profile_done") === "true") return true;
   try {
     var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).single();
+    if(r.error) { console.warn("dbProfileDone query error:", r.error.message); return false; }
     var done = !!(r.data && r.data.data && r.data.data.profile_done);
     if(done) localStorage.setItem("sj_"+uid+"_profile_done", "true");
     return done;
@@ -919,6 +922,7 @@ function ProfileSetup({
       });
       await Promise.race([dbSetProfile(uid, email, profile), timeout]);
       localStorage.setItem("sj_"+uid+"_profile_done", "true");
+      localStorage.setItem("sj_profile_done", "true");
       onDone();
     } catch (e) {
       setSaving(false);
@@ -4089,6 +4093,5 @@ try {
   document.getElementById("root").innerHTML = '<div style="padding:40px;color:#8ab8cc;font-family:sans-serif;text-align:center"><p style="font-size:18px;margin-bottom:12px">Something went wrong loading Sjalavard.</p><p style="font-size:13px;color:#4a7a94">' + e.message + '</p><button onclick="location.reload()" style="margin-top:20px;padding:10px 24px;background:#5bb8d4;border:none;border-radius:8px;color:#0f2d42;font-weight:700;cursor:pointer;font-size:14px">Reload</button></div>';
 }
 </script>
-
 </body>
 </html>
