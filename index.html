@@ -45,8 +45,13 @@ function getSbWithAuth() {
     var ni = window.netlifyIdentity;
     var user = ni && ni.currentUser ? ni.currentUser() : null;
     var token = user && user.token && user.token.access_token;
-    if (token && sb.rest) sb.rest.headers["Authorization"] = "Bearer " + token;
-  } catch (e) {}
+    if (token) {
+      return _supabaseLib.createClient(SB_URL, SB_KEY, {
+        global: { headers: { Authorization: "Bearer " + token } },
+        auth: { persistSession: false }
+      });
+    }
+  } catch (e) { console.error("getSbWithAuth error", e); }
   return sb;
 }
 async function dbGetProfile(uid) {
@@ -923,7 +928,7 @@ function ProfileSetup({
       onDone();
     } catch (e) {
       setSaving(false);
-      setSaveErr("Could not save. Check your connection and try again.");
+      setSaveErr("Could not save: " + (e.message||"unknown error"));
     }
   }
   var devList = [["iphone", "iPhone"], ["android", "Android"], ["mac", "Mac"], ["windows", "Windows"]];
