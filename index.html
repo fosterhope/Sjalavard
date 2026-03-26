@@ -4024,20 +4024,20 @@ function Root() {
     var timeout = setTimeout(function () {
       setNiReady(true);
     }, 3000);
-    var justLoggedIn = false;
     ni.on("init", function (user) {
       clearTimeout(timeout);
       setNiUser(user || null);
       setNiReady(true);
     });
+    var justLoggedIn = false;
     ni.on("login", function (user) {
       justLoggedIn = true;
       setNiUser(user);
       setNiReady(true);
-      setTimeout(function(){ ni.close(); justLoggedIn = false; }, 500);
+      setTimeout(function () { ni.close(); justLoggedIn = false; }, 500);
     });
     ni.on("logout", function () {
-      if(justLoggedIn) { console.warn("Ignoring logout fired immediately after login"); return; }
+      if (justLoggedIn) { console.warn("Ignoring logout fired immediately after login"); return; }
       setNiUser(null);
       setProfileDone(null);
     });
