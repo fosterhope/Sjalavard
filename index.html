@@ -483,7 +483,7 @@ function AboutModal({
   onClose
 }) {
   var [sec, setSec] = useState("about");
-  var tabs = [["about", "About"], ["session", "Sessions"], ["checkin", "Check-in"], ["journal", "Prayer"], ["history", "History"], ["privacy", "Privacy"]];
+  var tabs = [["about", "About"], ["features", "Features"], ["session", "Sessions"], ["checkin", "Check-in"], ["journal", "Prayer"], ["history", "History"], ["privacy", "Privacy"]];
   return /*#__PURE__*/React.createElement("div", {
     style: {
       position: "fixed",
@@ -602,14 +602,21 @@ function AboutModal({
       lineHeight: 1.8,
       marginBottom: 12
     }
-  }, "Sjalavard is a private AI-powered Christian life coaching app. Your coach, Sjal, combines CBT, biblical truth, neuroscience, and Spirit-led pastoral care."), /*#__PURE__*/React.createElement("p", {
+  }, "Sjalavard is a private AI-powered Christian life coaching app. Your coach, Sjal, combines Cognitive Behavioral Therapy (CBT), biblical truth, neuroscience, and Spirit-led pastoral care to walk with you through whatever is on your heart."), /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 14,
       color: C.muted,
       lineHeight: 1.8,
       marginBottom: 12
     }
-  }, "Sjal draws from Brennan Manning, Dallas Willard, Henri Nouwen, Dr. Caroline Leaf, C.S. Lewis and others - whichever voice fits the moment."), /*#__PURE__*/React.createElement("div", {
+  }, "Sjal draws naturally from Brennan Manning on grace, Dallas Willard on spiritual formation, Henri Nouwen on the wounded healer, Dr. Caroline Leaf on the neuroscience of thought, C.S. Lewis on truth, and others - whichever voice fits the moment, never forced."), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 14,
+      color: C.muted,
+      lineHeight: 1.8,
+      marginBottom: 16
+    }
+  }, "Your account, sessions, and profile are private and secure. No ads. No data selling. Exists solely for your soul care."), /*#__PURE__*/React.createElement("div", {
     style: {
       background: "rgba(224,128,144,0.07)",
       border: "1px solid rgba(224,128,144,0.2)",
@@ -626,7 +633,7 @@ function AboutModal({
     style: {
       color: C.white
     }
-  }, "988"), "."))), sec === "session" && /*#__PURE__*/React.createElement("div", {
+  }, "988"), " (Suicide and Crisis Lifeline, free and confidential)."))), sec === "features" && /*#__PURE__*/React.createElement("div", {
     className: "fi"
   }, /*#__PURE__*/React.createElement("p", {
     style: {
@@ -636,13 +643,56 @@ function AboutModal({
       marginBottom: 16,
       letterSpacing: 0.5
     }
-  }, "HOW A SESSION WORKS"), [["1", "Choose your moods", "Select up to 3. First tap is primary. Helps Sjal meet you where you are."], ["2", "Share what's on your heart", "Write freely. Nothing is too big, too messy, or too small."], ["3", "Talk with Sjal", "Sjal responds with warmth and questions. Sessions run 4-6 exchanges."], ["4", "Name a Pattern (optional)", "Tap + Pattern to identify a cognitive distortion fueling your feelings."], ["5", "Session Summary", "Sjal reflects back the session and gives one concrete action step."], ["6", "Gratitude", "Every session closes with three gratitude entries. Practice, not formality."]].map(function (s, i) {
+  }, "EVERYTHING SJALAVARD INCLUDES"), [["✦", "AI Soul Care Sessions", "Talk with Sjal - your personal Christian life coach. Powered by Gemini AI, grounded in CBT, scripture, and Spirit-led care. Sessions run 4-6 exchanges and close with a summary, action step, and gratitude."], ["🙏", "Prayer Journal", "A private, AI-free space to write and keep your prayers. Mark them answered over time. Stored on your device only - never sent to any server."], ["💙", "Daily Check-in", "A 10-second mood pulse at the top of every day. Pick a word, add an optional note. No full session required."], ["📖", "Daily Verse", "A rotating scripture verse greets you each day at the top of the Session tab."], ["📊", "Mood Trend Chart", "See your last 14 days of check-ins and session moods visualized as a bar chart in Past Sessions."], ["🔍", "Cognitive Distortion Identifier", "During a session, tap + Pattern to name the thinking trap fueling your feelings - drawn from David Burns CBT framework."], ["⚡", "Action Steps", "Every session ends with one concrete, spiritually grounded action step from Sjal to carry into your week."], ["🗂", "Session History", "All completed sessions saved to your account, accessible on any device. Expand any session to see moods, opening words, summary, action step, and gratitude entries."], ["🚨", "Crisis Support", "If your words suggest you may be in crisis, Sjalavard automatically surfaces the 988 Lifeline before continuing."], ["⚙️", "Personalized Profile", "Set up once - your name, struggles, goals, and favorite authors shape how Sjal coaches you without ever referencing them by name."], ["🔒", "Cross-Device Sync", "Your sessions and profile sync securely across all your devices via Supabase."], ["📋", "Legal & Privacy", "Full terms of use, privacy policy, and copyright information available in the Legal tab."]].map(function (f, i) {
     return /*#__PURE__*/React.createElement("div", {
       key: i,
       style: {
         display: "flex",
         gap: 14,
         marginBottom: 18,
+        alignItems: "flex-start",
+        paddingBottom: 18,
+        borderBottom: i < 11 ? "1px solid rgba(45,107,138,0.4)" : "none"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 20,
+        flexShrink: 0,
+        width: 28,
+        textAlign: "center",
+        marginTop: 1
+      }
+    }, f[0]), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 13,
+        color: C.white,
+        fontWeight: 600,
+        marginBottom: 4
+      }
+    }, f[1]), /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 13,
+        color: C.muted,
+        lineHeight: 1.65
+      }
+    }, f[2])));
+  })), sec === "session" && /*#__PURE__*/React.createElement("div", {
+    className: "fi"
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: C.acc,
+      fontWeight: 700,
+      marginBottom: 16,
+      letterSpacing: 0.5
+    }
+  }, "HOW A SESSION WORKS"), [["1", "Choose your moods", "Select up to 3 moods from the grid. Your first tap is your primary feeling. This helps Sjal meet you exactly where you are before you say a word."], ["2", "Share what's on your heart", "Write freely - nothing is too big, too small, or too messy. This is a safe space. Sjal receives what you share without judgment."], ["3", "Talk with Sjal", "Sjal responds with warmth, asks one question at a time, and walks with you through what you shared. Sessions typically run 4-6 exchanges."], ["4", "Name a Pattern (optional)", "Tap + Pattern at any point to identify a cognitive distortion - a thinking trap that may be fueling your feelings. Based on David Burns CBT framework."], ["5", "End Session and Summary", "Tap End Session when you are ready. Sjal reflects back the key theme, names any patterns, and gives you one concrete action step to carry into your week."], ["6", "Gratitude", "Every session closes with three gratitude entries. Not a formality - a practice that rewires how you see your day."]].map(function (s, i) {
+    return /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: {
+        display: "flex",
+        gap: 14,
+        marginBottom: 20,
         alignItems: "flex-start"
       }
     }, /*#__PURE__*/React.createElement("div", {
@@ -665,7 +715,7 @@ function AboutModal({
         fontSize: 13,
         color: C.white,
         fontWeight: 600,
-        marginBottom: 3
+        marginBottom: 4
       }
     }, s[1]), /*#__PURE__*/React.createElement("p", {
       style: {
@@ -674,7 +724,21 @@ function AboutModal({
         lineHeight: 1.65
       }
     }, s[2])));
-  })), sec === "checkin" && /*#__PURE__*/React.createElement("div", {
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "rgba(91,184,212,0.06)",
+      border: "1px solid rgba(91,184,212,0.2)",
+      borderRadius: 10,
+      padding: "12px 14px",
+      marginTop: 4
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: C.muted,
+      lineHeight: 1.7
+    }
+  }, "A draft is saved automatically as you go. If you leave mid-session, you can pick up where you left off or start fresh."))), sec === "checkin" && /*#__PURE__*/React.createElement("div", {
     className: "fi"
   }, /*#__PURE__*/React.createElement("p", {
     style: {
@@ -691,20 +755,27 @@ function AboutModal({
       lineHeight: 1.8,
       marginBottom: 12
     }
-  }, "At the top of the Session tab is a quick check-in. Pick a mood word and add an optional note."), /*#__PURE__*/React.createElement("p", {
+  }, "At the top of the Session tab each day is a quick check-in. Choose one of six mood words - Peaceful, Hopeful, Okay, Tired, Anxious, or Struggling - and optionally add a short note. Takes about 10 seconds."), /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 14,
       color: C.muted,
       lineHeight: 1.8,
       marginBottom: 12
     }
-  }, "These build a mood history visible as a bar chart in Past Sessions."), /*#__PURE__*/React.createElement("p", {
+  }, "You do not need a full session every day. The check-in is a simple way to stay connected to your inner life and build a record of how you are really doing over time."), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 14,
+      color: C.muted,
+      lineHeight: 1.8,
+      marginBottom: 12
+    }
+  }, "Your last 14 days of check-ins and session moods are displayed as a bar chart in Past Sessions. Higher bars mean more peace, lower bars mean more distress."), /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 14,
       color: C.muted,
       lineHeight: 1.8
     }
-  }, "You do not need a full session every day. The check-in is a simple way to stay connected to your inner life.")), sec === "journal" && /*#__PURE__*/React.createElement("div", {
+  }, "Check-ins are stored on your device. Once completed each day the check-in is replaced with a quiet confirmation so it stays out of your way.")), sec === "journal" && /*#__PURE__*/React.createElement("div", {
     className: "fi"
   }, /*#__PURE__*/React.createElement("p", {
     style: {
@@ -721,20 +792,34 @@ function AboutModal({
       lineHeight: 1.8,
       marginBottom: 12
     }
-  }, "A private, AI-free space just between you and God. Write prayers, name them, and keep a record."), /*#__PURE__*/React.createElement("p", {
+  }, "The Prayer tab is a private, AI-free space just between you and God. Write prayers freely, give them a title, and keep them as a living record of your conversations with Him."), /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 14,
       color: C.muted,
       lineHeight: 1.8,
       marginBottom: 12
     }
-  }, "When a prayer is answered, tap Mark answered. Your journal becomes a testimony."), /*#__PURE__*/React.createElement("p", {
+  }, "When a prayer is answered, tap Mark answered. The entry stays in your journal with a line through it - a testimony of faithfulness you can look back on."), /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 14,
       color: C.muted,
-      lineHeight: 1.8
+      lineHeight: 1.8,
+      marginBottom: 12
     }
-  }, "Prayers are stored on your device only - never sent to any server.")), sec === "history" && /*#__PURE__*/React.createElement("div", {
+  }, "You can delete any prayer at any time. Prayers are stored on your device only and are never sent to any server, never seen by AI, and never processed by anyone but you."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "rgba(91,184,160,0.08)",
+      border: "1px solid rgba(91,184,160,0.25)",
+      borderRadius: 10,
+      padding: "12px 14px"
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: C.muted,
+      lineHeight: 1.7
+    }
+  }, "Tip: Use the prayer journal alongside your sessions. What Sjal surfaces in a session often becomes the seed of a prayer worth keeping."))), sec === "history" && /*#__PURE__*/React.createElement("div", {
     className: "fi"
   }, /*#__PURE__*/React.createElement("p", {
     style: {
@@ -751,13 +836,27 @@ function AboutModal({
       lineHeight: 1.8,
       marginBottom: 12
     }
-  }, "Every completed session is saved to your account and available on any device. Tap to expand and see moods, summary, action step, and gratitude."), /*#__PURE__*/React.createElement("p", {
+  }, "Every completed session is saved to your account and synced across all your devices. Tap any session card to expand it and review your moods, opening words, Sjal's summary, your action step, and your gratitude entries."), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 14,
+      color: C.muted,
+      lineHeight: 1.8,
+      marginBottom: 12
+    }
+  }, "The mood trend chart at the top shows your last 14 days of check-ins and session moods. It is a quick way to notice patterns - weeks of peace, seasons of struggle, and the movement between them."), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 14,
+      color: C.muted,
+      lineHeight: 1.8,
+      marginBottom: 12
+    }
+  }, "Sjal quietly draws on your last 5 sessions when coaching you - so the longer you use the app, the more Sjal understands your patterns and journey."), /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 14,
       color: C.muted,
       lineHeight: 1.8
     }
-  }, "The mood trend chart shows your last 14 days. You can delete any session at any time.")), sec === "privacy" && /*#__PURE__*/React.createElement("div", {
+  }, "You can delete any session at any time. Deletion is permanent.")), sec === "privacy" && /*#__PURE__*/React.createElement("div", {
     className: "fi"
   }, /*#__PURE__*/React.createElement("p", {
     style: {
@@ -767,13 +866,13 @@ function AboutModal({
       marginBottom: 16,
       letterSpacing: 0.5
     }
-  }, "YOUR PRIVACY"), [["Your account", "Login managed by Netlify Identity. Only you know your password."], ["Your sessions", "Sessions and profile stored in a secure database linked to your account ID."], ["Your prayers", "Prayer journal stored only on your device - never sent to any server."], ["The AI", "Session content sent to Google Gemini. Google privacy policy applies."], ["No ads", "No advertising, no analytics, no data selling. Exists solely for your soul care."]].map(function (item, i) {
+  }, "YOUR PRIVACY"), [["Your account", "Login is managed by Netlify Identity. Your password is known only to you and is never stored in plain text."], ["Your sessions", "Sessions and profile are stored in a secure database (Supabase) linked only to your account ID - not your name or email."], ["Your prayers", "Prayer journal is stored on your device only. It is never sent to any server, never processed by AI, and never accessible to anyone but you."], ["The AI", "Your session messages are sent to Google Gemini to generate Sjal's responses. By using the coaching feature you consent to this. Google's privacy policy applies to data processed by Gemini."], ["No ads or tracking", "No advertising, no analytics trackers, no data selling. Sjalavard exists solely for your soul care."], ["Data deletion", "To request full deletion of your account and all associated data, contact info@fosterhope.org."], ["Full legal info", "See the Legal tab in the main app for complete terms of use, privacy policy, disclaimer, and third-party service disclosures."]].map(function (item, i) {
     return /*#__PURE__*/React.createElement("div", {
       key: i,
       style: {
         marginBottom: 16,
         paddingBottom: 16,
-        borderBottom: i < 4 ? "1px solid " + C.border : "none"
+        borderBottom: i < 6 ? "1px solid " + C.border : "none"
       }
     }, /*#__PURE__*/React.createElement("p", {
       style: {
