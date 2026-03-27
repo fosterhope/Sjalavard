@@ -46,7 +46,7 @@ test("dbGetSessions orders descending", 'ascending: false' in SCRIPT or "ascendi
 test("dbAddSession inserts", '.from("sessions").insert' in SCRIPT)
 test("dbDeleteSession deletes", '.from("sessions").delete' in SCRIPT)
 test("dbProfileDone checks localStorage uid key",
-     'localStorage.getItem("sj_"+uid+"_profile_done")' in SCRIPT)
+     'localStorage.getItem("sj_" + uid + "_profile_done") === "true") return true' in SCRIPT)
 test("dbProfileDone checks uid-agnostic key",
      'localStorage.getItem("sj_profile_done")' in SCRIPT)
 test("dbProfileDone logs errors", 'console.error("dbProfileDone' in SCRIPT or 'console.warn("dbProfileDone' in SCRIPT)
@@ -68,7 +68,7 @@ test("ProfileSetup defined", "function ProfileSetup(" in SCRIPT)
 test("saving/saveErr states", "setSaving" in SCRIPT and "setSaveErr" in SCRIPT)
 test("finish() has 8s timeout", "8000" in SCRIPT)
 test("finish() saves uid localStorage key",
-     'localStorage.setItem("sj_"+uid+"_profile_done"' in SCRIPT)
+     'localStorage.setItem("sj_" + uid + "_profile_done"' in SCRIPT)
 test("finish() saves uid-agnostic key",
      'localStorage.setItem("sj_profile_done"' in SCRIPT)
 test("finish() error shows actual message", '"Could not save: "' in SCRIPT)
