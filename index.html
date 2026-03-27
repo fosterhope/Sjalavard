@@ -40,6 +40,12 @@ var SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 var _supabaseLib = typeof supabase !== "undefined" ? supabase : window.supabase;
 var sb = _supabaseLib.createClient(SB_URL, SB_KEY);
 function getSbWithAuth() {
+  try {
+    var ni = window.netlifyIdentity;
+    var user = ni && ni.currentUser ? ni.currentUser() : null;
+    var token = user && user.token && user.token.access_token;
+    if (token && sb.rest) sb.rest.headers["Authorization"] = "Bearer " + token;
+  } catch (e) {}
   return sb;
 }
 async function dbGetProfile(uid) {
@@ -92,15 +98,16 @@ async function dbDeleteSession(id) {
   }
 }
 async function dbProfileDone(uid) {
-  // Check localStorage first (survives sign out on same device)
-  if(localStorage.getItem("sj_"+uid+"_profile_done") === "true") return true;
-  // Also check legacy key without uid in case uid changed
-  if(localStorage.getItem("sj_profile_done") === "true") return true;
+  if (localStorage.getItem("sj_" + uid + "_profile_done") === "true") return true;
+  if (localStorage.getItem("sj_profile_done") === "true") return true;
   try {
     var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).single();
-    if(r.error) { console.warn("dbProfileDone query error:", r.error.message); return false; }
+    if (r.error) {
+      console.warn("dbProfileDone query error:", r.error.message);
+      return false;
+    }
     var done = !!(r.data && r.data.data && r.data.data.profile_done);
-    if(done) localStorage.setItem("sj_"+uid+"_profile_done", "true");
+    if (done) localStorage.setItem("sj_" + uid + "_profile_done", "true");
     return done;
   } catch (e) {
     console.error("dbProfileDone error:", e);
@@ -921,12 +928,12 @@ function ProfileSetup({
         }, 8000);
       });
       await Promise.race([dbSetProfile(uid, email, profile), timeout]);
-      localStorage.setItem("sj_"+uid+"_profile_done", "true");
+      localStorage.setItem("sj_" + uid + "_profile_done", "true");
       localStorage.setItem("sj_profile_done", "true");
       onDone();
     } catch (e) {
       setSaving(false);
-      setSaveErr("Could not save: " + (e.message||"unknown error"));
+      setSaveErr("Could not save: " + (e.message || "unknown error"));
     }
   }
   var devList = [["iphone", "iPhone"], ["android", "Android"], ["mac", "Mac"], ["windows", "Windows"]];
@@ -2103,7 +2110,7 @@ function App({
       display: "flex",
       overflowX: "auto"
     }
-  }, [["session", "Session"], ["journal", "Prayer"], ["history", "Past Sessions"], ["profile", "Profile"]].map(function (vl) {
+  }, [["session", "Session"], ["journal", "Prayer"], ["history", "Past Sessions"], ["profile", "Profile"], ["legal", "Legal"]].map(function (vl) {
     return /*#__PURE__*/React.createElement("button", {
       key: vl[0],
       onClick: function () {
@@ -4009,7 +4016,245 @@ function App({
       textDecoration: "none",
       fontWeight: 600
     }
-  }, "Heart Give to Foster Hope")))));
+  }, "Heart Give to Foster Hope"))), tab === "legal" && /*#__PURE__*/React.createElement("div", {
+    className: "fi"
+  }, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontFamily: "'Playfair Display',serif",
+      fontSize: 26,
+      fontWeight: 600,
+      marginBottom: 4,
+      letterSpacing: -0.5
+    }
+  }, "Legal"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: C.muted,
+      fontSize: 13,
+      marginBottom: 24
+    }
+  }, "Foster Hope Ministries \u2014 Effective January 1, 2025"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: "1px solid " + C.border,
+      borderRadius: 13,
+      padding: "20px 22px",
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: C.acc,
+      letterSpacing: 1,
+      textTransform: "uppercase",
+      fontWeight: 700,
+      marginBottom: 10
+    }
+  }, "Copyright"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: C.muted,
+      lineHeight: 1.8
+    }
+  }, "\xA9 ", new Date().getFullYear(), " Foster Hope Ministries. All rights reserved. Sjalavard and the Sjalavard name are property of Foster Hope Ministries. Unauthorized reproduction or distribution of this application or its content is prohibited.")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: "1px solid " + C.border,
+      borderRadius: 13,
+      padding: "20px 22px",
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: C.acc,
+      letterSpacing: 1,
+      textTransform: "uppercase",
+      fontWeight: 700,
+      marginBottom: 10
+    }
+  }, "Terms of Use"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: C.muted,
+      lineHeight: 1.8,
+      marginBottom: 10
+    }
+  }, "By using Sjalavard you agree to the following:"), ["Sjalavard is a spiritual and emotional support tool. It is not a licensed mental health service, crisis intervention service, or substitute for professional medical, psychological, or pastoral care.", "You must be 13 years of age or older to use this app.", "You are responsible for the accuracy of information you provide and for your use of the app.", "Foster Hope Ministries reserves the right to modify or discontinue the app at any time without notice.", "Misuse of the app, including attempts to circumvent security or access other users data, is strictly prohibited."].map(function (t, i) {
+    return /*#__PURE__*/React.createElement("p", {
+      key: i,
+      style: {
+        fontSize: 13,
+        color: C.muted,
+        lineHeight: 1.8,
+        marginBottom: 8
+      }
+    }, "- " + t);
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: "1px solid " + C.border,
+      borderRadius: 13,
+      padding: "20px 22px",
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: C.acc,
+      letterSpacing: 1,
+      textTransform: "uppercase",
+      fontWeight: 700,
+      marginBottom: 10
+    }
+  }, "Privacy Policy"), [["Account data", "Your email and user ID are stored securely via Netlify Identity. We do not sell or share your personal information with third parties."], ["Session data", "Your coaching sessions and profile are stored in a secure database linked to your account ID. Session content is used solely to provide personalized coaching within the app."], ["AI processing", "Your session messages are sent to Google Gemini to generate responses. By using the coaching feature you consent to this processing. Google privacy policy applies."], ["Prayer journal", "Stored locally on your device only. Never transmitted to any server."], ["No advertising", "We do not display ads, use tracking cookies, or sell your data to advertisers."], ["Data deletion", "To request deletion of your account and all associated data, contact us at info@fosterhope.org."]].map(function (item, i) {
+    return /*#__PURE__*/React.createElement("p", {
+      key: i,
+      style: {
+        fontSize: 13,
+        color: C.muted,
+        lineHeight: 1.8,
+        marginBottom: 8
+      }
+    }, /*#__PURE__*/React.createElement("strong", {
+      style: {
+        color: C.white
+      }
+    }, item[0] + ": "), item[1]);
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: "1px solid " + C.border,
+      borderRadius: 13,
+      padding: "20px 22px",
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: C.acc,
+      letterSpacing: 1,
+      textTransform: "uppercase",
+      fontWeight: 700,
+      marginBottom: 10
+    }
+  }, "Disclaimer"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: C.muted,
+      lineHeight: 1.8,
+      marginBottom: 8
+    }
+  }, "Sjalavard is provided as-is without warranties of any kind. Foster Hope Ministries makes no guarantees regarding the accuracy, completeness, or suitability of AI-generated coaching content for any particular purpose."), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: C.muted,
+      lineHeight: 1.8,
+      marginBottom: 8
+    }
+  }, "The AI coach (Sjal) draws on Christian thought and CBT principles but is not a licensed therapist, counselor, or pastor. Content is for spiritual encouragement and reflection only."), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: C.muted,
+      lineHeight: 1.8
+    }
+  }, "If you are experiencing a mental health crisis, please contact the ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: C.white
+    }
+  }, "988 Suicide and Crisis Lifeline"), " (call or text 988) or emergency services immediately.")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: "1px solid " + C.border,
+      borderRadius: 13,
+      padding: "20px 22px",
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: C.acc,
+      letterSpacing: 1,
+      textTransform: "uppercase",
+      fontWeight: 700,
+      marginBottom: 10
+    }
+  }, "Third-Party Services"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: C.muted,
+      lineHeight: 1.8,
+      marginBottom: 10
+    }
+  }, "Sjalavard uses the following services, each governed by their own terms and privacy policies:"), [["Netlify", "Hosting and identity", "https://www.netlify.com/privacy/"], ["Supabase", "Secure data storage", "https://supabase.com/privacy"], ["Google Gemini", "AI coaching responses", "https://policies.google.com/privacy"]].map(function (s, i) {
+    return /*#__PURE__*/React.createElement("p", {
+      key: i,
+      style: {
+        fontSize: 13,
+        color: C.muted,
+        lineHeight: 1.8,
+        marginBottom: 6
+      }
+    }, /*#__PURE__*/React.createElement("a", {
+      href: s[2],
+      target: "_blank",
+      rel: "noopener noreferrer",
+      style: {
+        color: C.acc,
+        textDecoration: "none",
+        fontWeight: 600
+      }
+    }, s[0]), " - " + s[1]);
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: "1px solid " + C.border,
+      borderRadius: 13,
+      padding: "20px 22px",
+      marginBottom: 24
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: C.acc,
+      letterSpacing: 1,
+      textTransform: "uppercase",
+      fontWeight: 700,
+      marginBottom: 10
+    }
+  }, "Contact"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: C.muted,
+      lineHeight: 1.8,
+      marginBottom: 4
+    }
+  }, "Foster Hope Ministries"), /*#__PURE__*/React.createElement("a", {
+    href: FH_URL,
+    target: "_blank",
+    rel: "noopener noreferrer",
+    style: {
+      display: "block",
+      fontSize: 13,
+      color: C.acc,
+      textDecoration: "none",
+      marginBottom: 4
+    }
+  }, FH_URL.replace("https://", "")), /*#__PURE__*/React.createElement("a", {
+    href: "mailto:info@fosterhope.org",
+    style: {
+      display: "block",
+      fontSize: 13,
+      color: C.acc,
+      textDecoration: "none"
+    }
+  }, "info@fosterhope.org")), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: C.dim,
+      textAlign: "center",
+      marginBottom: 24
+    }
+  }, "\xA9 ", new Date().getFullYear(), " Foster Hope Ministries. All rights reserved."))));
 }
 function Root() {
   var [niUser, setNiUser] = useState(null);
@@ -4034,10 +4279,16 @@ function Root() {
       justLoggedIn = true;
       setNiUser(user);
       setNiReady(true);
-      setTimeout(function () { ni.close(); justLoggedIn = false; }, 500);
+      setTimeout(function () {
+        ni.close();
+        justLoggedIn = false;
+      }, 500);
     });
     ni.on("logout", function () {
-      if (justLoggedIn) { console.warn("Ignoring logout fired immediately after login"); return; }
+      if (justLoggedIn) {
+        console.warn("Ignoring logout fired immediately after login");
+        return;
+      }
       setNiUser(null);
       setProfileDone(null);
     });
