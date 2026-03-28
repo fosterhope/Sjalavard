@@ -1908,49 +1908,62 @@ function App({
   useEffect(function () {
     async function load() {
       try {
-        var timeout = new Promise(function (_, rej) {
-          setTimeout(function () {
-            rej(new Error("timeout"));
-          }, 8000);
-        });
-        var results = await Promise.race([Promise.all([dbGetProfile(uid), dbGetSessions(uid)]), timeout]);
-        var p = results[0];
-        var s = results[1];
-        var prof = p || {};
+        // Use preloaded profile from Root if available (avoids double Supabase fetch)
+        var preloaded = window._sjPreloadedData;
+        var prof, sessions, checkins;
+        if (preloaded && preloaded.loaded) {
+          // Root already fetched everything — use directly, no Supabase needed
+          prof = preloaded.profile || {};
+          sessions = preloaded.sessions || [];
+          checkins = preloaded.checkins || {};
+        } else {
+          // No preloaded data — fetch everything
+          var timeout2 = new Promise(function (_, rej) {
+            setTimeout(function () {
+              rej(new Error("timeout"));
+            }, 6000);
+          });
+          var results2 = await Promise.race([Promise.all([dbGetProfile(uid), dbGetSessions(uid), dbGetCheckIns(uid)]), timeout2]);
+          prof = results2[0] || {};
+          sessions = results2[1] || [];
+          checkins = results2[2] || {};
+        }
         setProfile(prof);
-        setSessions(s || []);
+        setSessions(sessions);
         setEditAuthorsList(prof.authors || []);
+        setAllCheckIns(checkins);
+        var today = new Date().toLocaleDateString("en-US");
+        if (checkins[today]) setCiDone(true);
+        // Clear preloaded cache
+        window._sjPreloadedData = null;
       } catch (e) {
-        console.error("Load failed, using local fallback", e);
+        console.error("Load failed", e);
         setProfile({});
         setSessions([]);
+        setAllCheckIns({});
       }
-      // Load check-ins from Supabase
-      var checkins = await dbGetCheckIns(uid);
-      var today = new Date().toLocaleDateString("en-US");
-      if (checkins[today]) setCiDone(true);
-      // Store in memory for getTrends (pass as state)
-      setAllCheckIns(checkins);
       // Load prayers from Supabase
-      var sbPrayers = await dbGetPrayers(uid);
-      // Merge with any local prayers not yet synced
-      var localPrayers = lsGet("prayers", [], uid);
-      if (localPrayers.length > 0) {
-        // Merge local into Supabase (migrate local prayers on first load)
-        var merged = sbPrayers.concat(localPrayers.filter(function (lp) {
-          return !sbPrayers.find(function (sp) {
-            return sp.id === lp.id;
-          });
-        }));
-        if (merged.length > sbPrayers.length) {
-          await dbSavePrayers(uid, merged);
-          lsDel("prayers", uid); // clear local after migration
-          setPrayers(merged);
+      try {
+        var sbPrayers = await dbGetPrayers(uid);
+        var localPrayers = lsGet("prayers", [], uid);
+        if (localPrayers.length > 0) {
+          var merged = sbPrayers.concat(localPrayers.filter(function (lp) {
+            return !sbPrayers.find(function (sp) {
+              return sp.id === lp.id;
+            });
+          }));
+          if (merged.length > sbPrayers.length) {
+            await dbSavePrayers(uid, merged);
+            lsDel("prayers", uid);
+            setPrayers(merged);
+          } else {
+            setPrayers(sbPrayers);
+          }
         } else {
           setPrayers(sbPrayers);
         }
-      } else {
-        setPrayers(sbPrayers);
+      } catch (e) {
+        setPrayers([]);
       }
       var d = lsGet("draft", null, uid);
       if (d && (d.msgs && d.msgs.length > 0 || d.text)) {
@@ -5449,19 +5462,38 @@ function Root() {
   useEffect(function () {
     if (!niUser) return;
     var uid = niUser.id;
-    var email = niUser.email;
-
-    // Query Supabase — single source of truth, no localStorage cache
-    // Small delay lets Netlify Identity session fully establish before hitting DB
     setProfileDone(null);
+    // Fetch profile from Supabase — single call, single source of truth
+    // 500ms delay lets Netlify Identity session fully establish
     setTimeout(function () {
       var sbTimeout = new Promise(function (res) {
         setTimeout(function () {
-          res(false);
-        }, 5000);
+          res([null, null, null]);
+        }, 6000);
       });
-      Promise.race([dbProfileDone(uid), sbTimeout]).then(function (done) {
-        setProfileDone(!!done);
+      // Fetch profile + sessions + checkins in one parallel shot
+      Promise.race([Promise.all([dbGetProfile(uid), dbGetSessions(uid), dbGetCheckIns(uid)]), sbTimeout]).then(function (results) {
+        var profileData = results[0] || {};
+        var sessionsData = results[1] || [];
+        var checkinsData = results[2] || {};
+        var done = !!(profileData && profileData.profile_done);
+        // Store everything so App renders instantly with correct data
+        window._sjPreloadedData = {
+          profile: profileData,
+          sessions: sessionsData,
+          checkins: checkinsData,
+          loaded: true
+        };
+        setProfileDone(done);
+      }).catch(function (e) {
+        console.error("Preload error:", e);
+        window._sjPreloadedData = {
+          profile: {},
+          sessions: [],
+          checkins: {},
+          loaded: true
+        };
+        setProfileDone(false);
       });
     }, 500);
   }, [niUser]);
