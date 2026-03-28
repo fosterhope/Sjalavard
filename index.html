@@ -4515,13 +4515,29 @@ function Root() {
   }, []);
   useEffect(function () {
     if (!niUser) return;
+    // Check localStorage synchronously first - avoids flash of setup screen
+    var uid = niUser.id;
+    var email = niUser.email;
+    var lsDone = localStorage.getItem("sj_" + uid + "_profile_done") === "true" || localStorage.getItem("sj_profile_done") === "true" || email && localStorage.getItem("sj_email_" + email + "_profile_done") === "true";
+    if (lsDone) {
+      // Already know the answer - set immediately, no spinner
+      setProfileDone(true);
+      return;
+    }
+    // Unknown - check Supabase (incognito, new device)
     setProfileDone(null);
     var timeout = new Promise(function (res) {
       setTimeout(function () {
         res(false);
       }, 8000);
     });
-    Promise.race([dbProfileDone(niUser.id, niUser.email), timeout]).then(function (done) {
+    Promise.race([dbProfileDone(uid, email), timeout]).then(function (done) {
+      if (done) {
+        // Cache for next time
+        try {
+          localStorage.setItem("sj_email_" + email + "_profile_done", "true");
+        } catch (e) {}
+      }
       setProfileDone(done);
     });
   }, [niUser]);
