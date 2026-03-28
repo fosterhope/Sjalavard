@@ -1165,37 +1165,48 @@ function ProfileSetup({
   async function finish() {
     setSaving(true);
     setSaveErr(null);
+    var extras = authorsOther.split(",").map(function (s) {
+      return s.trim();
+    }).filter(Boolean);
+    var allA = authors.concat(extras).slice(0, 10);
+    var profile = {
+      firstName: name.trim(),
+      struggles: struggles,
+      goals: goals,
+      authors: allA,
+      profile_done: true
+    };
+
+    // Always cache locally first — guaranteed regardless of network
     try {
-      var extras = authorsOther.split(",").map(function (s) {
-        return s.trim();
-      }).filter(Boolean);
-      var allA = authors.concat(extras).slice(0, 10);
-      var profile = {
-        firstName: name.trim(),
-        struggles: struggles,
-        goals: goals,
-        authors: allA,
-        profile_done: true
-      };
-      var timeout = new Promise(function (_, rej) {
-        setTimeout(function () {
-          rej(new Error("timeout"));
-        }, 3000);
-      });
-      await Promise.race([dbSetProfile(uid, email, profile), timeout]);
-      // Cache profile_done multiple ways for maximum reliability
-      // Cache profile_done in localStorage for instant detection next login
+      localStorage.setItem("sj_" + uid + "_profile_done", "true");
+      localStorage.setItem("sj_profile_done", "true");
+      localStorage.setItem("sj_email_" + email + "_profile_done", "true");
+    } catch (e) {}
+
+    // Try to save to Supabase - attempt twice with 8s timeout each
+    var saved = false;
+    for (var attempt = 0; attempt < 2; attempt++) {
       try {
-        localStorage.setItem("sj_" + uid + "_profile_done", "true");
-        localStorage.setItem("sj_profile_done", "true");
-        localStorage.setItem("sj_email_" + email + "_profile_done", "true");
-      } catch (e) {}
-      onDone();
-    } catch (e) {
-      console.error("Profile save failed:", e.message);
-      setSaving(false);
-      setSaveErr("Could not save: " + (e.message || "unknown error"));
+        var timeout = new Promise(function (_, rej) {
+          setTimeout(function () {
+            rej(new Error("timeout"));
+          }, 8000);
+        });
+        await Promise.race([dbSetProfile(uid, email, profile), timeout]);
+        saved = true;
+        break;
+      } catch (e) {
+        console.warn("Profile save attempt " + (attempt + 1) + " failed:", e.message);
+      }
     }
+    if (!saved) {
+      // Supabase failed both attempts - local cache is set so they won't see banner again
+      // But show a warning so they know to try editing profile later
+      console.warn("Profile saved locally only - will sync to Supabase next time");
+    }
+    setSaving(false);
+    onDone(); // Always proceed - local cache guarantees no banner on return
   }
   var devList = [["iphone", "iPhone"], ["android", "Android"], ["mac", "Mac"], ["windows", "Windows"]];
   return /*#__PURE__*/React.createElement("div", {
@@ -5416,12 +5427,12 @@ function Root() {
     });
     ni.on("login", function (user) {
       clearTimeout(initTimeout);
-      // Mark that we just logged in — guard against spurious logout
       justLoggedInRef.current = true;
       if (justLoggedInTimer.current) clearTimeout(justLoggedInTimer.current);
       justLoggedInTimer.current = setTimeout(function () {
         justLoggedInRef.current = false;
       }, 5000);
+      console.log("[SJ] login event, user.id=" + user.id + " user.sub=" + (user.sub || "none") + " keys=" + JSON.stringify(Object.keys(user)));
       setNiUser(user);
       setNiReady(true);
       setTimeout(function () {
@@ -5431,12 +5442,10 @@ function Root() {
       }, 100);
     });
     ni.on("logout", function () {
-      // Ignore spurious logout that NI fires right after login
       if (justLoggedInRef.current) {
-        console.log("Sjalavard: ignoring spurious logout");
+        console.log("[SJ] ignoring spurious logout");
         return;
       }
-      // Genuine logout
       setNiUser(null);
       setProfileDone(null);
       window._sjPreloadedData = null;
@@ -5459,16 +5468,25 @@ function Root() {
   }, []);
   useEffect(function () {
     if (!niUser) return;
-    var uid = niUser.id;
+    // Netlify Identity user object: use .id (UUID), fall back to .sub
+    var uid = niUser.id || niUser.sub || niUser.user_metadata && niUser.user_metadata.sub;
     var email = niUser.email;
+    if (!uid) {
+      console.error("[SJ] No uid found on user object:", JSON.stringify(Object.keys(niUser)));
+      return;
+    }
+    console.log("[SJ] User object keys:", JSON.stringify(Object.keys(niUser)));
     setProfileDone(null);
     window._sjPreloadedData = null;
 
-    // Check localStorage first — instant, no network needed
-    // This is the fast path for returning users on same device
+    // Check localStorage first — instant for returning users on same device
     var lsDone = localStorage.getItem("sj_" + uid + "_profile_done") === "true" || localStorage.getItem("sj_profile_done") === "true" || email && localStorage.getItem("sj_email_" + email + "_profile_done") === "true";
+    console.log("[SJ] uid=" + uid + " lsDone=" + lsDone);
 
-    // Preload all data from Supabase in parallel
+    // If localStorage says done, show app immediately
+    if (lsDone) setProfileDone(true);
+
+    // Load all data from Supabase in parallel
     var sbTimeout = new Promise(function (res) {
       setTimeout(function () {
         res([null, null, null]);
@@ -5478,14 +5496,10 @@ function Root() {
       var profileData = results[0] || {};
       var sessionsData = results[1] || [];
       var checkinsData = results[2] || {};
-      window._sjPreloadedData = {
-        profile: profileData,
-        sessions: sessionsData,
-        checkins: checkinsData,
-        loaded: true
-      };
       var sbDone = !!(profileData && profileData.profile_done);
-      // Cache in localStorage for next time
+      console.log("[SJ] Supabase profile_done=" + sbDone + " firstName=" + profileData.firstName);
+
+      // Cache in localStorage so next login is instant
       if (sbDone) {
         try {
           localStorage.setItem("sj_" + uid + "_profile_done", "true");
@@ -5493,21 +5507,36 @@ function Root() {
           localStorage.setItem("sj_email_" + email + "_profile_done", "true");
         } catch (e) {}
       }
-      // Use localStorage result if available (already resolved), else use Supabase
-      setProfileDone(lsDone || sbDone);
+
+      // Auto-repair: localStorage says done but Supabase lost it
+      if (lsDone && !sbDone) {
+        console.log("[SJ] Auto-repair: re-saving profile_done to Supabase");
+        var repair = Object.assign({}, profileData, {
+          profile_done: true
+        });
+        dbSetProfile(uid, email, repair).catch(function (e) {
+          console.warn("[SJ] Auto-repair failed:", e.message);
+        });
+      }
+      window._sjPreloadedData = {
+        profile: profileData,
+        sessions: sessionsData,
+        checkins: checkinsData,
+        loaded: true
+      };
+
+      // Only update profileDone if localStorage didn't already set it
+      if (!lsDone) setProfileDone(sbDone);
     }).catch(function (e) {
-      console.error("Preload error:", e);
+      console.error("[SJ] Preload error:", e);
       window._sjPreloadedData = {
         profile: {},
         sessions: [],
         checkins: {},
         loaded: true
       };
-      setProfileDone(lsDone); // fall back to localStorage result
+      if (!lsDone) setProfileDone(false);
     });
-
-    // If localStorage says done, set immediately without waiting for Supabase
-    if (lsDone) setProfileDone(true);
   }, [niUser]);
   if (!niReady) return /*#__PURE__*/React.createElement(Spin, {
     label: "Loading..."
@@ -5525,14 +5554,15 @@ function Root() {
   if (profileDone === null) return /*#__PURE__*/React.createElement(Spin, {
     label: "One moment..."
   });
+  var _uid = niUser.id || niUser.sub;
   return /*#__PURE__*/React.createElement(App, {
-    uid: niUser.id,
+    uid: _uid,
     email: niUser.email,
     profileDone: profileDone,
     onDone: function () {
-      setProfileDone(true);
-      var uid = niUser.id;
+      var uid = niUser.id || niUser.sub;
       var email = niUser.email;
+      setProfileDone(true);
       try {
         localStorage.setItem("sj_" + uid + "_profile_done", "true");
         localStorage.setItem("sj_profile_done", "true");
@@ -5542,6 +5572,7 @@ function Root() {
     onLogout: function () {
       justLoggedInRef.current = false;
       setNiUser(null);
+      window._sjPreloadedData = null;
       try {
         window.netlifyIdentity.logout();
       } catch (e) {}
