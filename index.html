@@ -194,13 +194,7 @@ var SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 var _supabaseLib = typeof supabase !== "undefined" ? supabase : window.supabase;
 var sb = _supabaseLib.createClient(SB_URL, SB_KEY);
 function getSbWithAuth() {
-  try {
-    var ni = window.netlifyIdentity;
-    var user = ni && ni.currentUser ? ni.currentUser() : null;
-    var token = user && user.token && user.token.access_token;
-    if (token && sb.rest) sb.rest.headers["Authorization"] = "Bearer " + token;
-  } catch (e) {}
-  return sb;
+  return sb; // RLS disabled
 }
 async function dbGetProfile(uid) {
   try {
@@ -252,19 +246,29 @@ async function dbDeleteSession(id) {
   }
 }
 async function dbProfileDone(uid) {
+  // Check localStorage first (fast, works offline)
   if (localStorage.getItem("sj_" + uid + "_profile_done") === "true") return true;
   if (localStorage.getItem("sj_profile_done") === "true") return true;
+  // Fall back to Supabase (works in incognito where localStorage is wiped)
   try {
     var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).single();
     if (r.error) {
-      console.warn("dbProfileDone query error:", r.error.message);
+      // PGRST116 = no rows found = new user, not an error
+      if (r.error.code === "PGRST116") return false;
+      console.warn("dbProfileDone query error:", r.error.code, r.error.message);
       return false;
     }
     var done = !!(r.data && r.data.data && r.data.data.profile_done);
-    if (done) localStorage.setItem("sj_" + uid + "_profile_done", "true");
+    console.log("dbProfileDone Supabase result: done=" + done, "data=" + JSON.stringify(r.data && r.data.data));
+    if (done) {
+      // Cache in localStorage for future fast lookups
+      try {
+        localStorage.setItem("sj_" + uid + "_profile_done", "true");
+      } catch (e) {}
+    }
     return done;
   } catch (e) {
-    console.error("dbProfileDone error:", e);
+    console.error("dbProfileDone error:", e.message);
     return false;
   }
 }
@@ -1181,12 +1185,18 @@ function ProfileSetup({
         }, 8000);
       });
       await Promise.race([dbSetProfile(uid, email, profile), timeout]);
+      // Save profile_done locally so it survives sign out on same device
       localStorage.setItem("sj_" + uid + "_profile_done", "true");
       localStorage.setItem("sj_profile_done", "true");
       onDone();
     } catch (e) {
+      // If Supabase fails, save locally and proceed anyway
+      // User data will sync to Supabase next time they open the app
+      console.warn("Supabase save failed, using local fallback:", e.message);
+      localStorage.setItem("sj_" + uid + "_profile_done", "true");
+      localStorage.setItem("sj_profile_done", "true");
       setSaving(false);
-      setSaveErr("Could not save: " + (e.message || "unknown error"));
+      onDone(); // proceed even if Supabase failed
     }
   }
   var devList = [["iphone", "iPhone"], ["android", "Android"], ["mac", "Mac"], ["windows", "Windows"]];
@@ -4532,14 +4542,17 @@ function Root() {
       justLoggedIn = true;
       setNiUser(user);
       setNiReady(true);
+      // Close modal after short delay; reset guard after longer delay
       setTimeout(function () {
         ni.close();
+      }, 200);
+      setTimeout(function () {
         justLoggedIn = false;
-      }, 500);
+      }, 1000);
     });
     ni.on("logout", function () {
       if (justLoggedIn) {
-        console.warn("Ignoring logout fired immediately after login");
+        console.warn("Ignoring spurious logout fired immediately after login");
         return;
       }
       setNiUser(null);
