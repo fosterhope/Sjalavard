@@ -5391,21 +5391,15 @@ function Root() {
   var [niReady, setNiReady] = useState(false);
   var [profileDone, setProfileDone] = useState(null);
   var [showAdmin, setShowAdmin] = useState(false);
+  var loginTimeRef = useRef(0);
   useEffect(function () {
     var ni = window.netlifyIdentity;
     if (!ni) {
       setNiReady(true);
       return;
     }
-
-    // Source of truth: always read from ni.currentUser()
-    function syncUser() {
-      var u = ni.currentUser ? ni.currentUser() : null;
-      setNiUser(u || null);
-      return u;
-    }
     var initTimeout = setTimeout(function () {
-      syncUser();
+      setNiUser(ni.currentUser ? ni.currentUser() : null);
       setNiReady(true);
     }, 3000);
     ni.on("init", function (user) {
@@ -5415,6 +5409,7 @@ function Root() {
     });
     ni.on("login", function (user) {
       clearTimeout(initTimeout);
+      loginTimeRef.current = Date.now();
       setNiUser(user);
       setNiReady(true);
       setTimeout(function () {
@@ -5422,36 +5417,28 @@ function Root() {
           ni.close();
         } catch (e) {}
       }, 100);
-      // Re-verify after 1s in case spurious logout fires
-      setTimeout(function () {
-        var confirmed = ni.currentUser ? ni.currentUser() : null;
-        if (confirmed) {
-          setNiUser(confirmed);
-          setNiReady(true);
-        }
-      }, 1000);
     });
     ni.on("logout", function () {
-      // Delay and re-check — NI fires logout spuriously after login
-      setTimeout(function () {
-        var stillHere = ni.currentUser ? ni.currentUser() : null;
-        if (!stillHere) {
-          setNiUser(null);
-          setProfileDone(null);
-        } else {
-          console.log("Sjalavard: spurious logout ignored, user still valid");
-        }
-      }, 500);
+      // Netlify Identity fires a spurious logout right after login in incognito.
+      // Guard: ignore any logout within 5 seconds of a login event.
+      var msSinceLogin = Date.now() - loginTimeRef.current;
+      if (msSinceLogin < 5000) {
+        console.log("Sjalavard: ignoring spurious logout " + msSinceLogin + "ms after login");
+        return;
+      }
+      // Genuine logout
+      setNiUser(null);
+      setProfileDone(null);
+      window._sjPreloadedData = null;
     });
     ni.on("error", function (e) {
       console.error("Netlify Identity error:", e);
       setNiReady(true);
     });
-
-    // Check for existing session before init
-    var existing = syncUser();
+    var existing = ni.currentUser ? ni.currentUser() : null;
     if (existing) {
       clearTimeout(initTimeout);
+      setNiUser(existing);
       setNiReady(true);
     }
     ni.init();
@@ -5463,39 +5450,36 @@ function Root() {
     if (!niUser) return;
     var uid = niUser.id;
     setProfileDone(null);
-    // Fetch profile from Supabase — single call, single source of truth
-    // 500ms delay lets Netlify Identity session fully establish
-    setTimeout(function () {
-      var sbTimeout = new Promise(function (res) {
-        setTimeout(function () {
-          res([null, null, null]);
-        }, 6000);
-      });
-      // Fetch profile + sessions + checkins in one parallel shot
-      Promise.race([Promise.all([dbGetProfile(uid), dbGetSessions(uid), dbGetCheckIns(uid)]), sbTimeout]).then(function (results) {
-        var profileData = results[0] || {};
-        var sessionsData = results[1] || [];
-        var checkinsData = results[2] || {};
-        var done = !!(profileData && profileData.profile_done);
-        // Store everything so App renders instantly with correct data
-        window._sjPreloadedData = {
-          profile: profileData,
-          sessions: sessionsData,
-          checkins: checkinsData,
-          loaded: true
-        };
-        setProfileDone(done);
-      }).catch(function (e) {
-        console.error("Preload error:", e);
-        window._sjPreloadedData = {
-          profile: {},
-          sessions: [],
-          checkins: {},
-          loaded: true
-        };
-        setProfileDone(false);
-      });
-    }, 500);
+    window._sjPreloadedData = null;
+
+    // Supabase uses only the anon key (RLS disabled) - no token needed.
+    // Query immediately - no delay required.
+    var sbTimeout = new Promise(function (res) {
+      setTimeout(function () {
+        res([null, null, null]);
+      }, 8000);
+    });
+    Promise.race([Promise.all([dbGetProfile(uid), dbGetSessions(uid), dbGetCheckIns(uid)]), sbTimeout]).then(function (results) {
+      var profileData = results[0] || {};
+      var sessionsData = results[1] || [];
+      var checkinsData = results[2] || {};
+      window._sjPreloadedData = {
+        profile: profileData,
+        sessions: sessionsData,
+        checkins: checkinsData,
+        loaded: true
+      };
+      setProfileDone(!!(profileData && profileData.profile_done));
+    }).catch(function (e) {
+      console.error("Preload error:", e);
+      window._sjPreloadedData = {
+        profile: {},
+        sessions: [],
+        checkins: {},
+        loaded: true
+      };
+      setProfileDone(false);
+    });
   }, [niUser]);
   if (!niReady) return /*#__PURE__*/React.createElement(Spin, {
     label: "Loading..."
