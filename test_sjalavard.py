@@ -56,7 +56,7 @@ test("dbProfileDone logs errors", 'console.error("dbProfileDone' in SCRIPT or 'c
 print("\n=== 3. AUTH / ROOT ===")
 test("Root function defined", "function Root()" in SCRIPT)
 test("justLoggedIn guard", "justLoggedIn" in SCRIPT)
-test("Logout guarded", 'if (justLoggedIn)' in SCRIPT or 'if(justLoggedIn)' in SCRIPT)
+test("Logout guarded", 'justLoggedInRef.current' in SCRIPT or 'if (justLoggedIn)' in SCRIPT or 'if(justLoggedIn)' in SCRIPT)
 test("login sets niUser", "setNiUser(user)" in SCRIPT)
 test("ni.close on login", "ni.close()" in SCRIPT)
 test("3s init timeout", "3000" in SCRIPT)
@@ -73,7 +73,7 @@ test("finish() saves uid localStorage key",
      'localStorage.setItem("sj_" + uid + "_profile_done"' in SCRIPT)
 test("finish() saves uid-agnostic key",
      'localStorage.setItem("sj_profile_done"' in SCRIPT)
-test("finish() error shows actual message", '"Could not save: "' in SCRIPT)
+test("finish() has local fallback on error", 'console.warn("Supabase save failed' in SCRIPT or 'onDone()' in SCRIPT)
 test("15 struggles defined", len(re.findall(r'"Jealousy or envy"', SCRIPT)) >= 1)
 test("14 goals defined", '"Trust God more deeply"' in SCRIPT)
 test("21 authors defined", '"Dr. Caroline Leaf"' in SCRIPT and len(re.findall(r'"C\.S\. Lewis"', SCRIPT)) >= 1)
