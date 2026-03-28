@@ -1184,6 +1184,12 @@ function ProfileSetup({
       });
       await Promise.race([dbSetProfile(uid, email, profile), timeout]);
       // Cache profile_done multiple ways for maximum reliability
+      // Cache profile_done in localStorage for instant detection next login
+      try {
+        localStorage.setItem("sj_" + uid + "_profile_done", "true");
+        localStorage.setItem("sj_profile_done", "true");
+        localStorage.setItem("sj_email_" + email + "_profile_done", "true");
+      } catch (e) {}
       onDone();
     } catch (e) {
       console.error("Profile save failed:", e.message);
@@ -5391,7 +5397,8 @@ function Root() {
   var [niReady, setNiReady] = useState(false);
   var [profileDone, setProfileDone] = useState(null);
   var [showAdmin, setShowAdmin] = useState(false);
-  var loginTimeRef = useRef(0);
+  var justLoggedInRef = useRef(false);
+  var justLoggedInTimer = useRef(null);
   useEffect(function () {
     var ni = window.netlifyIdentity;
     if (!ni) {
@@ -5409,7 +5416,12 @@ function Root() {
     });
     ni.on("login", function (user) {
       clearTimeout(initTimeout);
-      loginTimeRef.current = Date.now();
+      // Mark that we just logged in — guard against spurious logout
+      justLoggedInRef.current = true;
+      if (justLoggedInTimer.current) clearTimeout(justLoggedInTimer.current);
+      justLoggedInTimer.current = setTimeout(function () {
+        justLoggedInRef.current = false;
+      }, 5000);
       setNiUser(user);
       setNiReady(true);
       setTimeout(function () {
@@ -5419,11 +5431,9 @@ function Root() {
       }, 100);
     });
     ni.on("logout", function () {
-      // Netlify Identity fires a spurious logout right after login in incognito.
-      // Guard: ignore any logout within 5 seconds of a login event.
-      var msSinceLogin = Date.now() - loginTimeRef.current;
-      if (msSinceLogin < 5000) {
-        console.log("Sjalavard: ignoring spurious logout " + msSinceLogin + "ms after login");
+      // Ignore spurious logout that NI fires right after login
+      if (justLoggedInRef.current) {
+        console.log("Sjalavard: ignoring spurious logout");
         return;
       }
       // Genuine logout
@@ -5444,16 +5454,21 @@ function Root() {
     ni.init();
     return function () {
       clearTimeout(initTimeout);
+      if (justLoggedInTimer.current) clearTimeout(justLoggedInTimer.current);
     };
   }, []);
   useEffect(function () {
     if (!niUser) return;
     var uid = niUser.id;
+    var email = niUser.email;
     setProfileDone(null);
     window._sjPreloadedData = null;
 
-    // Supabase uses only the anon key (RLS disabled) - no token needed.
-    // Query immediately - no delay required.
+    // Check localStorage first — instant, no network needed
+    // This is the fast path for returning users on same device
+    var lsDone = localStorage.getItem("sj_" + uid + "_profile_done") === "true" || localStorage.getItem("sj_profile_done") === "true" || email && localStorage.getItem("sj_email_" + email + "_profile_done") === "true";
+
+    // Preload all data from Supabase in parallel
     var sbTimeout = new Promise(function (res) {
       setTimeout(function () {
         res([null, null, null]);
@@ -5469,7 +5484,17 @@ function Root() {
         checkins: checkinsData,
         loaded: true
       };
-      setProfileDone(!!(profileData && profileData.profile_done));
+      var sbDone = !!(profileData && profileData.profile_done);
+      // Cache in localStorage for next time
+      if (sbDone) {
+        try {
+          localStorage.setItem("sj_" + uid + "_profile_done", "true");
+          localStorage.setItem("sj_profile_done", "true");
+          localStorage.setItem("sj_email_" + email + "_profile_done", "true");
+        } catch (e) {}
+      }
+      // Use localStorage result if available (already resolved), else use Supabase
+      setProfileDone(lsDone || sbDone);
     }).catch(function (e) {
       console.error("Preload error:", e);
       window._sjPreloadedData = {
@@ -5478,8 +5503,11 @@ function Root() {
         checkins: {},
         loaded: true
       };
-      setProfileDone(false);
+      setProfileDone(lsDone); // fall back to localStorage result
     });
+
+    // If localStorage says done, set immediately without waiting for Supabase
+    if (lsDone) setProfileDone(true);
   }, [niUser]);
   if (!niReady) return /*#__PURE__*/React.createElement(Spin, {
     label: "Loading..."
@@ -5503,9 +5531,20 @@ function Root() {
     profileDone: profileDone,
     onDone: function () {
       setProfileDone(true);
+      var uid = niUser.id;
+      var email = niUser.email;
+      try {
+        localStorage.setItem("sj_" + uid + "_profile_done", "true");
+        localStorage.setItem("sj_profile_done", "true");
+        localStorage.setItem("sj_email_" + email + "_profile_done", "true");
+      } catch (e) {}
     },
     onLogout: function () {
+      justLoggedInRef.current = false;
       setNiUser(null);
+      try {
+        window.netlifyIdentity.logout();
+      } catch (e) {}
     },
     onAdmin: function () {
       setShowAdmin(true);
