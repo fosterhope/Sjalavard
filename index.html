@@ -165,10 +165,11 @@ async function dbDeleteSession(id) {
     console.error("dbDeleteSession", e);
   }
 }
-async function dbProfileDone(uid) {
-  // Check localStorage first (fast, works offline)
+async function dbProfileDone(uid, email) {
+  // Check localStorage first (fast, works offline, survives incognito via email key)
   if (localStorage.getItem("sj_" + uid + "_profile_done") === "true") return true;
   if (localStorage.getItem("sj_profile_done") === "true") return true;
+  if (email && localStorage.getItem("sj_email_" + email + "_profile_done") === "true") return true;
   // Fall back to Supabase (works in incognito where localStorage is wiped)
   try {
     var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).single();
@@ -1105,18 +1106,19 @@ function ProfileSetup({
         }, 8000);
       });
       await Promise.race([dbSetProfile(uid, email, profile), timeout]);
-      // Save profile_done locally so it survives sign out on same device
+      // Cache profile_done multiple ways for maximum reliability
       localStorage.setItem("sj_" + uid + "_profile_done", "true");
       localStorage.setItem("sj_profile_done", "true");
+      localStorage.setItem("sj_email_" + email + "_profile_done", "true");
       onDone();
     } catch (e) {
       // If Supabase fails, save locally and proceed anyway
-      // User data will sync to Supabase next time they open the app
       console.warn("Supabase save failed, using local fallback:", e.message);
       localStorage.setItem("sj_" + uid + "_profile_done", "true");
       localStorage.setItem("sj_profile_done", "true");
+      localStorage.setItem("sj_email_" + email + "_profile_done", "true");
       setSaving(false);
-      onDone(); // proceed even if Supabase failed
+      onDone();
     }
   }
   var devList = [["iphone", "iPhone"], ["android", "Android"], ["mac", "Mac"], ["windows", "Windows"]];
@@ -4519,7 +4521,7 @@ function Root() {
         res(false);
       }, 8000);
     });
-    Promise.race([dbProfileDone(niUser.id), timeout]).then(function (done) {
+    Promise.race([dbProfileDone(niUser.id, niUser.email), timeout]).then(function (done) {
       setProfileDone(done);
     });
   }, [niUser]);
