@@ -1067,7 +1067,8 @@ function Landing() {
 function ProfileSetup({
   uid,
   email,
-  onDone
+  onDone,
+  onCancel
 }) {
   var [step, setStep] = useState(0);
   var [tab, setTab] = useState("setup");
@@ -1138,7 +1139,23 @@ function ProfileSetup({
     }
   }, step === 0 && /*#__PURE__*/React.createElement("div", {
     className: "fi"
-  }, /*#__PURE__*/React.createElement("div", {
+  }, onCancel && /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "right",
+      marginBottom: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: onCancel,
+    style: {
+      background: "transparent",
+      border: "1px solid " + C.border,
+      borderRadius: 8,
+      padding: "6px 14px",
+      color: C.muted,
+      fontSize: 12,
+      cursor: "pointer"
+    }
+  }, "Close")), /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: "center",
       marginBottom: 24
@@ -1763,11 +1780,25 @@ function ProfileSetup({
       fontSize: 13,
       cursor: saving ? "default" : "pointer"
     }
-  }, saving ? "" : "Skip")))));
+  }, saving ? "" : "Skip"), onCancel && /*#__PURE__*/React.createElement("button", {
+    onClick: onCancel,
+    style: {
+      width: "100%",
+      padding: "8px",
+      background: "transparent",
+      border: "none",
+      color: C.dim,
+      fontSize: 12,
+      cursor: "pointer",
+      marginTop: 4
+    }
+  }, "Back to App")))));
 }
 function App({
   uid,
   email,
+  profileDone,
+  onDone,
   onLogout
 }) {
   var [profile, setProfile] = useState({});
@@ -1799,6 +1830,7 @@ function App({
   var [prayTitle, setPrayTitle] = useState("");
   var [expanded, setExpanded] = useState(null);
   var [editAuthors, setEditAuthors] = useState(false);
+  var [showSetup, setShowSetup] = useState(false);
   var [editAuthorsList, setEditAuthorsList] = useState([]);
   var [editAuthorsOther, setEditAuthorsOther] = useState("");
   var bottomRef = useRef(null);
@@ -2156,6 +2188,16 @@ function App({
   if (!ready) return /*#__PURE__*/React.createElement(Spin, {
     label: "Loading your space..."
   });
+
+  // Inline setup handler - saves profile and closes modal
+  function handleSetupDone() {
+    setShowSetup(false);
+    if (onDone) onDone();
+    // Reload profile from Supabase
+    dbGetProfile(uid).then(function (p) {
+      if (p) setProfile(p);
+    });
+  }
   return /*#__PURE__*/React.createElement("div", {
     style: {
       minHeight: "100vh",
@@ -2166,7 +2208,22 @@ function App({
     onClose: function () {
       setShowAbout(false);
     }
-  }), /*#__PURE__*/React.createElement("div", {
+  }), showSetup && /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,0.85)",
+      zIndex: 900,
+      overflowY: "auto"
+    }
+  }, /*#__PURE__*/React.createElement(ProfileSetup, {
+    uid: uid,
+    email: email,
+    onDone: handleSetupDone,
+    onCancel: profileDone ? function () {
+      setShowSetup(false);
+    } : null
+  })), /*#__PURE__*/React.createElement("div", {
     style: {
       background: "rgba(12,28,42,0.95)",
       backdropFilter: "blur(8px)",
@@ -2493,7 +2550,78 @@ function App({
       lineHeight: 1.7,
       fontFamily: "'Playfair Display',Georgia,serif"
     }
-  }, "\"", v.text, "\"")), !ciDone ? /*#__PURE__*/React.createElement("div", {
+  }, "\"", v.text, "\"")), profileDone === false && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "rgba(91,184,212,0.1)",
+      border: "1px solid " + C.acc,
+      borderRadius: 12,
+      padding: "16px 18px",
+      marginBottom: 18,
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: 12,
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: C.white,
+      fontWeight: 600,
+      marginBottom: 3
+    }
+  }, "Personalize your experience"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: C.muted
+    }
+  }, "Tell Sjal about you so coaching feels personal.")), /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setShowSetup(true);
+    },
+    style: {
+      background: C.acc,
+      border: "none",
+      borderRadius: 9,
+      padding: "9px 18px",
+      color: C.bg,
+      fontSize: 13,
+      cursor: "pointer",
+      fontWeight: 700,
+      whiteSpace: "nowrap",
+      flexShrink: 0
+    }
+  }, "Complete Setup")), profileDone === true && showSetup && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "rgba(91,184,212,0.06)",
+      border: "1px solid " + C.border,
+      borderRadius: 12,
+      padding: "12px 18px",
+      marginBottom: 18,
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: C.muted
+    }
+  }, "Your profile is set up."), /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setShowSetup(false);
+      setTab("profile");
+    },
+    style: {
+      background: "transparent",
+      border: "1px solid " + C.border,
+      borderRadius: 8,
+      padding: "5px 12px",
+      color: C.acc,
+      fontSize: 12,
+      cursor: "pointer"
+    }
+  }, "Edit Profile")), !ciDone ? /*#__PURE__*/React.createElement("div", {
     style: {
       background: C.card,
       border: "1px solid " + C.border,
@@ -3890,14 +4018,35 @@ function App({
     }, "DELETE")));
   })), tab === "profile" && /*#__PURE__*/React.createElement("div", {
     className: "fi"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      marginBottom: 4
+    }
   }, /*#__PURE__*/React.createElement("h2", {
     style: {
       fontFamily: "'Playfair Display',serif",
       fontSize: 26,
-      fontWeight: 600,
-      marginBottom: 4
+      fontWeight: 600
     }
-  }, "My Profile"), /*#__PURE__*/React.createElement("p", {
+  }, "My Profile"), /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setShowSetup(true);
+    },
+    style: {
+      background: "transparent",
+      border: "1px solid " + C.border,
+      borderRadius: 8,
+      padding: "7px 14px",
+      color: C.acc,
+      fontSize: 12,
+      cursor: "pointer",
+      fontWeight: 600,
+      flexShrink: 0
+    }
+  }, "Edit Setup")), /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.muted,
       fontSize: 13,
@@ -4515,49 +4664,50 @@ function Root() {
   }, []);
   useEffect(function () {
     if (!niUser) return;
-    // Check localStorage synchronously first - avoids flash of setup screen
     var uid = niUser.id;
     var email = niUser.email;
+
+    // Check localStorage synchronously first - instant on known devices
     var lsDone = localStorage.getItem("sj_" + uid + "_profile_done") === "true" || localStorage.getItem("sj_profile_done") === "true" || email && localStorage.getItem("sj_email_" + email + "_profile_done") === "true";
     if (lsDone) {
-      // Already know the answer - set immediately, no spinner
       setProfileDone(true);
       return;
     }
-    // Unknown - check Supabase (incognito, new device)
+
+    // Not in localStorage - need Supabase check
+    // Delay 800ms after login to let the NI session fully establish
+    // (without this, Supabase query runs before token is ready and returns false)
     setProfileDone(null);
-    var timeout = new Promise(function (res) {
-      setTimeout(function () {
-        res(false);
-      }, 8000);
-    });
-    Promise.race([dbProfileDone(uid, email), timeout]).then(function (done) {
-      if (done) {
-        // Cache for next time
-        try {
-          localStorage.setItem("sj_email_" + email + "_profile_done", "true");
-        } catch (e) {}
-      }
-      setProfileDone(done);
-    });
+    setTimeout(function () {
+      var sbTimeout = new Promise(function (res) {
+        setTimeout(function () {
+          res(false);
+        }, 8000);
+      });
+      Promise.race([dbProfileDone(uid, email), sbTimeout]).then(function (done) {
+        if (done) {
+          try {
+            localStorage.setItem("sj_" + uid + "_profile_done", "true");
+            localStorage.setItem("sj_profile_done", "true");
+            localStorage.setItem("sj_email_" + email + "_profile_done", "true");
+          } catch (e) {}
+        }
+        setProfileDone(done);
+      });
+    }, 800);
   }, [niUser]);
   if (!niReady) return /*#__PURE__*/React.createElement(Spin, {
     label: "Loading..."
   });
   if (!niUser) return /*#__PURE__*/React.createElement(Landing, null);
-  if (profileDone === null) return /*#__PURE__*/React.createElement(Spin, {
-    label: "Setting up your space..."
-  });
-  if (!profileDone) return /*#__PURE__*/React.createElement(ProfileSetup, {
-    uid: niUser.id,
-    email: niUser.email,
-    onDone: function () {
-      setProfileDone(true);
-    }
-  });
+  // Always go straight to the app — setup is optional via banner on homepage
   return /*#__PURE__*/React.createElement(App, {
     uid: niUser.id,
     email: niUser.email,
+    profileDone: profileDone,
+    onDone: function () {
+      setProfileDone(true);
+    },
     onLogout: function () {
       setNiUser(null);
     }
