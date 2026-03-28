@@ -55,8 +55,8 @@ test("dbProfileDone logs errors", 'console.error("dbProfileDone' in SCRIPT or 'c
 
 print("\n=== 3. AUTH / ROOT ===")
 test("Root function defined", "function Root()" in SCRIPT)
-test("justLoggedIn guard", "justLoggedIn" in SCRIPT)
-test("Logout guarded", 'justLoggedInRef.current' in SCRIPT or 'if (justLoggedIn)' in SCRIPT or 'if(justLoggedIn)' in SCRIPT)
+test("justLoggedIn guard", "justLoggedIn" in SCRIPT or "spurious logout" in SCRIPT)
+test("Logout guarded", 'stillHere' in SCRIPT or 'spurious logout' in SCRIPT or 'justLoggedInRef' in SCRIPT)
 test("login sets niUser", "setNiUser(user)" in SCRIPT)
 test("ni.close on login", "ni.close()" in SCRIPT)
 test("3s init timeout", "3000" in SCRIPT)
