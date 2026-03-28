@@ -165,32 +165,70 @@ async function dbDeleteSession(id) {
     console.error("dbDeleteSession", e);
   }
 }
-async function dbProfileDone(uid, email) {
-  // Check localStorage first (fast, works offline, survives incognito via email key)
-  if (localStorage.getItem("sj_" + uid + "_profile_done") === "true") return true;
-  if (localStorage.getItem("sj_profile_done") === "true") return true;
-  if (email && localStorage.getItem("sj_email_" + email + "_profile_done") === "true") return true;
-  // Fall back to Supabase (works in incognito where localStorage is wiped)
+async function dbProfileDone(uid) {
+  // Supabase is the single source of truth for profile_done
+  // No localStorage cache — prevents stale data issues across devices/incognito
   try {
     var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).single();
     if (r.error) {
-      // PGRST116 = no rows found = new user, not an error
-      if (r.error.code === "PGRST116") return false;
-      console.warn("dbProfileDone query error:", r.error.code, r.error.message);
+      if (r.error.code === "PGRST116") return false; // no row = new user
+      console.warn("dbProfileDone error:", r.error.code, r.error.message);
       return false;
     }
-    var done = !!(r.data && r.data.data && r.data.data.profile_done);
-    console.log("dbProfileDone Supabase result: done=" + done, "data=" + JSON.stringify(r.data && r.data.data));
-    if (done) {
-      // Cache in localStorage for future fast lookups
-      try {
-        localStorage.setItem("sj_" + uid + "_profile_done", "true");
-      } catch (e) {}
-    }
-    return done;
+    return !!(r.data && r.data.data && r.data.data.profile_done);
   } catch (e) {
     console.error("dbProfileDone error:", e.message);
     return false;
+  }
+}
+
+// Prayer Supabase functions
+async function dbGetPrayers(uid) {
+  try {
+    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).single();
+    return r.data && r.data.data && r.data.data.prayers || [];
+  } catch (e) {
+    return [];
+  }
+}
+async function dbSavePrayers(uid, prayers) {
+  try {
+    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).single();
+    var data = r.data && r.data.data || {};
+    data.prayers = prayers;
+    await getSbWithAuth().from("profiles").upsert({
+      id: uid,
+      data: data,
+      updated_at: new Date().toISOString()
+    });
+  } catch (e) {
+    console.error("dbSavePrayers error:", e.message);
+  }
+}
+
+// Check-in Supabase functions
+async function dbSaveCheckIn(uid, date, entry) {
+  try {
+    // Read current profile data, merge check-in, write back
+    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).single();
+    var data = r.data && r.data.data || {};
+    if (!data.checkins) data.checkins = {};
+    data.checkins[date] = entry;
+    await getSbWithAuth().from("profiles").upsert({
+      id: uid,
+      data: data,
+      updated_at: new Date().toISOString()
+    });
+  } catch (e) {
+    console.error("dbSaveCheckIn error:", e.message);
+  }
+}
+async function dbGetCheckIns(uid) {
+  try {
+    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).single();
+    return r.data && r.data.data && r.data.data.checkins || {};
+  } catch (e) {
+    return {};
   }
 }
 var FH_URL = "https://fosterhopewebsite.netlify.app";
@@ -722,7 +760,7 @@ function AboutModal({
       marginBottom: 16,
       letterSpacing: 0.5
     }
-  }, "EVERYTHING SJALAVARD INCLUDES"), [["✦", "AI Soul Care Sessions", "Talk with Sjal - your personal Christian life coach. Powered by Gemini AI, grounded in CBT, scripture, and Spirit-led care. Sessions run 4-6 exchanges and close with a summary, action step, and gratitude."], ["🙏", "Prayer Journal", "A private, AI-free space to write and keep your prayers. Mark them answered over time. Stored on your device only - never sent to any server."], ["💙", "Daily Check-in", "A 10-second mood pulse at the top of every day. Pick a word, add an optional note. No full session required."], ["📖", "Daily Verse", "A rotating scripture verse greets you each day at the top of the Session tab."], ["📊", "Mood Trend Chart", "See your last 14 days of check-ins and session moods visualized as a bar chart in Past Sessions."], ["🔍", "Cognitive Distortion Identifier", "During a session, tap + Pattern to name the thinking trap fueling your feelings - drawn from David Burns CBT framework."], ["⚡", "Action Steps", "Every session ends with one concrete, spiritually grounded action step from Sjal to carry into your week."], ["🗂", "Session History", "All completed sessions saved to your account, accessible on any device. Expand any session to see moods, opening words, summary, action step, and gratitude entries."], ["🚨", "Crisis Support", "If your words suggest you may be in crisis, Sjalavard automatically surfaces the 988 Lifeline before continuing."], ["⚙️", "Personalized Profile", "Set up once - your name, struggles, goals, and favorite authors shape how Sjal coaches you without ever referencing them by name."], ["🔒", "Cross-Device Sync", "Your sessions and profile sync securely across all your devices via Supabase."], ["📋", "Legal & Privacy", "Full terms of use, privacy policy, and copyright information available in the Legal tab."]].map(function (f, i) {
+  }, "EVERYTHING SJALAVARD INCLUDES"), [["✦", "AI Soul Care Sessions", "Talk with Sjal - your personal Christian life coach. Powered by Gemini AI, grounded in CBT, scripture, and Spirit-led care. Sessions run 4-6 exchanges and close with a summary, action step, and gratitude."], ["🙏", "Prayer Journal", "A private, AI-free space to write and keep your prayers. Mark them answered over time. Stored securely in your account and synced across all your devices."], ["💙", "Daily Check-in", "A 10-second mood pulse at the top of every day. Pick a word, add an optional note. No full session required."], ["📖", "Daily Verse", "A rotating scripture verse greets you each day at the top of the Session tab."], ["📊", "Mood Trend Chart", "See your last 14 days of check-ins and session moods visualized as a bar chart in Past Sessions."], ["🔍", "Cognitive Distortion Identifier", "During a session, tap + Pattern to name the thinking trap fueling your feelings - drawn from David Burns CBT framework."], ["⚡", "Action Steps", "Every session ends with one concrete, spiritually grounded action step from Sjal to carry into your week."], ["🗂", "Session History", "All completed sessions saved to your account, accessible on any device. Expand any session to see moods, opening words, summary, action step, and gratitude entries."], ["🚨", "Crisis Support", "If your words suggest you may be in crisis, Sjalavard automatically surfaces the 988 Lifeline before continuing."], ["⚙️", "Personalized Profile", "Set up once - your name, struggles, goals, and favorite authors shape how Sjal coaches you without ever referencing them by name."], ["🔒", "Cross-Device Sync", "Your sessions and profile sync securely across all your devices via Supabase."], ["📋", "Legal & Privacy", "Full terms of use, privacy policy, and copyright information available in the Legal tab."]].map(function (f, i) {
     return /*#__PURE__*/React.createElement("div", {
       key: i,
       style: {
@@ -854,7 +892,7 @@ function AboutModal({
       color: C.muted,
       lineHeight: 1.8
     }
-  }, "Check-ins are stored on your device. Once completed each day the check-in is replaced with a quiet confirmation so it stays out of your way.")), sec === "journal" && /*#__PURE__*/React.createElement("div", {
+  }, "Check-ins are stored in your account and sync across all your devices. Once completed each day the check-in is replaced with a quiet confirmation so it stays out of your way.")), sec === "journal" && /*#__PURE__*/React.createElement("div", {
     className: "fi"
   }, /*#__PURE__*/React.createElement("p", {
     style: {
@@ -885,7 +923,7 @@ function AboutModal({
       lineHeight: 1.8,
       marginBottom: 12
     }
-  }, "You can delete any prayer at any time. Prayers are stored on your device only and are never sent to any server, never seen by AI, and never processed by anyone but you."), /*#__PURE__*/React.createElement("div", {
+  }, "You can delete any prayer at any time. Prayers are stored securely in your account and sync across all your devices. They are never processed by AI."), /*#__PURE__*/React.createElement("div", {
     style: {
       background: "rgba(91,184,160,0.08)",
       border: "1px solid rgba(91,184,160,0.25)",
@@ -945,7 +983,7 @@ function AboutModal({
       marginBottom: 16,
       letterSpacing: 0.5
     }
-  }, "YOUR PRIVACY"), [["Your account", "Login is managed by Netlify Identity. Your password is known only to you and is never stored in plain text."], ["Your sessions", "Sessions and profile are stored in a secure database (Supabase) linked only to your account ID - not your name or email."], ["Your prayers", "Prayer journal is stored on your device only. It is never sent to any server, never processed by AI, and never accessible to anyone but you."], ["The AI", "Your session messages are sent to Google Gemini to generate Sjal's responses. By using the coaching feature you consent to this. Google's privacy policy applies to data processed by Gemini."], ["No ads or tracking", "No advertising, no analytics trackers, no data selling. Sjalavard exists solely for your soul care."], ["Data deletion", "To request full deletion of your account and all associated data, contact info@fosterhope.org."], ["Full legal info", "See the Legal tab in the main app for complete terms of use, privacy policy, disclaimer, and third-party service disclosures."]].map(function (item, i) {
+  }, "YOUR PRIVACY"), [["Your account", "Login is managed by Netlify Identity. Your password is known only to you and is never stored in plain text."], ["Your sessions", "Sessions and profile are stored in a secure database (Supabase) linked only to your account ID - not your name or email."], ["Your prayers", "Prayer journal is stored securely in your account on Supabase and syncs across all your devices. It is never processed by AI and is accessible only through your account."], ["The AI", "Your session messages are sent to Google Gemini to generate Sjal's responses. By using the coaching feature you consent to this. Google's privacy policy applies to data processed by Gemini."], ["No ads or tracking", "No advertising, no analytics trackers, no data selling. Sjalavard exists solely for your soul care."], ["Data deletion", "To request full deletion of your account and all associated data, contact info@fosterhope.org."], ["Full legal info", "See the Legal tab in the main app for complete terms of use, privacy policy, disclaimer, and third-party service disclosures."]].map(function (item, i) {
     return /*#__PURE__*/React.createElement("div", {
       key: i,
       style: {
@@ -1108,18 +1146,11 @@ function ProfileSetup({
       });
       await Promise.race([dbSetProfile(uid, email, profile), timeout]);
       // Cache profile_done multiple ways for maximum reliability
-      localStorage.setItem("sj_" + uid + "_profile_done", "true");
-      localStorage.setItem("sj_profile_done", "true");
-      localStorage.setItem("sj_email_" + email + "_profile_done", "true");
       onDone();
     } catch (e) {
-      // If Supabase fails, save locally and proceed anyway
-      console.warn("Supabase save failed, using local fallback:", e.message);
-      localStorage.setItem("sj_" + uid + "_profile_done", "true");
-      localStorage.setItem("sj_profile_done", "true");
-      localStorage.setItem("sj_email_" + email + "_profile_done", "true");
+      console.error("Profile save failed:", e.message);
       setSaving(false);
-      onDone();
+      setSaveErr("Could not save: " + (e.message || "unknown error"));
     }
   }
   var devList = [["iphone", "iPhone"], ["android", "Android"], ["mac", "Mac"], ["windows", "Windows"]];
@@ -1831,6 +1862,7 @@ function App({
   var [expanded, setExpanded] = useState(null);
   var [editAuthors, setEditAuthors] = useState(false);
   var [showSetup, setShowSetup] = useState(false);
+  var [allCheckIns, setAllCheckIns] = useState({});
   var [editAuthorsList, setEditAuthorsList] = useState([]);
   var [editAuthorsOther, setEditAuthorsOther] = useState("");
   var bottomRef = useRef(null);
@@ -1854,9 +1886,33 @@ function App({
         setProfile({});
         setSessions([]);
       }
+      // Load check-ins from Supabase
+      var checkins = await dbGetCheckIns(uid);
       var today = new Date().toLocaleDateString("en-US");
-      if (lsGet("ci_" + today, null, uid)) setCiDone(true);
-      setPrayers(lsGet("prayers", [], uid));
+      if (checkins[today]) setCiDone(true);
+      // Store in memory for getTrends (pass as state)
+      setAllCheckIns(checkins);
+      // Load prayers from Supabase
+      var sbPrayers = await dbGetPrayers(uid);
+      // Merge with any local prayers not yet synced
+      var localPrayers = lsGet("prayers", [], uid);
+      if (localPrayers.length > 0) {
+        // Merge local into Supabase (migrate local prayers on first load)
+        var merged = sbPrayers.concat(localPrayers.filter(function (lp) {
+          return !sbPrayers.find(function (sp) {
+            return sp.id === lp.id;
+          });
+        }));
+        if (merged.length > sbPrayers.length) {
+          await dbSavePrayers(uid, merged);
+          lsDel("prayers", uid); // clear local after migration
+          setPrayers(merged);
+        } else {
+          setPrayers(sbPrayers);
+        }
+      } else {
+        setPrayers(sbPrayers);
+      }
       var d = lsGet("draft", null, uid);
       if (d && (d.msgs && d.msgs.length > 0 || d.text)) {
         setMoods(d.moods || []);
@@ -2081,11 +2137,19 @@ function App({
   function saveCI() {
     if (!ciMood) return;
     var today = new Date().toLocaleDateString("en-US");
-    lsSet("ci_" + today, {
+    var entry = {
       mood: ciMood,
       note: ciNote,
       date: today
-    }, uid);
+    };
+    // Save to Supabase for cross-device sync
+    dbSaveCheckIn(uid, today, entry);
+    // Update local state immediately for responsive UI
+    setAllCheckIns(function (prev) {
+      var updated = Object.assign({}, prev);
+      updated[today] = entry;
+      return updated;
+    });
     setCiDone(true);
   }
   function savePray() {
@@ -2103,7 +2167,7 @@ function App({
     };
     var u = [entry, ...prayers];
     setPrayers(u);
-    lsSet("prayers", u, uid);
+    dbSavePrayers(uid, u);
     setPrayText("");
     setPrayTitle("");
   }
@@ -2114,14 +2178,14 @@ function App({
       }) : p;
     });
     setPrayers(u);
-    lsSet("prayers", u, uid);
+    dbSavePrayers(uid, u);
   }
   function delPray(id) {
     var u = prayers.filter(function (p) {
       return p.id !== id;
     });
     setPrayers(u);
-    lsSet("prayers", u, uid);
+    dbSavePrayers(uid, u);
   }
   async function saveAuthors() {
     var extras = editAuthorsOther.split(",").map(function (s) {
@@ -2163,7 +2227,7 @@ function App({
       var d = new Date();
       d.setDate(d.getDate() - i);
       var key = d.toLocaleDateString("en-US");
-      var ci = lsGet("ci_" + key, null, uid);
+      var ci = allCheckIns[key] || null;
       var sm = sessions.filter(function (s) {
         return s.date && s.date.indexOf(d.toLocaleDateString("en-US", {
           month: "long",
@@ -2553,7 +2617,7 @@ function App({
       lineHeight: 1.7,
       fontFamily: "'Playfair Display',Georgia,serif"
     }
-  }, "\"", v.text, "\"")), (profileDone === false || profileDone === null) && /*#__PURE__*/React.createElement("div", {
+  }, "\"", v.text, "\"")), profileDone === false && /*#__PURE__*/React.createElement("div", {
     style: {
       background: "rgba(91,184,212,0.1)",
       border: "1px solid " + C.acc,
@@ -4443,7 +4507,7 @@ function App({
       fontWeight: 700,
       marginBottom: 10
     }
-  }, "Privacy Policy"), [["Account data", "Your email and user ID are stored securely via Netlify Identity. We do not sell or share your personal information with third parties."], ["Session data", "Your coaching sessions and profile are stored in a secure database linked to your account ID. Session content is used solely to provide personalized coaching within the app."], ["AI processing", "Your session messages are sent to Google Gemini to generate responses. By using the coaching feature you consent to this processing. Google privacy policy applies."], ["Prayer journal", "Stored locally on your device only. Never transmitted to any server."], ["No advertising", "We do not display ads, use tracking cookies, or sell your data to advertisers."], ["Data deletion", "To request deletion of your account and all associated data, contact us at info@fosterhope.org."]].map(function (item, i) {
+  }, "Privacy Policy"), [["Account data", "Your email and user ID are stored securely via Netlify Identity. We do not sell or share your personal information with third parties."], ["Session data", "Your coaching sessions and profile are stored in a secure database linked to your account ID. Session content is used solely to provide personalized coaching within the app."], ["AI processing", "Your session messages are sent to Google Gemini to generate responses. By using the coaching feature you consent to this processing. Google privacy policy applies."], ["Prayer journal", "Stored securely in your Supabase account, accessible only through your login. Syncs across all your devices. Never processed by AI."], ["No advertising", "We do not display ads, use tracking cookies, or sell your data to advertisers."], ["Data deletion", "To request deletion of your account and all associated data, contact us at info@fosterhope.org."]].map(function (item, i) {
     return /*#__PURE__*/React.createElement("p", {
       key: i,
       style: {
@@ -4670,40 +4734,29 @@ function Root() {
     var uid = niUser.id;
     var email = niUser.email;
 
-    // Check localStorage synchronously first - instant on known devices
-    var lsDone = localStorage.getItem("sj_" + uid + "_profile_done") === "true" || localStorage.getItem("sj_profile_done") === "true" || email && localStorage.getItem("sj_email_" + email + "_profile_done") === "true";
-    if (lsDone) {
-      setProfileDone(true);
-      return;
-    }
-
-    // Not in localStorage - need Supabase check
-    // Delay 800ms after login to let the NI session fully establish
-    // (without this, Supabase query runs before token is ready and returns false)
+    // Query Supabase — single source of truth, no localStorage cache
+    // Small delay lets Netlify Identity session fully establish before hitting DB
     setProfileDone(null);
     setTimeout(function () {
       var sbTimeout = new Promise(function (res) {
         setTimeout(function () {
           res(false);
-        }, 8000);
+        }, 5000);
       });
-      Promise.race([dbProfileDone(uid, email), sbTimeout]).then(function (done) {
-        if (done) {
-          try {
-            localStorage.setItem("sj_" + uid + "_profile_done", "true");
-            localStorage.setItem("sj_profile_done", "true");
-            localStorage.setItem("sj_email_" + email + "_profile_done", "true");
-          } catch (e) {}
-        }
-        setProfileDone(done);
+      Promise.race([dbProfileDone(uid), sbTimeout]).then(function (done) {
+        setProfileDone(!!done);
       });
-    }, 800);
+    }, 500);
   }, [niUser]);
   if (!niReady) return /*#__PURE__*/React.createElement(Spin, {
     label: "Loading..."
   });
   if (!niUser) return /*#__PURE__*/React.createElement(Landing, null);
-  // Always go straight to the app — setup is optional via banner on homepage
+  // Wait for profileDone to resolve before rendering App
+  // This prevents the "Complete Setup" banner flashing incorrectly
+  if (profileDone === null) return /*#__PURE__*/React.createElement(Spin, {
+    label: "One moment..."
+  });
   return /*#__PURE__*/React.createElement(App, {
     uid: niUser.id,
     email: niUser.email,
