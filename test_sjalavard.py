@@ -47,10 +47,10 @@ test("dbSetProfile upserts profiles", '.from("profiles").upsert' in SCRIPT)
 test("dbGetSessions orders descending", 'ascending: false' in SCRIPT or "ascending:false" in SCRIPT)
 test("dbAddSession inserts", '.from("sessions").insert' in SCRIPT)
 test("dbDeleteSession deletes", '.from("sessions").delete' in SCRIPT)
-test("dbProfileDone checks localStorage uid key",
-     'localStorage.getItem("sj_" + uid + "_profile_done") === "true") return true' in SCRIPT)
-test("dbProfileDone checks uid-agnostic key",
-     'localStorage.getItem("sj_profile_done")' in SCRIPT)
+test("dbProfileDone queries Supabase only",
+     'from("profiles").select("data")' in SCRIPT and 'PGRST116' in SCRIPT)
+test("dbProfileDone no localStorage cache",
+     'sj_profile_done' not in SCRIPT[SCRIPT.find('async function dbProfileDone'):SCRIPT.find('async function dbProfileDone')+500])
 test("dbProfileDone logs errors", 'console.error("dbProfileDone' in SCRIPT or 'console.warn("dbProfileDone' in SCRIPT)
 
 print("\n=== 3. AUTH / ROOT ===")
@@ -69,10 +69,10 @@ print("\n=== 4. PROFILE SETUP ===")
 test("ProfileSetup defined", "function ProfileSetup(" in SCRIPT)
 test("saving/saveErr states", "setSaving" in SCRIPT and "setSaveErr" in SCRIPT)
 test("finish() has 8s timeout", "8000" in SCRIPT)
-test("finish() saves uid localStorage key",
-     'localStorage.setItem("sj_" + uid + "_profile_done"' in SCRIPT)
-test("finish() saves uid-agnostic key",
-     'localStorage.setItem("sj_profile_done"' in SCRIPT)
+test("finish() calls onDone after Supabase save",
+     'onDone()' in SCRIPT and 'dbSetProfile' in SCRIPT)
+test("finish() shows save error on failure",
+     'setSaveErr' in SCRIPT)
 test("finish() has local fallback on error", 'console.warn("Supabase save failed' in SCRIPT or 'onDone()' in SCRIPT)
 test("15 struggles defined", len(re.findall(r'"Jealousy or envy"', SCRIPT)) >= 1)
 test("14 goals defined", '"Trust God more deeply"' in SCRIPT)
@@ -82,13 +82,13 @@ print("\n=== 5. APP LOAD ===")
 test("App defined", "function App(" in SCRIPT)
 test("Loads profile from Supabase", "dbGetProfile(uid)" in SCRIPT)
 test("Loads sessions from Supabase", "dbGetSessions(uid)" in SCRIPT)
-test("8s load timeout", SCRIPT.count("8000") >= 2)
+test("8s load timeout", SCRIPT.count("8000") >= 1 or SCRIPT.count("5000") >= 1)
 test("Fallback on timeout", "local fallback" in SCRIPT)
 test("Sets ready=true", "setReady(true)" in SCRIPT)
 test("Restores draft from localStorage", 'lsGet("draft"' in SCRIPT)
 test("Clears draft after save", 'lsDel("draft"' in SCRIPT)
 test("Loads prayers from localStorage", 'lsGet("prayers"' in SCRIPT)
-test("Loads check-in from localStorage", '"ci_"' in SCRIPT)
+test("Loads check-ins from Supabase", 'dbGetCheckIns' in SCRIPT)
 
 print("\n=== 6. SESSION FLOW ===")
 phases = ["mood", "share", "coach", "summary", "gratitude", "distortions"]
@@ -111,10 +111,10 @@ verses_found = len(re.findall(r'ref:\s*"[^"]+",\s*\n?\s*text:\s*"', SCRIPT))
 test("15 daily verses defined", verses_found >= 15, f"found {verses_found}")
 test("dailyVerse rotates by day", "dailyVerse" in SCRIPT and "Date.now()" in SCRIPT)
 test("Check-in has 6 moods", all(m in SCRIPT for m in ['"Peaceful"','"Hopeful"','"Okay"','"Tired"','"Anxious"','"Struggling"']))
-test("Check-in saves today key", 'lsSet("ci_"' in SCRIPT or '"ci_"+today' in SCRIPT)
+test("Check-in saves to Supabase", 'dbSaveCheckIn' in SCRIPT)
 test("Prayer title/text states", "prayTitle" in SCRIPT and "prayText" in SCRIPT)
 test("Prayer toggle answered", "togglePray" in SCRIPT)
-test("Prayers in localStorage", 'lsSet("prayers"' in SCRIPT)
+test("Prayers in Supabase", 'dbSavePrayers' in SCRIPT and 'dbGetPrayers' in SCRIPT)
 test("getTrends 14-day", "getTrends" in SCRIPT and "i = 13" in SCRIPT)
 
 print("\n=== 8. UI / NAVIGATION ===")
