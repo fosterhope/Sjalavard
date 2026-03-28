@@ -4523,11 +4523,20 @@ function Root() {
   var [niUser, setNiUser] = useState(null);
   var [niReady, setNiReady] = useState(false);
   var [profileDone, setProfileDone] = useState(null);
+  // Use ref so justLoggedIn persists across re-renders reliably
+  var justLoggedInRef = useRef(false);
   useEffect(function () {
     var ni = window.netlifyIdentity;
     if (!ni) {
       setNiReady(true);
       return;
+    }
+
+    // Check if already initialized (handles page reload with active session)
+    var current = ni.currentUser ? ni.currentUser() : null;
+    if (current) {
+      setNiUser(current);
+      setNiReady(true);
     }
     var timeout = setTimeout(function () {
       setNiReady(true);
@@ -4537,37 +4546,29 @@ function Root() {
       setNiUser(user || null);
       setNiReady(true);
     });
-    var justLoggedIn = false;
     ni.on("login", function (user) {
-      justLoggedIn = true;
+      clearTimeout(timeout);
+      justLoggedInRef.current = true;
       setNiUser(user);
       setNiReady(true);
-      // Close modal after short delay; reset guard after longer delay
+      ni.close();
+      // Reset guard after 2 seconds
       setTimeout(function () {
-        ni.close();
-      }, 200);
-      setTimeout(function () {
-        justLoggedIn = false;
-      }, 1000);
+        justLoggedInRef.current = false;
+      }, 2000);
     });
     ni.on("logout", function () {
-      if (justLoggedIn) {
-        console.warn("Ignoring spurious logout fired immediately after login");
+      if (justLoggedInRef.current) {
+        console.warn("Sjalavard: blocking spurious logout after login");
         return;
       }
       setNiUser(null);
       setProfileDone(null);
     });
     ni.on("error", function (e) {
-      console.error(e);
+      console.error("Netlify Identity error:", e);
       setNiReady(true);
     });
-    var current = ni.currentUser ? ni.currentUser() : null;
-    if (current) {
-      clearTimeout(timeout);
-      setNiUser(current);
-      setNiReady(true);
-    }
     ni.init();
     return function () {
       clearTimeout(timeout);
