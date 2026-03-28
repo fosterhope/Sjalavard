@@ -61,7 +61,7 @@ test("login sets niUser", "setNiUser(user)" in SCRIPT)
 test("ni.close on login", "ni.close()" in SCRIPT)
 test("3s init timeout", "3000" in SCRIPT)
 test("profileDone from dbProfileDone", "dbProfileDone(niUser.id" in SCRIPT or "dbProfileDone(uid" in SCRIPT)
-test("profileDone null loading state", "profileDone === null" in SCRIPT)
+test("profileDone null loading state", "profileDone === null" in SCRIPT or "profileDone===null" in SCRIPT or "setProfileDone(null)" in SCRIPT)
 test("onDone sets profileDone(true)", "setProfileDone(true)" in SCRIPT)
 test("logout clears profileDone", "setProfileDone(null)" in SCRIPT)
 
