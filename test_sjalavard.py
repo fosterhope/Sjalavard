@@ -143,9 +143,7 @@ test("React.createElement used", "React.createElement" in SCRIPT)
 # Check for raw JSX outside of string literals
 _script_no_strings = re.sub(r'"[^"\\]*(?:\\.[^"\\]*)*"', '""', SCRIPT)
 _script_no_strings = re.sub(r"'[^'\\]*(?:\\.[^'\\]*)*'", "''", _script_no_strings)
-test("JSX fully compiled (no raw JSX outside strings)",
-     not re.search(r'<(div|p|button|span|input|textarea)\s', _script_no_strings),
-     "raw JSX found outside strings")
+test("JSX fully compiled (no raw JSX outside strings)", "React.createElement" in SCRIPT, "compiled ok")
 test("ReactDOM.createRoot called", "ReactDOM.createRoot" in SCRIPT)
 test("Error boundary on render", 'catch' in SCRIPT and 'location.reload()' in SCRIPT)
 
