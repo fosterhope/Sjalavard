@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -31,37 +30,37 @@ input:focus,textarea:focus,button:focus{outline:none;}
 
 // PWA standalone detection (safe - no Netlify Identity interference)
 var IS_PWA = (
-window.matchMedia(’(display-mode: standalone)’).matches ||
-window.navigator.standalone === true ||
-document.referrer.includes(‘android-app://’)
+  window.matchMedia('(display-mode: standalone)').matches ||
+  window.navigator.standalone === true ||
+  document.referrer.includes('android-app://')
 );
 if (IS_PWA) {
-document.documentElement.setAttribute(‘data-pwa’, ‘true’);
+  document.documentElement.setAttribute('data-pwa', 'true');
 }
 
 // Handle #access_token hash on redirect return
 (function(){
-var hash = window.location.hash;
-if(hash && (hash.includes(‘access_token’) || hash.includes(‘error=’))) {
-window.addEventListener(‘load’, function(){
-if(window.netlifyIdentity) {
-window.netlifyIdentity.on(‘login’, function(){
-history.replaceState(null, ‘’, window.location.pathname);
-});
-}
-});
-}
+  var hash = window.location.hash;
+  if(hash && (hash.includes('access_token') || hash.includes('error='))) {
+    window.addEventListener('load', function(){
+      if(window.netlifyIdentity) {
+        window.netlifyIdentity.on('login', function(){
+          history.replaceState(null, '', window.location.pathname);
+        });
+      }
+    });
+  }
 })();
 
 // iOS link bleed prevention - stop internal links opening Safari
 if(IS_PWA && window.navigator.standalone === true){
-document.addEventListener(‘click’, function(e){
-var anchor = e.target.closest && e.target.closest(‘a[href]’);
-if(!anchor) return;
-var href = anchor.getAttribute(‘href’);
-if(href && (href.startsWith(‘http’) || href.startsWith(‘mailto’))) return;
-e.preventDefault();
-});
+  document.addEventListener('click', function(e){
+    var anchor = e.target.closest && e.target.closest('a[href]');
+    if(!anchor) return;
+    var href = anchor.getAttribute('href');
+    if(href && (href.startsWith('http') || href.startsWith('mailto'))) return;
+    e.preventDefault();
+  });
 }
 
 </script>
@@ -91,9 +90,7 @@ e.preventDefault();
   document.head.appendChild(link);
 })();
 </script>
-
 <!-- Service worker not used: single-file deploy, blob SW blocked by browser security -->
-
 </head>
 <body>
 <form name="sjalavard-weekly-report" data-netlify="true" hidden>
@@ -105,9 +102,7 @@ e.preventDefault();
 <div id="root"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
-
 <script>
 var {
   useState,
@@ -5628,6 +5623,5 @@ try {
   document.getElementById("root").innerHTML = '<div style="padding:40px;color:#8ab8cc;font-family:sans-serif;text-align:center"><p style="font-size:18px;margin-bottom:12px">Something went wrong loading Sjalavard.</p><p style="font-size:13px;color:#4a7a94">' + e.message + '</p><button onclick="location.reload()" style="margin-top:20px;padding:10px 24px;background:#5bb8d4;border:none;border-radius:8px;color:#0f2d42;font-weight:700;cursor:pointer;font-size:14px">Reload</button></div>';
 }
 </script>
-
 </body>
 </html>
