@@ -1888,6 +1888,7 @@ function App({
   onLogout,
   onAdmin
 }) {
+  console.log("[SJ] App mounted/updated, uid=" + uid + " profileDone=" + profileDone);
   var [profile, setProfile] = useState({});
   var [sessions, setSessions] = useState([]);
   var [ready, setReady] = useState(false);
