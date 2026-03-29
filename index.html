@@ -99,6 +99,14 @@ if(IS_PWA && window.navigator.standalone === true){
 <input type="hidden" name="sessions_this_week"/>
 <input type="hidden" name="top_topics"/>
 </form>
+<form name="sjalavard-backup-notification" data-netlify="true" hidden>
+<input type="hidden" name="form-name" value="sjalavard-backup-notification"/>
+<input type="hidden" name="user_email"/>
+<input type="hidden" name="backup_date"/>
+<input type="hidden" name="sessions_count"/>
+<input type="hidden" name="prayers_count"/>
+<input type="hidden" name="backup_size_kb"/>
+</form>
 <div id="root"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
@@ -470,6 +478,43 @@ function buildSys(p, sessions) {
     }
   }
   return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care.\nYou combine CBT (David Burns), neuroscience, biblical truth, and Spirit-led pastoral care.\nDraw from Brennan Manning on grace, Dallas Willard on spiritual formation, Richard Foster on disciplines, CS Lewis on truth, Henri Nouwen on the wounded healer, Dr. Caroline Leaf on neuroscience of thought. Draw from whichever voice fits. Never force a reference." + authLine + "\nPrioritize grace, identity in Christ, Spirit transformation.\n" + (p.firstName ? "Name: " + p.firstName + ".\n" : "") + "BACKGROUND CONTEXT (do not bring up directly - use only as quiet background awareness to inform how you listen and respond):\nPatterns this person has named: " + struggles + ".\nDirections they want to grow: " + goals + "\n\nNEVER ask about or reference these lists by name. Let the person lead each session from wherever they are. Your job is to follow them, not to work through their profile.\nWatch for cognitive distortions. Be warm but direct. No flattery.\nIf someone expresses suicidal thoughts, acknowledge their pain, show care, provide 988 Lifeline. Do not proceed until safety is addressed.\nSession arc: Opening=validate+1 question. Middle=name distortion+biblical perspective+1 question. Closing=summarize+reframe+prayer+pause.\nKeep sessions 4-6 exchanges. This is holy ground." + mem;
+}
+function autoBackup(uid, email, profile, sessions, prayers, checkins) {
+  try {
+    var k = "sj_" + uid + "_last_backup";
+    var last = localStorage.getItem(k);
+    var now = Date.now();
+    if (last && now - parseInt(last) < 7 * 24 * 60 * 60 * 1000) return;
+    var backup = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      email: email,
+      profile: profile,
+      sessions: sessions,
+      prayers: prayers,
+      checkins: checkins
+    };
+    var kb = Math.round(JSON.stringify(backup).length / 1024 * 10) / 10;
+    var fd = new FormData();
+    fd.append("form-name", "sjalavard-backup-notification");
+    fd.append("user_email", email || "unknown");
+    fd.append("backup_date", new Date().toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric"
+    }));
+    fd.append("sessions_count", String((sessions || []).length));
+    fd.append("prayers_count", String((prayers || []).length));
+    fd.append("backup_size_kb", String(kb));
+    fetch("/", {
+      method: "POST",
+      body: fd
+    }).catch(function () {});
+    localStorage.setItem(k, String(now));
+    console.log("[SJ] Weekly backup notification sent: " + kb + "KB");
+  } catch (e) {
+    console.warn("[SJ] Backup failed:", e.message);
+  }
 }
 function sendWeeklyReport(uid, sessions) {
   try {
@@ -1992,7 +2037,8 @@ function App({
         setPhase(d.phase || "mood");
         setRestored(true);
       }
-      sendWeeklyReport(uid, []);
+      sendWeeklyReport(uid, sessions || []);
+      autoBackup(uid, email, prof, sessions || [], [], checkins || {});
       setReady(true);
     }
     load();
