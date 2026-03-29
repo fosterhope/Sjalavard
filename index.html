@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -30,37 +31,37 @@ input:focus,textarea:focus,button:focus{outline:none;}
 
 // PWA standalone detection (safe - no Netlify Identity interference)
 var IS_PWA = (
-  window.matchMedia('(display-mode: standalone)').matches ||
-  window.navigator.standalone === true ||
-  document.referrer.includes('android-app://')
+window.matchMedia(’(display-mode: standalone)’).matches ||
+window.navigator.standalone === true ||
+document.referrer.includes(‘android-app://’)
 );
 if (IS_PWA) {
-  document.documentElement.setAttribute('data-pwa', 'true');
+document.documentElement.setAttribute(‘data-pwa’, ‘true’);
 }
 
 // Handle #access_token hash on redirect return
 (function(){
-  var hash = window.location.hash;
-  if(hash && (hash.includes('access_token') || hash.includes('error='))) {
-    window.addEventListener('load', function(){
-      if(window.netlifyIdentity) {
-        window.netlifyIdentity.on('login', function(){
-          history.replaceState(null, '', window.location.pathname);
-        });
-      }
-    });
-  }
+var hash = window.location.hash;
+if(hash && (hash.includes(‘access_token’) || hash.includes(‘error=’))) {
+window.addEventListener(‘load’, function(){
+if(window.netlifyIdentity) {
+window.netlifyIdentity.on(‘login’, function(){
+history.replaceState(null, ‘’, window.location.pathname);
+});
+}
+});
+}
 })();
 
 // iOS link bleed prevention - stop internal links opening Safari
 if(IS_PWA && window.navigator.standalone === true){
-  document.addEventListener('click', function(e){
-    var anchor = e.target.closest && e.target.closest('a[href]');
-    if(!anchor) return;
-    var href = anchor.getAttribute('href');
-    if(href && (href.startsWith('http') || href.startsWith('mailto'))) return;
-    e.preventDefault();
-  });
+document.addEventListener(‘click’, function(e){
+var anchor = e.target.closest && e.target.closest(‘a[href]’);
+if(!anchor) return;
+var href = anchor.getAttribute(‘href’);
+if(href && (href.startsWith(‘http’) || href.startsWith(‘mailto’))) return;
+e.preventDefault();
+});
 }
 
 </script>
@@ -90,7 +91,9 @@ if(IS_PWA && window.navigator.standalone === true){
   document.head.appendChild(link);
 })();
 </script>
+
 <!-- Service worker not used: single-file deploy, blob SW blocked by browser security -->
+
 </head>
 <body>
 <form name="sjalavard-weekly-report" data-netlify="true" hidden>
@@ -102,7 +105,9 @@ if(IS_PWA && window.navigator.standalone === true){
 <div id="root"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+
 <script>
 var {
   useState,
@@ -5422,17 +5427,50 @@ function Root() {
     }, 3000);
     ni.on("init", function (user) {
       clearTimeout(initTimeout);
+      if (user) console.log("[SJ] init user.id=" + user.id + " keys=" + JSON.stringify(Object.keys(user)));
       setNiUser(user || null);
       setNiReady(true);
     });
     ni.on("login", function (user) {
       clearTimeout(initTimeout);
+      // The NI widget sometimes fires login with a config object instead of user
+      // Real user object has: id, email, user_metadata
+      // Config object has: api, url, audience, token
+      if (!user || !user.id) {
+        console.log("[SJ] login fired with non-user object, waiting for real user...");
+        // Poll for the real user object
+        var attempts = 0;
+        var poll = setInterval(function () {
+          var realUser = ni.currentUser ? ni.currentUser() : null;
+          attempts++;
+          if (realUser && realUser.id) {
+            clearInterval(poll);
+            console.log("[SJ] Got real user: id=" + realUser.id + " email=" + realUser.email);
+            justLoggedInRef.current = true;
+            if (justLoggedInTimer.current) clearTimeout(justLoggedInTimer.current);
+            justLoggedInTimer.current = setTimeout(function () {
+              justLoggedInRef.current = false;
+            }, 5000);
+            setNiUser(realUser);
+            setNiReady(true);
+            setTimeout(function () {
+              try {
+                ni.close();
+              } catch (e) {}
+            }, 100);
+          } else if (attempts > 20) {
+            clearInterval(poll);
+            console.error("[SJ] Could not get real user after polling");
+          }
+        }, 200);
+        return;
+      }
       justLoggedInRef.current = true;
       if (justLoggedInTimer.current) clearTimeout(justLoggedInTimer.current);
       justLoggedInTimer.current = setTimeout(function () {
         justLoggedInRef.current = false;
       }, 5000);
-      console.log("[SJ] login event, user.id=" + user.id + " user.sub=" + (user.sub || "none") + " keys=" + JSON.stringify(Object.keys(user)));
+      console.log("[SJ] login user.id=" + user.id + " email=" + user.email);
       setNiUser(user);
       setNiReady(true);
       setTimeout(function () {
@@ -5472,10 +5510,12 @@ function Root() {
     var uid = niUser.id || niUser.sub || niUser.user_metadata && niUser.user_metadata.sub;
     var email = niUser.email;
     if (!uid) {
-      console.error("[SJ] No uid found on user object:", JSON.stringify(Object.keys(niUser)));
+      console.error("[SJ] No uid — user object:", JSON.stringify(niUser));
+      // Can't load without uid - show app anyway so user isn't stuck
+      setProfileDone(false);
       return;
     }
-    console.log("[SJ] User object keys:", JSON.stringify(Object.keys(niUser)));
+    console.log("[SJ] uid=" + uid + " email=" + email);
     setProfileDone(null);
     window._sjPreloadedData = null;
 
@@ -5588,5 +5628,6 @@ try {
   document.getElementById("root").innerHTML = '<div style="padding:40px;color:#8ab8cc;font-family:sans-serif;text-align:center"><p style="font-size:18px;margin-bottom:12px">Something went wrong loading Sjalavard.</p><p style="font-size:13px;color:#4a7a94">' + e.message + '</p><button onclick="location.reload()" style="margin-top:20px;padding:10px 24px;background:#5bb8d4;border:none;border-radius:8px;color:#0f2d42;font-weight:700;cursor:pointer;font-size:14px">Reload</button></div>';
 }
 </script>
+
 </body>
 </html>
