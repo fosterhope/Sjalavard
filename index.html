@@ -5425,8 +5425,21 @@ function Root() {
     }, 3000);
     ni.on("init", function (user) {
       clearTimeout(initTimeout);
-      if (user) console.log("[SJ] init user.id=" + user.id + " keys=" + JSON.stringify(Object.keys(user)));
-      setNiUser(user || null);
+      // Only accept real user objects - NI sometimes passes config object here too
+      if (user && user.id) {
+        console.log("[SJ] init real user: id=" + user.id);
+        setNiUser(user);
+      } else {
+        // Config object or null - check currentUser() for real session
+        var current = ni.currentUser ? ni.currentUser() : null;
+        if (current && current.id) {
+          console.log("[SJ] init currentUser: id=" + current.id);
+          setNiUser(current);
+        } else {
+          console.log("[SJ] init: no real user yet");
+          setNiUser(null);
+        }
+      }
       setNiReady(true);
     });
     ni.on("login", function (user) {
@@ -5491,8 +5504,9 @@ function Root() {
       setNiReady(true);
     });
     var existing = ni.currentUser ? ni.currentUser() : null;
-    if (existing) {
+    if (existing && existing.id) {
       clearTimeout(initTimeout);
+      console.log("[SJ] existing session: id=" + existing.id);
       setNiUser(existing);
       setNiReady(true);
     }
