@@ -2318,9 +2318,8 @@ function App({
   }
   var progPhases = ["mood", "share", "coach", "summary", "gratitude"];
   var progIdx = progPhases.indexOf(phase);
-  if (!ready) return /*#__PURE__*/React.createElement(Spin, {
-    label: "Loading your space..."
-  });
+
+  // Don't block the whole app on ready - show loading within tabs instead
 
   // Inline setup handler - saves profile and closes modal
   function handleSetupDone() {
@@ -2346,8 +2345,11 @@ function App({
       position: "fixed",
       inset: 0,
       background: "rgba(0,0,0,0.85)",
-      zIndex: 900,
+      zIndex: 1000,
       overflowY: "auto"
+    },
+    onClick: function (e) {
+      e.stopPropagation();
     }
   }, /*#__PURE__*/React.createElement(ProfileSetup, {
     uid: uid,
@@ -2486,24 +2488,21 @@ function App({
       overflowX: "auto"
     }
   }, [["session", "Session"], ["journal", "Prayer"], ["history", "Past Sessions"], ["profile", "Profile"], ["legal", "Legal"]].map(function (vl) {
-    var isDataTab = vl[0] !== "session";
-    var disabled = isDataTab && !ready;
     return /*#__PURE__*/React.createElement("button", {
       key: vl[0],
       onClick: function () {
-        if (!disabled) setTab(vl[0]);
+        setTab(vl[0]);
       },
       style: {
         padding: "13px 16px",
         background: "transparent",
         border: "none",
         borderBottom: "2px solid " + (tab === vl[0] ? C.acc : "transparent"),
-        color: tab === vl[0] ? C.acc : disabled ? C.dim : C.muted,
+        color: tab === vl[0] ? C.acc : C.muted,
         fontSize: 13,
-        cursor: disabled ? "default" : "pointer",
+        cursor: "pointer",
         fontWeight: tab === vl[0] ? 700 : 400,
-        whiteSpace: "nowrap",
-        opacity: disabled ? 0.5 : 1
+        whiteSpace: "nowrap"
       }
     }, vl[1]);
   }))), logoutConfirm && /*#__PURE__*/React.createElement("div", {
@@ -2712,7 +2711,9 @@ function App({
       color: C.muted
     }
   }, "Tell Sjal about you so coaching feels personal.")), /*#__PURE__*/React.createElement("button", {
-    onClick: function () {
+    onClick: function (e) {
+      e.stopPropagation();
+      console.log("[SJ] Complete Setup clicked, uid=" + uid);
       setShowSetup(true);
     },
     style: {
@@ -2725,7 +2726,8 @@ function App({
       cursor: "pointer",
       fontWeight: 700,
       whiteSpace: "nowrap",
-      flexShrink: 0
+      flexShrink: 0,
+      touchAction: "manipulation"
     }
   }, "Complete Setup")), profileDone === true && showSetup && /*#__PURE__*/React.createElement("div", {
     style: {
