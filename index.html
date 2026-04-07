@@ -511,9 +511,8 @@ function autoBackup(uid, email, profile, sessions, prayers, checkins) {
       body: fd
     }).catch(function () {});
     localStorage.setItem(k, String(now));
-    console.log("[SJ] Weekly backup notification sent: " + kb + "KB");
+    
   } catch (e) {
-    console.warn("[SJ] Backup failed:", e.message);
   }
 }
 function sendWeeklyReport(uid, sessions) {
@@ -828,7 +827,7 @@ function AboutModal({
       marginBottom: 16,
       letterSpacing: 0.5
     }
-  }, "EVERYTHING SJALAVARD INCLUDES"), [["✦", "AI Soul Care Sessions", "Talk with Sjal - your personal Christian life coach. Powered by Gemini AI, grounded in CBT, scripture, and Spirit-led care. Sessions run 4-6 exchanges and close with a summary, action step, and gratitude."], ["🙏", "Prayer Journal", "A private, AI-free space to write and keep your prayers. Mark them answered over time. Stored securely in your account and synced across all your devices."], ["💙", "Daily Check-in", "A 10-second mood pulse at the top of every day. Pick a word, add an optional note. No full session required."], ["📖", "Daily Verse", "A rotating scripture verse greets you each day at the top of the Session tab."], ["📊", "Mood Trend Chart", "See your last 14 days of check-ins and session moods visualized as a bar chart in Past Sessions."], ["🔍", "Cognitive Distortion Identifier", "During a session, tap + Pattern to name the thinking trap fueling your feelings - drawn from David Burns CBT framework."], ["⚡", "Action Steps", "Every session ends with one concrete, spiritually grounded action step from Sjal to carry into your week."], ["🗂", "Session History", "All completed sessions saved to your account, accessible on any device. Expand any session to see moods, opening words, summary, action step, and gratitude entries."], ["🚨", "Crisis Support", "If your words suggest you may be in crisis, Sjalavard automatically surfaces the 988 Lifeline before continuing."], ["⚙️", "Personalized Profile", "Set up once - your name, struggles, goals, and favorite authors shape how Sjal coaches you without ever referencing them by name."], ["🔒", "Cross-Device Sync", "Your sessions and profile sync securely across all your devices via Supabase."], ["📋", "Legal & Privacy", "Full terms of use, privacy policy, and copyright information available in the Legal tab."]].map(function (f, i) {
+  }, "EVERYTHING SJALAVARD INCLUDES"), [["✦", "AI Soul Care Sessions", "Talk with Sjal - your personal Christian life coach. Powered by Gemini AI, grounded in CBT, scripture, and Spirit-led care. Sessions run 4-6 exchanges and close with a summary, action step, and gratitude."], ["🙏", "Prayer Journal", "A private, AI-free space to write and keep your prayers. Mark them answered over time. Stored securely in your account and synced across all your devices."], ["💙", "Daily Check-in", "A 10-second mood pulse at the top of every day. Pick a word, add an optional note. Syncs across all your devices. No full session required."], ["📖", "Daily Verse", "A rotating scripture verse greets you each day at the top of the Session tab."], ["📊", "Mood Trend Chart", "See your last 14 days of check-ins and session moods visualized as a bar chart in Past Sessions."], ["🔍", "Cognitive Distortion Identifier", "During a session, tap + Pattern to name the thinking trap fueling your feelings - drawn from David Burns CBT framework."], ["⚡", "Action Steps", "Every session ends with one concrete, spiritually grounded action step from Sjal to carry into your week."], ["🗂", "Session History", "All completed sessions saved to your account, accessible on any device. Expand any session to see moods, opening words, summary, action step, and gratitude entries."], ["🚨", "Crisis Support", "If your words suggest you may be in crisis, Sjalavard automatically surfaces the 988 Lifeline before continuing."], ["⚙️", "Personalized Profile", "Set up once - your name, struggles, goals, and favorite authors shape how Sjal coaches you without ever referencing them by name."], ["🔒", "Cross-Device Sync", "Your sessions, profile, prayers, and check-ins all sync securely across all your devices via Supabase. Pick up right where you left off on any device."], ["📋", "Legal & Privacy", "Full terms of use, privacy policy, and copyright information available in the Legal tab."]].map(function (f, i) {
     return /*#__PURE__*/React.createElement("div", {
       key: i,
       style: {
@@ -2013,7 +2012,7 @@ function App({
   onLogout,
   onAdmin
 }) {
-  console.log("[SJ] App mounted/updated, uid=" + uid + " profileDone=" + profileDone);
+  
   var [profile, setProfile] = useState({});
   var [sessions, setSessions] = useState([]);
   var [ready, setReady] = useState(false);
@@ -2840,7 +2839,7 @@ function App({
   }, "Tell Sjal about you so coaching feels personal.")), /*#__PURE__*/React.createElement("button", {
     onClick: function (e) {
       e.stopPropagation();
-      console.log("[SJ] Complete Setup clicked, uid=" + uid);
+      
       setShowSetup(true);
     },
     style: {
@@ -5561,16 +5560,16 @@ function Root() {
       clearTimeout(initTimeout);
       // Only accept real user objects - NI sometimes passes config object here too
       if (user && user.id) {
-        console.log("[SJ] init real user: id=" + user.id);
+        
         setNiUser(user);
       } else {
         // Config object or null - check currentUser() for real session
         var current = ni.currentUser ? ni.currentUser() : null;
         if (current && current.id) {
-          console.log("[SJ] init currentUser: id=" + current.id);
+          
           setNiUser(current);
         } else {
-          console.log("[SJ] init: no real user yet");
+          
           setNiUser(null);
         }
       }
@@ -5582,7 +5581,7 @@ function Root() {
       // Real user object has: id, email, user_metadata
       // Config object has: api, url, audience, token
       if (!user || !user.id) {
-        console.log("[SJ] login fired with non-user object, waiting for real user...");
+        
         // Poll for the real user object
         var attempts = 0;
         var poll = setInterval(function () {
@@ -5590,7 +5589,7 @@ function Root() {
           attempts++;
           if (realUser && realUser.id) {
             clearInterval(poll);
-            console.log("[SJ] Got real user: id=" + realUser.id + " email=" + realUser.email);
+            
             justLoggedInRef.current = true;
             if (justLoggedInTimer.current) clearTimeout(justLoggedInTimer.current);
             justLoggedInTimer.current = setTimeout(function () {
@@ -5605,7 +5604,7 @@ function Root() {
             }, 100);
           } else if (attempts > 20) {
             clearInterval(poll);
-            console.error("[SJ] Could not get real user after polling");
+            
           }
         }, 200);
         return;
@@ -5615,7 +5614,7 @@ function Root() {
       justLoggedInTimer.current = setTimeout(function () {
         justLoggedInRef.current = false;
       }, 5000);
-      console.log("[SJ] login user.id=" + user.id + " email=" + user.email);
+      
       setNiUser(user);
       setNiReady(true);
       setTimeout(function () {
@@ -5626,7 +5625,7 @@ function Root() {
     });
     ni.on("logout", function () {
       if (justLoggedInRef.current) {
-        console.log("[SJ] ignoring spurious logout");
+        
         return;
       }
       setNiUser(null);
@@ -5640,7 +5639,7 @@ function Root() {
     var existing = ni.currentUser ? ni.currentUser() : null;
     if (existing && existing.id) {
       clearTimeout(initTimeout);
-      console.log("[SJ] existing session: id=" + existing.id);
+      
       setNiUser(existing);
       setNiReady(true);
     }
@@ -5656,18 +5655,17 @@ function Root() {
     var uid = niUser.id || niUser.sub || niUser.user_metadata && niUser.user_metadata.sub;
     var email = niUser.email;
     if (!uid) {
-      console.error("[SJ] No uid — user object:", JSON.stringify(niUser));
       // Can't load without uid - show app anyway so user isn't stuck
       setProfileDone(false);
       return;
     }
-    console.log("[SJ] uid=" + uid + " email=" + email);
+    
     setProfileDone(null);
     window._sjPreloadedData = null;
 
     // Check localStorage first — instant for returning users on same device
     var lsDone = localStorage.getItem("sj_" + uid + "_profile_done") === "true" || localStorage.getItem("sj_profile_done") === "true" || email && localStorage.getItem("sj_email_" + email + "_profile_done") === "true";
-    console.log("[SJ] uid=" + uid + " lsDone=" + lsDone);
+    
 
     // If localStorage says done, show app immediately
     if (lsDone) setProfileDone(true);
@@ -5683,7 +5681,7 @@ function Root() {
       var sessionsData = results[1] || [];
       var checkinsData = results[2] || {};
       var sbDone = !!(profileData && profileData.profile_done);
-      console.log("[SJ] Supabase profile_done=" + sbDone + " firstName=" + profileData.firstName);
+      
 
       // Cache in localStorage so next login is instant
       if (sbDone) {
@@ -5696,12 +5694,11 @@ function Root() {
 
       // Auto-repair: localStorage says done but Supabase lost it
       if (lsDone && !sbDone) {
-        console.log("[SJ] Auto-repair: re-saving profile_done to Supabase");
+        
         var repair = Object.assign({}, profileData, {
           profile_done: true
         });
         dbSetProfile(uid, email, repair).catch(function (e) {
-          console.warn("[SJ] Auto-repair failed:", e.message);
         });
       }
       window._sjPreloadedData = {
@@ -5714,7 +5711,6 @@ function Root() {
       // Only update profileDone if localStorage didn't already set it
       if (!lsDone) setProfileDone(sbDone);
     }).catch(function (e) {
-      console.error("[SJ] Preload error:", e);
       window._sjPreloadedData = {
         profile: {},
         sessions: [],
