@@ -477,7 +477,7 @@ function buildSys(p, sessions) {
       }).join("\n");
     }
   }
-  return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care.\nYou combine CBT (David Burns), neuroscience, biblical truth, and Spirit-led pastoral care.\nDraw from Brennan Manning on grace, Dallas Willard on spiritual formation, Richard Foster on disciplines, CS Lewis on truth, Henri Nouwen on the wounded healer, Dr. Caroline Leaf on neuroscience of thought. Draw from whichever voice fits. Never force a reference." + authLine + "\nPrioritize grace, identity in Christ, Spirit transformation.\n" + (p.firstName ? "Name: " + p.firstName + ".\n" : "") + "BACKGROUND CONTEXT (do not bring up directly - use only as quiet background awareness to inform how you listen and respond):\nPatterns this person has named: " + struggles + ".\nDirections they want to grow: " + goals + "\n\nNEVER ask about or reference these lists by name. Let the person lead each session from wherever they are. Your job is to follow them, not to work through their profile.\nWatch for cognitive distortions. Be warm but direct. No flattery.\nIf someone expresses suicidal thoughts, acknowledge their pain, show care, provide 988 Lifeline. Do not proceed until safety is addressed.\nSession arc: Opening=validate+1 question. Middle=name distortion+biblical perspective+1 question. Closing=summarize+reframe+prayer+pause.\nKeep sessions 4-6 exchanges. This is holy ground." + mem;
+  return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care.\nYou combine CBT (David Burns), neuroscience, biblical truth, and Spirit-led pastoral care.\nSjalavard\'s mission: walk with people through the thoughts that weigh them down — helping them catch the lies their mind tells them, replace them with what is actually true, and find their way back to freedom. All grounded in biblical truth and practical principles that work." + authLine + "\nPrioritize grace, identity in Christ, Spirit transformation.\n" + (p.firstName ? "Name: " + p.firstName + ".\n" : "") + (p.bio ? "About this person: " + p.bio + "\n" : "") + "BACKGROUND CONTEXT (do not bring up directly - use only as quiet background awareness):\nPatterns this person has named: " + struggles + ".\nDirections they want to grow: " + goals + "\n\nNEVER reference these lists by name. Let the person lead. Your job is to follow them.\nIf someone expresses suicidal thoughts, acknowledge their pain, show care, provide 988 Lifeline. Do not proceed until safety is addressed.\n\nSession arc:\nResponse 1: Lead with CBT (David Burns). Validate their feelings. Gently identify the cognitive distortion at work. Ask one question.\nResponse 2: Bring in Dr. Caroline Leaf. Help them understand how this thought pattern affects the brain and how the mind can be rewired. Ask one question.\nResponse 3: Draw from the person\'s chosen author naturally and without forcing it. Offer spiritual grounding. Ask one question.\nResponse 4: Wrap up. Give a warm summary of the session. Offer 3 guided reflection questions for them to sit with. Then transition to gratitude.\n\nKeep each response warm, direct, and focused. No flattery. This is holy ground." + mem;
 }
 function autoBackup(uid, email, profile, sessions, prayers, checkins) {
   try {
@@ -787,7 +787,7 @@ function AboutModal({
       lineHeight: 1.8,
       marginBottom: 12
     }
-  }, "Sjalavard is a private AI-powered Christian life coaching app. Your coach, Sjal, combines Cognitive Behavioral Therapy (CBT), biblical truth, neuroscience, and Spirit-led pastoral care to walk with you through whatever is on your heart."), /*#__PURE__*/React.createElement("p", {
+  }, "Sjalavard walks with you through the thoughts that weigh you down \u2014 helping you catch the lies your mind tells you, replace them with what is actually true, and find your way back to freedom. All grounded in biblical truth and practical principles that work."), /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 14,
       color: C.muted,
@@ -1114,9 +1114,18 @@ function Landing({
       letterSpacing: 2,
       textTransform: "uppercase",
       fontWeight: 500,
-      marginBottom: 8
+      marginBottom: 6
     }
   }, "Soul Care"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: C.acc,
+      fontSize: 15,
+      fontStyle: "italic",
+      fontFamily: "'Playfair Display',Georgia,serif",
+      marginBottom: 8,
+      fontWeight: 500
+    }
+  }, "Renew your mind. Reclaim your life."), /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.dim,
       fontSize: 13,
@@ -1197,6 +1206,8 @@ function ProfileSetup({
   var [name, setName] = useState("");
   var [struggles, setStruggles] = useState([]);
   var [goals, setGoals] = useState([]);
+  var [goalsOther, setGoalsOther] = useState("");
+  var [bio, setBio] = useState("");
   var [authors, setAuthors] = useState([]);
   var [authorsOther, setAuthorsOther] = useState("");
   var [saving, setSaving] = useState(false);
@@ -1213,11 +1224,12 @@ function ProfileSetup({
     var extras = authorsOther.split(",").map(function (s) {
       return s.trim();
     }).filter(Boolean);
-    var allA = authors.concat(extras).slice(0, 10);
+    var allA = authors.concat(extras).slice(0, 5);
     var profile = {
       firstName: name.trim(),
+      bio: bio.trim(),
       struggles: struggles,
-      goals: goals,
+      goals: goalsOther.trim() ? [...goals, goalsOther.trim()] : goals,
       authors: allA,
       profile_done: true
     };
@@ -1553,9 +1565,40 @@ function ProfileSetup({
     style: {
       fontSize: 11,
       color: C.dim,
-      marginBottom: 20
+      marginBottom: 16
     }
-  }, "Signed in as ", email), /*#__PURE__*/React.createElement("button", {
+  }, "Signed in as ", email), /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 11,
+      color: C.muted,
+      letterSpacing: 1,
+      textTransform: "uppercase",
+      fontWeight: 600,
+      display: "block",
+      marginBottom: 7,
+      marginTop: 4
+    }
+  }, "Share a bit about yourself"), /*#__PURE__*/React.createElement("textarea", {
+    value: bio,
+    onChange: function (e) {
+      setBio(e.target.value);
+    },
+    placeholder: "Your life, your season, what you\'re carrying. The more you share, the better Sjal can walk with you.",
+    rows: 4,
+    style: {
+      width: "100%",
+      background: C.surf,
+      border: "1.5px solid " + C.border,
+      borderRadius: 10,
+      padding: "12px 14px",
+      color: C.white,
+      fontSize: 14,
+      lineHeight: 1.75,
+      resize: "vertical",
+      fontFamily: "'Playfair Display',Georgia,serif",
+      marginBottom: 16
+    }
+  }), /*#__PURE__*/React.createElement("button", {
     onClick: function () {
       if (name.trim()) setStep(2);
     },
@@ -1697,7 +1740,7 @@ function ProfileSetup({
       color: C.muted,
       fontSize: 14
     }
-  }, "What is God calling you toward?")), /*#__PURE__*/React.createElement("div", {
+  }, "Choose up to 2 goals.")), /*#__PURE__*/React.createElement("div", {
     style: {
       background: C.card,
       border: "1px solid " + C.border,
@@ -1717,9 +1760,11 @@ function ProfileSetup({
       key: g,
       onClick: function () {
         setGoals(function (p) {
-          return on ? p.filter(function (x) {
+          if (on) return p.filter(function (x) {
             return x !== g;
-          }) : [...p, g];
+          });
+          if (p.length >= 2) return p; // max 2
+          return [...p, g];
         });
       },
       style: {
@@ -1758,15 +1803,50 @@ function ProfileSetup({
     style: {
       width: "100%",
       padding: "14px",
-      background: goals.length ? C.acc : C.border,
+      background: goals.length >= 1 ? C.acc : C.border,
       border: "none",
       borderRadius: 12,
-      color: goals.length ? C.bg : C.dim,
+      color: goals.length >= 1 ? C.bg : C.dim,
       fontSize: 15,
-      cursor: goals.length ? "pointer" : "default",
+      cursor: goals.length >= 1 ? "pointer" : "default",
       fontWeight: 700
     }
-  }, "Continue (", goals.length, " selected)"))), step === 4 && /*#__PURE__*/React.createElement("div", {
+  }, "Continue (", goals.length, " of 2 selected)")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 14
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 11,
+      color: C.muted,
+      letterSpacing: 1,
+      textTransform: "uppercase",
+      fontWeight: 600,
+      display: "block",
+      marginBottom: 7
+    }
+  }, "Or describe your own goal"), /*#__PURE__*/React.createElement("input", {
+    value: goalsOther,
+    onChange: function (e) {
+      setGoalsOther(e.target.value);
+    },
+    placeholder: "e.g. Find peace in difficult relationships...",
+    style: {
+      width: "100%",
+      background: C.surf,
+      border: "1.5px solid " + C.border,
+      borderRadius: 10,
+      padding: "11px 14px",
+      color: C.white,
+      fontSize: 14,
+      marginBottom: 6
+    }
+  }), React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: C.dim
+    }
+  }, "This will be added alongside your selections.")))), step === 4 && /*#__PURE__*/React.createElement("div", {
     className: "fi"
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -1804,7 +1884,7 @@ function ProfileSetup({
       fontSize: 14,
       lineHeight: 1.6
     }
-  }, "Select up to 10. Sjal weaves their voice in when it fits.")), /*#__PURE__*/React.createElement("div", {
+  }, "Select up to 5. Sjal weaves their voice in when it fits.")), /*#__PURE__*/React.createElement("div", {
     style: {
       background: C.card,
       border: "1px solid " + C.border,
@@ -1820,7 +1900,7 @@ function ProfileSetup({
     }
   }, ALL_AUTHORS.map(function (a) {
     var on = authors.indexOf(a) > -1;
-    var maxed = authors.length >= 10 && !on;
+    var maxed = authors.length >= 5 && !on;
     return /*#__PURE__*/React.createElement("button", {
       key: a,
       onClick: function () {
@@ -1877,7 +1957,7 @@ function ProfileSetup({
       marginBottom: 16,
       textAlign: "center"
     }
-  }, authors.length, "/10 selected"), saveErr && /*#__PURE__*/React.createElement("p", {
+  }, authors.length, "/5 selected"), saveErr && /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 12,
       color: C.rose,
@@ -1923,7 +2003,7 @@ function ProfileSetup({
       cursor: "pointer",
       marginTop: 4
     }
-  }, "Back to App")))));
+  }, "Back to App"))));
 }
 function App({
   uid,
@@ -2307,7 +2387,7 @@ function App({
     var extras = editAuthorsOther.split(",").map(function (s) {
       return s.trim();
     }).filter(Boolean);
-    var merged = editAuthorsList.concat(extras).slice(0, 10);
+    var merged = editAuthorsList.concat(extras).slice(0, 5);
     var updated = Object.assign({}, profile, {
       authors: merged
     });
@@ -4260,7 +4340,15 @@ function App({
       color: C.white,
       marginBottom: 4
     }
-  }, profile.firstName || "Name not set"), /*#__PURE__*/React.createElement("p", {
+  }, profile.firstName || "Name not set"), profile.bio && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: C.muted,
+      lineHeight: 1.7,
+      marginBottom: 4,
+      fontStyle: "italic"
+    }
+  }, profile.bio), /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 11,
       color: C.dim
@@ -4405,7 +4493,7 @@ function App({
     }
   }, ALL_AUTHORS.map(function (a) {
     var on = editAuthorsList.indexOf(a) > -1;
-    var maxed = editAuthorsList.length >= 10 && !on;
+    var maxed = editAuthorsList.length >= 5 && !on;
     return /*#__PURE__*/React.createElement("button", {
       key: a,
       onClick: function () {
