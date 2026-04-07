@@ -21,6 +21,9 @@ body{background:#0f2d42;font-family:'Inter',sans-serif;color:#fff;min-height:100
 input,textarea,button{font-family:'Inter',sans-serif;touch-action:manipulation;}
 button{cursor:pointer;-webkit-tap-highlight-color:transparent;}
 input:focus,textarea:focus,button:focus{outline:none;}
+/* Prevent NI widget iframe from blocking clicks when not active */
+#netlify-identity-widget{pointer-events:none !important;}
+#netlify-identity-widget[style*="display: block"]{pointer-events:all !important;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .fi{animation:fadeIn 0.25s ease;}
 ::-webkit-scrollbar{width:4px;}
@@ -5597,11 +5600,12 @@ function Root() {
             }, 5000);
             setNiUser(realUser);
             setNiReady(true);
-            setTimeout(function () {
-              try {
-                ni.close();
-              } catch (e) {}
-            }, 100);
+            try{ni.close();}catch(e){}
+            setTimeout(function(){
+              try{ni.close();}catch(e){}
+              var f=document.getElementById("netlify-identity-widget");
+              if(f) f.style.cssText="display:none!important";
+            }, 200);
           } else if (attempts > 20) {
             clearInterval(poll);
             
@@ -5617,11 +5621,12 @@ function Root() {
       
       setNiUser(user);
       setNiReady(true);
-      setTimeout(function () {
-        try {
-          ni.close();
-        } catch (e) {}
-      }, 100);
+      try{ni.close();}catch(e){}
+      setTimeout(function(){
+        try{ni.close();}catch(e){}
+        var f=document.getElementById("netlify-identity-widget");
+        if(f) f.style.cssText="display:none!important";
+      }, 200);
     });
     ni.on("logout", function () {
       if (justLoggedInRef.current) {
