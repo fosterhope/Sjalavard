@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<meta name="theme-color" content="#153a52"/>
+<meta name="theme-color" content="#1f4d6b"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
@@ -208,7 +208,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased;}
-body{background:#153a52;font-family:'Inter',sans-serif;color:#fff;min-height:100vh;}
+body{background:#1f4d6b;font-family:'Inter',sans-serif;color:#fff;min-height:100vh;}
 input,textarea,button{font-family:'Inter',sans-serif;touch-action:manipulation;}
 button{cursor:pointer;-webkit-tap-highlight-color:transparent;}
 input:focus,textarea:focus,button:focus{outline:none;}
@@ -272,8 +272,8 @@ if(IS_PWA && window.navigator.standalone === true){
     description:"AI-powered Christian life coaching from Foster Hope Ministries",
     start_url:"/",
     display:"standalone",
-    background_color:"#153a52",
-    theme_color:"#153a52",
+    background_color:"#1f4d6b",
+    theme_color:"#1f4d6b",
     icons:icons
   };
   var blob = new Blob([JSON.stringify(manifest)],{type:"application/json"});
@@ -458,7 +458,7 @@ async function dbGetCheckIns(uid) {
 }
 var FH_URL = "https://fosterhopewebsite.netlify.app";
 var C = {
-  bg: "#153a52",
+  bg: "#1f4d6b",
   surf: "#1a3d54",
   card: "#1e4560",
   border: "#2d6b8a",
@@ -1275,7 +1275,7 @@ function Landing({
   return /*#__PURE__*/React.createElement("div", {
     style: {
       minHeight: "100vh",
-      background: "linear-gradient(160deg,#0f2537 0%,#153a52 55%,#1a3d54 100%)",
+      background: "linear-gradient(160deg,#0f2537 0%,#1f4d6b 55%,#1a3d54 100%)",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
@@ -2822,7 +2822,7 @@ function App({
       display: "flex",
       overflowX: "auto"
     }
-  }, [["session", "Session"], ["journal", "Prayer"], ["history", "Past Sessions"], ["profile", "Profile"], ["legal", "Legal"]].map(function (vl) {
+  }, [["session", "Session"], ["journal", "Prayer"], ["history", "Past Sessions"], ["profile", "Profile"], ["included", "Features"], ["legal", "Legal"]].map(function (vl) {
     return /*#__PURE__*/React.createElement("button", {
       key: vl[0],
       onClick: function () {
@@ -4847,7 +4847,38 @@ function App({
       letterSpacing: 0.5,
       opacity: 0.4
     }
-  }, "Admin"))), tab === "legal" && /*#__PURE__*/React.createElement("div", {
+  }, "Admin"))), tab === "included" && /*#__PURE__*/React.createElement("div", {
+    className: "fi",
+    style: { maxWidth:680, margin:"0 auto", padding:"10px 4px 80px" }
+  },
+    React.createElement("div", { style:{ fontSize:11, fontWeight:700, letterSpacing:"0.16em", textTransform:"uppercase", color:C.acc, marginBottom:10 } }, "Also inside Sjalavard"),
+    React.createElement("h2", { style:{ fontFamily:"'Playfair Display',serif", fontSize:28, fontWeight:600, color:"#fff", marginBottom:10, letterSpacing:-0.5, lineHeight:1.2 } }, "Everything else you'll find inside"),
+    React.createElement("p", { style:{ fontSize:14, color:C.muted, lineHeight:1.75, marginBottom:26 } }, "Beyond the sessions and prayer journal, Sjalavard is built to be a quiet, durable companion. Here's the rest."),
+    [
+      ["📝","Daily Check-In","A simple mood + one-line note each day. Helps you and Sjal notice patterns over time. Synced across devices, replaced with a quiet confirmation once completed."],
+      ["🛟","Crisis Support","If anything in a session signals you're in danger, Sjal pauses and surfaces the 988 Suicide & Crisis Lifeline immediately. Safety comes before process, always."],
+      ["🧠","Cognitive Behavioral Therapy, Gently Woven In","The silent backbone is David Burns' Feeling Good framework — identifying cognitive distortions (mind-reading, all-or-nothing, catastrophizing) and replacing them with what is actually true. Sjal never names the framework, just uses it."],
+      ["📚","Your Chosen Voices","Pick up to 5 authors whose sensibility you want to hear — Manning, Willard, Foster, Lewis, Nouwen, Leaf, and more. Sjal weaves them in naturally, never quoted at length, never forced."],
+      ["🙏","Prayer Journal with Answered Prayers","Mark prayers answered and watch your own history of God's faithfulness grow over time."],
+      ["📱","Installable PWA — Works Offline","Add Sjalavard to your iPhone, Android, Mac, or PC home screen. Runs like a native app. Your sessions stay usable without signal."],
+      ["☁️","Cross-Device Sync","Sign in on your phone at lunch, finish on your laptop after dinner. Profile, sessions, check-ins, and prayers all follow you — encrypted and private to your account."],
+      ["🔒","Private by Design","Your sessions aren't a training dataset for anyone. Scoped storage, no third-party analytics, no ads. It's your soul care — nobody else's."],
+      ["🕊️","Sjal's Voice — Pastoral, Not Clinical","Sjal isn't a therapist and doesn't pretend to be. He listens like a friend who happens to be trained in the science and steeped in the Spirit. For crisis care, always defers to professionals."],
+      ["📖","Session Arc — 4 Movements + Gratitude","Every full session follows a shape: CBT (name the distortion), Leaf (neuroscience of thought), Author (a voice you chose), Summary (reflection + 3 questions), then Gratitude. You can close anytime."],
+      ["🏠","A Ministry of Foster Hope","Sjalavard is a free ministry tool of Foster Hope Ministries — built because life is hard and most of us don't have a pastor or therapist on call at 2am. Use it freely, share it freely."]
+    ].map(function(f, i){
+      return React.createElement("div", { key:i, style:{ background:C.card, border:"1px solid "+C.border, borderRadius:14, padding:"20px 22px", marginBottom:14, display:"flex", gap:14, alignItems:"flex-start" } },
+        React.createElement("div", { style:{ fontSize:24, lineHeight:1, flexShrink:0, marginTop:2 } }, f[0]),
+        React.createElement("div", { style:{ flex:1 } },
+          React.createElement("div", { style:{ fontFamily:"'Playfair Display',serif", fontSize:17, fontWeight:600, color:"#fff", marginBottom:5 } }, f[1]),
+          React.createElement("div", { style:{ fontSize:13.5, color:C.muted, lineHeight:1.7 } }, f[2])
+        )
+      );
+    }),
+    React.createElement("div", { style:{ textAlign:"center", marginTop:20 } },
+      React.createElement("button", { onClick:function(){ setTab("session"); }, style:{ background:C.acc, color:C.bg, border:"none", borderRadius:12, padding:"12px 28px", fontSize:13, fontWeight:700, cursor:"pointer", letterSpacing:0.3 } }, "Back to Session")
+    )
+  ), tab === "legal" && /*#__PURE__*/React.createElement("div", {
     className: "fi"
   }, /*#__PURE__*/React.createElement("h2", {
     style: {
@@ -5978,7 +6009,7 @@ function Root() {
 try {
   ReactDOM.createRoot(document.getElementById("root")).render(/*#__PURE__*/React.createElement(Root, null));
 } catch (e) {
-  document.getElementById("root").innerHTML = '<div style="padding:40px;color:#8ab8cc;font-family:sans-serif;text-align:center"><p style="font-size:18px;margin-bottom:12px">Something went wrong loading Sjalavard.</p><p style="font-size:13px;color:#4a7a94">' + e.message + '</p><button onclick="location.reload()" style="margin-top:20px;padding:10px 24px;background:#5bb8d4;border:none;border-radius:8px;color:#153a52;font-weight:700;cursor:pointer;font-size:14px">Reload</button></div>';
+  document.getElementById("root").innerHTML = '<div style="padding:40px;color:#8ab8cc;font-family:sans-serif;text-align:center"><p style="font-size:18px;margin-bottom:12px">Something went wrong loading Sjalavard.</p><p style="font-size:13px;color:#4a7a94">' + e.message + '</p><button onclick="location.reload()" style="margin-top:20px;padding:10px 24px;background:#5bb8d4;border:none;border-radius:8px;color:#1f4d6b;font-weight:700;cursor:pointer;font-size:14px">Reload</button></div>';
 }
 </script>
 <!-- ── SJALAVARD TOUR — UI (banner + draggable card + Also Included overlay) ── -->
@@ -5990,10 +6021,10 @@ try {
     if (document.getElementById("sj-tour-banner")) return;
     var bar = document.createElement("div");
     bar.id = "sj-tour-banner";
-    bar.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:99998;background:#5bb8d4;color:#153a52;font:700 12px/1 'Inter',system-ui,sans-serif;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 12px;box-shadow:0 2px 10px rgba(0,0,0,.2);";
+    bar.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:99998;background:#5bb8d4;color:#1f4d6b;font:700 12px/1 'Inter',system-ui,sans-serif;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 12px;box-shadow:0 2px 10px rgba(0,0,0,.2);";
     bar.innerHTML = '<span>GUIDED TOUR · sample user preview</span>' +
-      '<button onclick="window._sjTourIdx=0;_renderSjTourStep()" style="background:transparent;color:#153a52;border:1px solid #153a52;border-radius:6px;padding:4px 10px;font:700 11px \'Inter\',system-ui,sans-serif;cursor:pointer;">Restart</button>' +
-      '<button onclick="_exitSjTour()" style="background:#153a52;color:#fff;border:none;border-radius:6px;padding:4px 10px;font:700 11px \'Inter\',system-ui,sans-serif;cursor:pointer;">Exit Tour</button>';
+      '<button onclick="window._sjTourIdx=0;_renderSjTourStep()" style="background:transparent;color:#1f4d6b;border:1px solid #1f4d6b;border-radius:6px;padding:4px 10px;font:700 11px \'Inter\',system-ui,sans-serif;cursor:pointer;">Restart</button>' +
+      '<button onclick="_exitSjTour()" style="background:#1f4d6b;color:#fff;border:none;border-radius:6px;padding:4px 10px;font:700 11px \'Inter\',system-ui,sans-serif;cursor:pointer;">Exit Tour</button>';
     document.body.appendChild(bar);
     document.body.style.paddingTop = "34px";
   }
@@ -6005,18 +6036,13 @@ try {
     { tab:"journal",    title:"Prayer Journal", body:"A private place for the prayers you carry. Alex has three: a prayer for mom's health, one for freedom from approval-seeking, and one answered prayer about guidance at work. Mark prayers answered as God moves." },
     { tab:"history",    title:"Past Sessions", body:"Every session is saved — title, summary, and the full exchange. You'll see Alex's three recent sessions here: anxiety, a hard conversation, and coming back to prayer. Revisit anytime to see how the Spirit has been working." },
     { tab:"profile",    title:"Your Profile", body:"Alex has shared: who they are (bio), what they're walking through (anxiety, overthinking, people-pleasing), what they're seeking (inner peace, trusting God more), and whose voices they want to hear (Manning, Nouwen, Lewis). Sjal uses all of this as background — never quoted back directly, always informing." },
-    { tab:null,         title:"Also Included", body:"There is more in Sjalavard than a tour can cover. Tap Next to see the full list on its own page." },
-    { tab:"__also",     title:"Also in Sjalavard", body:"Scroll this page to see everything else — daily check-ins, crisis support, installable PWA, private encrypted storage, cross-device sync, and more." },
+    { tab:"features",   title:"Also in Sjalavard", body:"This is the full-page list of everything else inside — daily check-ins, crisis support, installable PWA, private storage, cross-device sync, and more. Scroll the page to read them all, then click Next." },
     { tab:null,         title:"That's the Tour", body:"When you're ready, exit the tour and sign up — your sessions, check-ins, and prayers are private, encrypted, and sync across every device. Visit sjalavard.com to create your free account.", last:true }
   ];
   window._sjTourIdx = 0;
 
   function navigate(tab){
-    if (tab === "__also") { showAlsoOverlay(); return; }
-    hideAlsoOverlay();
     if (!tab) return;
-    // The app's main tab state lives inside a React closure — click the real tab button
-    // Buttons in sidebar/nav render with setTab(value). Find and click it.
     try {
       var btns = document.querySelectorAll('button');
       for (var i=0;i<btns.length;i++){
@@ -6025,44 +6051,13 @@ try {
         if (tab==="journal"  && (t==="prayer"||t==="prayers"||t==="journal")) { btns[i].click(); return; }
         if (tab==="history"  && (t==="past sessions"||t==="history")) { btns[i].click(); return; }
         if (tab==="profile"  && t==="profile") { btns[i].click(); return; }
+        if (tab==="features" && t==="features") { btns[i].click(); return; }
       }
     } catch(e){}
   }
 
-  function showAlsoOverlay(){
-    if (document.getElementById("sj-also-overlay")) return;
-    var ov = document.createElement("div");
-    ov.id = "sj-also-overlay";
-    ov.style.cssText = "position:fixed;top:34px;left:0;right:0;bottom:0;z-index:99000;background:#153a52;overflow-y:auto;color:#fff;padding:40px 24px 120px;";
-    var C = { surf:"#1a3d54", card:"#1e4560", border:"#2d6b8a", acc:"#5bb8d4", muted:"#8ab8cc", dim:"#4a7a94" };
-    var card = function(emoji, title, body){
-      return '<div style="background:'+C.card+';border:1px solid '+C.border+';border-radius:14px;padding:20px 22px;margin-bottom:14px;display:flex;gap:14px;align-items:flex-start;">' +
-        '<div style="font-size:24px;line-height:1;flex-shrink:0;margin-top:2px;">'+emoji+'</div>' +
-        '<div style="flex:1;"><div style="font-family:\'Playfair Display\',serif;font-size:17px;font-weight:600;color:#fff;margin-bottom:5px;">'+title+'</div><div style="font-size:13.5px;color:'+C.muted+';line-height:1.7;">'+body+'</div></div>' +
-        '</div>';
-    };
-    ov.innerHTML =
-      '<div style="max-width:680px;margin:0 auto;">' +
-        '<div style="font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:'+C.acc+';margin-bottom:10px;">Also in Sjalavard</div>' +
-        '<h1 style="font-family:\'Playfair Display\',serif;font-size:30px;font-weight:600;color:#fff;line-height:1.2;margin-bottom:10px;">Everything else you\'ll find inside</h1>' +
-        '<p style="font-size:14px;color:'+C.muted+';line-height:1.75;margin-bottom:28px;">Beyond the screens the tour walked you through, Sjalavard is built to be a quiet, durable companion. Here\'s the rest.</p>' +
-        card("📝", "Daily Check-In", "A simple mood + one-line note each day. Alex has 5 check-ins from the last week — a snapshot of the heart that helps you (and Sjal) notice patterns over time. Synced across devices, replaced with a quiet confirmation once completed.") +
-        card("🛟", "Crisis Support", "If anything in a session signals you're in danger, Sjal pauses the conversation and surfaces the 988 Suicide & Crisis Lifeline immediately. Safety comes before process, always.") +
-        card("🧠", "Cognitive Behavioral Therapy, Gently Woven In", "The silent backbone is David Burns' *Feeling Good* framework — identifying cognitive distortions (mind-reading, all-or-nothing, catastrophizing) and replacing them with what is actually true. Sjal never names the framework out loud, just uses it.") +
-        card("📚", "Your Chosen Voices", "Pick up to 5 authors whose sensibility you want to hear — Manning, Willard, Foster, Lewis, Nouwen, Leaf, and more. Sjal weaves them in naturally, never quoted at length, never forced.") +
-        card("🙏", "Prayer Journal with Answered Prayers", "Mark prayers answered and watch your own history of God's faithfulness grow. Alex has one answered prayer (work guidance) in the sample.") +
-        card("📱", "Installable PWA — Works Offline", "Add Sjalavard to your iPhone, Android, Mac, or PC home screen. Runs like a native app. Your sessions stay usable without signal.") +
-        card("☁️", "Cross-Device Sync", "Sign in on your phone at lunch, finish on your laptop after dinner. Profile, sessions, check-ins, and prayers all follow you — encrypted and private to your account.") +
-        card("🔒", "Private by Design", "Your sessions aren\'t a training dataset for anyone. RLS-scoped storage, no third-party analytics, no ads. It\'s your soul care — nobody else\'s.") +
-        card("🕊️", "Sjal\'s Voice — Pastoral, Not Clinical", "Sjal isn\'t a therapist and doesn\'t pretend to be. He listens like a friend who happens to be trained in the science and steeped in the Spirit. For crisis care, he\'ll always defer to professionals.") +
-        card("📖", "Session Arc — 4 Movements + Gratitude", "Every full session follows a shape: CBT (name the distortion), Leaf (neuroscience of thought), Author (a voice you chose), Summary (reflection + 3 questions), then Gratitude. You can close anytime.") +
-        card("🏠", "A Ministry of Foster Hope", "Sjalavard is a free ministry tool of Foster Hope Ministries — built because life is hard, and most of us don\'t have a pastor or therapist on call at 2am. Use it freely, share it freely.") +
-        '<div style="text-align:center;margin-top:24px;"><button onclick="hideSjAlsoOverlay()" style="background:'+C.acc+';color:'+'#153a52'+';border:none;border-radius:12px;padding:12px 28px;font:700 13px \'Inter\',sans-serif;cursor:pointer;letter-spacing:.03em;">Close</button></div>' +
-      '</div>';
-    document.body.appendChild(ov);
-  }
+  // Features page is now a real React tab — no DOM overlay needed.
   function hideAlsoOverlay(){ var o = document.getElementById("sj-also-overlay"); if (o) o.remove(); }
-  window.hideSjAlsoOverlay = hideAlsoOverlay;
 
   window._renderSjTourStep = function(){
     var idx = window._sjTourIdx | 0;
@@ -6080,19 +6075,19 @@ try {
     var isLast = !!step.last;
     var pct = Math.round(((idx+1)/steps.length)*100);
     card.innerHTML =
-      '<div id="sj-tour-drag" title="Drag to move" style="display:flex;align-items:center;justify-content:space-between;margin:-6px -10px 10px;padding:6px 12px;background:#153a52;border-radius:12px 12px 0 0;cursor:grab;user-select:none;touch-action:none;">' +
+      '<div id="sj-tour-drag" title="Drag to move" style="display:flex;align-items:center;justify-content:space-between;margin:-6px -10px 10px;padding:6px 12px;background:#1f4d6b;border-radius:12px 12px 0 0;cursor:grab;user-select:none;touch-action:none;">' +
         '<span style="display:flex;align-items:center;gap:8px;">' +
           '<span style="color:#5bb8d4;font-size:14px;letter-spacing:-2px;">⋮⋮</span>' +
           '<span style="font:700 10px/1 \'Inter\',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#5bb8d4;">Tour · ' + (idx+1) + ' of ' + steps.length + ' · drag to move</span>' +
         '</span>' +
         '<button id="sj-tour-close" title="Close tour" style="background:none;border:none;color:#8ab8cc;font-size:20px;cursor:pointer;line-height:1;padding:0 4px;">×</button>' +
       '</div>' +
-      '<div style="height:3px;background:#153a52;border-radius:2px;margin:0 0 12px;overflow:hidden;"><div style="height:100%;background:#5bb8d4;width:' + pct + '%;transition:width .25s;"></div></div>' +
+      '<div style="height:3px;background:#1f4d6b;border-radius:2px;margin:0 0 12px;overflow:hidden;"><div style="height:100%;background:#5bb8d4;width:' + pct + '%;transition:width .25s;"></div></div>' +
       '<h3 style="font-family:\'Playfair Display\',serif;font-size:20px;font-weight:600;color:#fff;margin:0 0 6px;line-height:1.25;">' + step.title + '</h3>' +
       '<p style="margin:0 0 14px;font-size:13px;line-height:1.7;color:#8ab8cc;">' + step.body + '</p>' +
       '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">' +
         '<button id="sj-tour-back" ' + (idx===0?'disabled':'') + ' style="background:transparent;border:1px solid #2d6b8a;color:' + (idx===0?'#4a7a94':'#8ab8cc') + ';border-radius:8px;padding:8px 14px;font:600 12px \'Inter\',sans-serif;cursor:' + (idx===0?'not-allowed':'pointer') + ';">← Back</button>' +
-        '<button id="sj-tour-next" style="background:#5bb8d4;border:none;color:#153a52;border-radius:8px;padding:9px 18px;font:700 12px \'Inter\',sans-serif;cursor:pointer;letter-spacing:.03em;">' + (isLast ? 'Finish' : 'Next →') + '</button>' +
+        '<button id="sj-tour-next" style="background:#5bb8d4;border:none;color:#1f4d6b;border-radius:8px;padding:9px 18px;font:700 12px \'Inter\',sans-serif;cursor:pointer;letter-spacing:.03em;">' + (isLast ? 'Finish' : 'Next →') + '</button>' +
       '</div>';
     document.getElementById("sj-tour-close").onclick = endCard;
     document.getElementById("sj-tour-back").onclick = function(){ if (idx>0){ window._sjTourIdx=idx-1; _renderSjTourStep(); } };
