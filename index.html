@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<meta name="theme-color" content="#1f4d6b"/>
+<meta name="theme-color" content="#2a6589"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
@@ -208,7 +208,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased;}
-body{background:#1f4d6b;font-family:'Inter',sans-serif;color:#fff;min-height:100vh;}
+body{background:#2a6589;font-family:'Inter',sans-serif;color:#fff;min-height:100vh;}
 input,textarea,button{font-family:'Inter',sans-serif;touch-action:manipulation;}
 button{cursor:pointer;-webkit-tap-highlight-color:transparent;}
 input:focus,textarea:focus,button:focus{outline:none;}
@@ -272,8 +272,8 @@ if(IS_PWA && window.navigator.standalone === true){
     description:"AI-powered Christian life coaching from Foster Hope Ministries",
     start_url:"/",
     display:"standalone",
-    background_color:"#1f4d6b",
-    theme_color:"#1f4d6b",
+    background_color:"#2a6589",
+    theme_color:"#2a6589",
     icons:icons
   };
   var blob = new Blob([JSON.stringify(manifest)],{type:"application/json"});
@@ -458,7 +458,7 @@ async function dbGetCheckIns(uid) {
 }
 var FH_URL = "https://fosterhopewebsite.netlify.app";
 var C = {
-  bg: "#1f4d6b",
+  bg: "#2a6589",
   surf: "#1a3d54",
   card: "#1e4560",
   border: "#2d6b8a",
@@ -1275,7 +1275,7 @@ function Landing({
   return /*#__PURE__*/React.createElement("div", {
     style: {
       minHeight: "100vh",
-      background: "linear-gradient(160deg,#0f2537 0%,#1f4d6b 55%,#1a3d54 100%)",
+      background: "linear-gradient(160deg,#0f2537 0%,#2a6589 55%,#1a3d54 100%)",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
@@ -6025,7 +6025,7 @@ function Root() {
 try {
   ReactDOM.createRoot(document.getElementById("root")).render(/*#__PURE__*/React.createElement(Root, null));
 } catch (e) {
-  document.getElementById("root").innerHTML = '<div style="padding:40px;color:#8ab8cc;font-family:sans-serif;text-align:center"><p style="font-size:18px;margin-bottom:12px">Something went wrong loading Sjalavard.</p><p style="font-size:13px;color:#4a7a94">' + e.message + '</p><button onclick="location.reload()" style="margin-top:20px;padding:10px 24px;background:#5bb8d4;border:none;border-radius:8px;color:#1f4d6b;font-weight:700;cursor:pointer;font-size:14px">Reload</button></div>';
+  document.getElementById("root").innerHTML = '<div style="padding:40px;color:#8ab8cc;font-family:sans-serif;text-align:center"><p style="font-size:18px;margin-bottom:12px">Something went wrong loading Sjalavard.</p><p style="font-size:13px;color:#4a7a94">' + e.message + '</p><button onclick="location.reload()" style="margin-top:20px;padding:10px 24px;background:#5bb8d4;border:none;border-radius:8px;color:#2a6589;font-weight:700;cursor:pointer;font-size:14px">Reload</button></div>';
 }
 </script>
 <!-- ── SJALAVARD TOUR — UI (banner + draggable card + Also Included overlay) ── -->
@@ -6037,10 +6037,10 @@ try {
     if (document.getElementById("sj-tour-banner")) return;
     var bar = document.createElement("div");
     bar.id = "sj-tour-banner";
-    bar.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:99998;background:#5bb8d4;color:#1f4d6b;font:700 12px/1 'Inter',system-ui,sans-serif;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 12px;box-shadow:0 2px 10px rgba(0,0,0,.2);";
+    bar.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:99998;background:#5bb8d4;color:#2a6589;font:700 12px/1 'Inter',system-ui,sans-serif;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 12px;box-shadow:0 2px 10px rgba(0,0,0,.2);";
     bar.innerHTML = '<span>GUIDED TOUR · sample user preview</span>' +
-      '<button onclick="window._sjTourIdx=0;_renderSjTourStep()" style="background:transparent;color:#1f4d6b;border:1px solid #1f4d6b;border-radius:6px;padding:4px 10px;font:700 11px \'Inter\',system-ui,sans-serif;cursor:pointer;">Restart</button>' +
-      '<button onclick="_exitSjTour()" style="background:#1f4d6b;color:#fff;border:none;border-radius:6px;padding:4px 10px;font:700 11px \'Inter\',system-ui,sans-serif;cursor:pointer;">Exit Tour</button>';
+      '<button onclick="window._sjTourIdx=0;_renderSjTourStep()" style="background:transparent;color:#2a6589;border:1px solid #2a6589;border-radius:6px;padding:4px 10px;font:700 11px \'Inter\',system-ui,sans-serif;cursor:pointer;">Restart</button>' +
+      '<button onclick="_exitSjTour()" style="background:#2a6589;color:#fff;border:none;border-radius:6px;padding:4px 10px;font:700 11px \'Inter\',system-ui,sans-serif;cursor:pointer;">Exit Tour</button>';
     document.body.appendChild(bar);
     document.body.style.paddingTop = "34px";
   }
@@ -6091,19 +6091,19 @@ try {
     var isLast = !!step.last;
     var pct = Math.round(((idx+1)/steps.length)*100);
     card.innerHTML =
-      '<div id="sj-tour-drag" title="Drag to move" style="display:flex;align-items:center;justify-content:space-between;margin:-6px -10px 10px;padding:6px 12px;background:#1f4d6b;border-radius:12px 12px 0 0;cursor:grab;user-select:none;touch-action:none;">' +
+      '<div id="sj-tour-drag" title="Drag to move" style="display:flex;align-items:center;justify-content:space-between;margin:-6px -10px 10px;padding:6px 12px;background:#2a6589;border-radius:12px 12px 0 0;cursor:grab;user-select:none;touch-action:none;">' +
         '<span style="display:flex;align-items:center;gap:8px;">' +
           '<span style="color:#5bb8d4;font-size:14px;letter-spacing:-2px;">⋮⋮</span>' +
           '<span style="font:700 10px/1 \'Inter\',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#5bb8d4;">Tour · ' + (idx+1) + ' of ' + steps.length + ' · drag to move</span>' +
         '</span>' +
         '<button id="sj-tour-close" title="Close tour" style="background:none;border:none;color:#8ab8cc;font-size:20px;cursor:pointer;line-height:1;padding:0 4px;">×</button>' +
       '</div>' +
-      '<div style="height:3px;background:#1f4d6b;border-radius:2px;margin:0 0 12px;overflow:hidden;"><div style="height:100%;background:#5bb8d4;width:' + pct + '%;transition:width .25s;"></div></div>' +
+      '<div style="height:3px;background:#2a6589;border-radius:2px;margin:0 0 12px;overflow:hidden;"><div style="height:100%;background:#5bb8d4;width:' + pct + '%;transition:width .25s;"></div></div>' +
       '<h3 style="font-family:\'Playfair Display\',serif;font-size:20px;font-weight:600;color:#fff;margin:0 0 6px;line-height:1.25;">' + step.title + '</h3>' +
       '<p style="margin:0 0 14px;font-size:13px;line-height:1.7;color:#8ab8cc;">' + step.body + '</p>' +
       '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">' +
         '<button id="sj-tour-back" ' + (idx===0?'disabled':'') + ' style="background:transparent;border:1px solid #2d6b8a;color:' + (idx===0?'#4a7a94':'#8ab8cc') + ';border-radius:8px;padding:8px 14px;font:600 12px \'Inter\',sans-serif;cursor:' + (idx===0?'not-allowed':'pointer') + ';">← Back</button>' +
-        '<button id="sj-tour-next" style="background:#5bb8d4;border:none;color:#1f4d6b;border-radius:8px;padding:9px 18px;font:700 12px \'Inter\',sans-serif;cursor:pointer;letter-spacing:.03em;">' + (isLast ? 'Finish' : 'Next →') + '</button>' +
+        '<button id="sj-tour-next" style="background:#5bb8d4;border:none;color:#2a6589;border-radius:8px;padding:9px 18px;font:700 12px \'Inter\',sans-serif;cursor:pointer;letter-spacing:.03em;">' + (isLast ? 'Finish' : 'Next →') + '</button>' +
       '</div>';
     document.getElementById("sj-tour-close").onclick = endCard;
     document.getElementById("sj-tour-back").onclick = function(){ if (idx>0){ window._sjTourIdx=idx-1; _renderSjTourStep(); } };
