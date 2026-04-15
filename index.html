@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<meta name="theme-color" content="#5591b2"/>
+<meta name="theme-color" content="#1e4e6d"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
@@ -207,8 +207,29 @@
 <!-- ── END TOUR BOOTSTRAP ── -->
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
+:root{
+  /* Sjalavard palette — WCAG AA compliant, sharp, vibrant */
+  --sj-bg:        #1e4e6d;   /* main background (deep ocean blue) — #fff = 9.8:1 AAA */
+  --sj-surf:      #153a52;   /* inset/hero surface (deeper)     — #fff = 12:1 AAA */
+  --sj-card:      #2a6589;   /* elevated card                   — #fff = 6.7:1 AA */
+  --sj-card-2:    #337aa5;   /* hover/secondary card            — #fff = 4.9:1 AA */
+  --sj-border:    #4890b5;   /* visible on bg and card          */
+  --sj-border-soft: rgba(255,255,255,0.10);
+
+  --sj-acc:       #3dc5e8;   /* vibrant cyan accent — on bg = 5.2:1 AA */
+  --sj-acc-hover: #28aed3;
+  --sj-acc-text:  #0b2d40;   /* dark navy text on acc — 7.2:1 AAA */
+
+  --sj-text:      #ffffff;   /* primary text */
+  --sj-text-2:    #c8e3ef;   /* secondary text on dark bg (soft) — 6.0:1 AA */
+  --sj-text-3:    #b8d4e0;   /* tertiary/caption — 3.6:1 AA-large */
+
+  --sj-rose:      #ff6b85;   /* vibrant rose */
+  --sj-success:   #4ee3a7;   /* vibrant mint */
+  --sj-warn:      #ffb648;
+}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased;}
-body{background:#5591b2;font-family:'Inter',sans-serif;color:#fff;min-height:100vh;}
+body{background:var(--sj-bg);font-family:'Inter',sans-serif;color:var(--sj-text);min-height:100vh;}
 input,textarea,button{font-family:'Inter',sans-serif;touch-action:manipulation;}
 button{cursor:pointer;-webkit-tap-highlight-color:transparent;}
 input:focus,textarea:focus,button:focus{outline:none;}
@@ -218,7 +239,7 @@ input:focus,textarea:focus,button:focus{outline:none;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .fi{animation:fadeIn 0.25s ease;}
 ::-webkit-scrollbar{width:4px;}
-::-webkit-scrollbar-thumb{background:#84b3d0;border-radius:2px;}
+::-webkit-scrollbar-thumb{background:var(--sj-border);border-radius:2px;}
 </style>
 <script>
 
@@ -272,8 +293,8 @@ if(IS_PWA && window.navigator.standalone === true){
     description:"AI-powered Christian life coaching from Foster Hope Ministries",
     start_url:"/",
     display:"standalone",
-    background_color:"#5591b2",
-    theme_color:"#5591b2",
+    background_color:"#1e4e6d",
+    theme_color:"#1e4e6d",
     icons:icons
   };
   var blob = new Blob([JSON.stringify(manifest)],{type:"application/json"});
@@ -457,17 +478,23 @@ async function dbGetCheckIns(uid) {
   }
 }
 var FH_URL = "https://fosterhopewebsite.netlify.app";
+// Mirrors the CSS :root variables — keep in sync
 var C = {
-  bg: "#5591b2",
-  surf: "#447c9e",
-  card: "#4880a4",
-  border: "#84b3d0",
-  acc: "#2e7ea0",
+  bg: "#1e4e6d",       // --sj-bg
+  surf: "#153a52",     // --sj-surf
+  card: "#2a6589",     // --sj-card
+  card2: "#337aa5",    // --sj-card-2
+  border: "#4890b5",   // --sj-border
+  acc: "#3dc5e8",      // --sj-acc (vibrant cyan)
+  accText: "#0b2d40",  // --sj-acc-text (dark navy for text on acc)
   white: "#fff",
-  rose: "#e08090",
-  muted: "#eaf3f9",
-  dim: "#cbe0ea",
-  success: "#5bb8a0"
+  text: "#ffffff",     // primary text
+  text2: "#c8e3ef",    // secondary
+  text3: "#b8d4e0",    // caption
+  rose: "#ff6b85",
+  muted: "#c8e3ef",    // legacy alias → text2
+  dim: "#b8d4e0",      // legacy alias → text3
+  success: "#4ee3a7"
 };
 var MOODS = [{
   l: "Anxious",
@@ -837,8 +864,8 @@ function FHBar() {
     target: "_blank",
     rel: "noopener noreferrer",
     style: {
-      color: C.acc,
-      textDecoration: "none",
+      color: "#f0f9fc",
+      textDecoration: "underline",
       fontWeight: 600
     }
   }, "Foster Hope Ministries")), /*#__PURE__*/React.createElement("a", {
@@ -848,9 +875,9 @@ function FHBar() {
     style: {
       display: "inline-block",
       padding: "7px 20px",
-      border: "1px solid rgba(91,184,212,0.5)",
+      border: "1px solid #a8e1ef",
       borderRadius: 20,
-      color: C.acc,
+      color: "#f0f9fc",
       fontSize: 14,
       textDecoration: "none",
       fontWeight: 600
@@ -953,8 +980,8 @@ function AboutModal({
     className: "fi"
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      background: "rgba(91,184,212,0.08)",
-      border: "1px solid rgba(91,184,212,0.2)",
+      background: "rgba(61,197,232,0.08)",
+      border: "1px solid rgba(61,197,232,0.2)",
       borderRadius: 12,
       padding: "16px 18px",
       marginBottom: 16
@@ -1078,8 +1105,8 @@ function AboutModal({
         width: 28,
         height: 28,
         borderRadius: "50%",
-        background: "rgba(91,184,212,0.15)",
-        border: "1px solid rgba(91,184,212,0.35)",
+        background: "rgba(61,197,232,0.15)",
+        border: "1px solid rgba(61,197,232,0.35)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -1104,8 +1131,8 @@ function AboutModal({
     }, s[2])));
   }), /*#__PURE__*/React.createElement("div", {
     style: {
-      background: "rgba(91,184,212,0.06)",
-      border: "1px solid rgba(91,184,212,0.2)",
+      background: "rgba(61,197,232,0.06)",
+      border: "1px solid rgba(61,197,232,0.2)",
       borderRadius: 10,
       padding: "12px 14px",
       marginTop: 4
@@ -1275,7 +1302,7 @@ function Landing({
   return /*#__PURE__*/React.createElement("div", {
     style: {
       minHeight: "100vh",
-      background: "linear-gradient(160deg,#447c9e 0%,#5591b2 55%,#66a5c4 100%)",
+      background: "linear-gradient(160deg,#153a52 0%,#1e4e6d 55%,#2a6589 100%)",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
@@ -1350,7 +1377,7 @@ function Landing({
       background: C.acc,
       border: "none",
       borderRadius: 12,
-      color: "#fff",
+      color: C.accText,
       fontSize: 16,
       cursor: "pointer",
       fontWeight: 700,
@@ -1363,10 +1390,10 @@ function Landing({
       width: "100%",
       padding: "12px",
       marginBottom: 10,
-      background: "rgba(91,184,212,0.12)",
-      border: "1.5px solid " + C.acc,
+      background: "rgba(61,197,232,0.2)",
+      border: "1.5px solid #a8e1ef",
       borderRadius: 12,
-      color: C.acc,
+      color: "#f0f9fc",
       cursor: "pointer",
       fontSize: 16,
       fontWeight: 700,
@@ -1597,7 +1624,7 @@ function ProfileSetup({
       background: C.acc,
       border: "none",
       borderRadius: 12,
-      color: "#fff",
+      color: C.accText,
       fontSize: 16,
       cursor: "pointer",
       fontWeight: 700
@@ -1635,7 +1662,7 @@ function ProfileSetup({
         flex: 1,
         minWidth: 68,
         padding: "7px 4px",
-        background: device === vl[0] ? "rgba(91,184,212,0.2)" : C.surf,
+        background: device === vl[0] ? "rgba(61,197,232,0.2)" : C.surf,
         border: "1.5px solid " + (device === vl[0] ? C.acc : C.border),
         borderRadius: 7,
         color: device === vl[0] ? C.acc : C.muted,
@@ -1664,8 +1691,8 @@ function ProfileSetup({
         width: 24,
         height: 24,
         borderRadius: "50%",
-        background: "rgba(91,184,212,0.15)",
-        border: "1px solid rgba(91,184,212,0.3)",
+        background: "rgba(61,197,232,0.15)",
+        border: "1px solid rgba(61,197,232,0.3)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -1885,7 +1912,7 @@ function ProfileSetup({
         });
       },
       style: {
-        background: on ? "rgba(91,184,212,0.2)" : C.surf,
+        background: on ? "rgba(61,197,232,0.2)" : C.surf,
         border: "1.5px solid " + (on ? C.acc : C.border),
         borderRadius: 20,
         padding: "6px 12px",
@@ -1976,7 +2003,7 @@ function ProfileSetup({
         });
       },
       style: {
-        background: on ? "rgba(91,184,212,0.15)" : C.surf,
+        background: on ? "rgba(61,197,232,0.15)" : C.surf,
         border: "1.5px solid " + (on ? C.acc : C.border),
         borderRadius: 9,
         padding: "11px 14px",
@@ -2121,7 +2148,7 @@ function ProfileSetup({
         }
       },
       style: {
-        background: on ? "rgba(91,184,212,0.2)" : C.surf,
+        background: on ? "rgba(61,197,232,0.2)" : C.surf,
         border: "1.5px solid " + (on ? C.acc : C.border),
         borderRadius: 20,
         padding: "6px 12px",
@@ -2727,13 +2754,13 @@ function App({
     width: "72",
     height: "72",
     rx: "14",
-    fill: "rgba(91,184,212,0.2)"
+    fill: "rgba(61,197,232,0.2)"
   }), /*#__PURE__*/React.createElement("line", {
     x1: "36",
     y1: "18",
     x2: "36",
     y2: "54",
-    stroke: "#5bb8d4",
+    stroke: "#3dc5e8",
     strokeWidth: "2.5",
     strokeLinecap: "round"
   }), /*#__PURE__*/React.createElement("line", {
@@ -2741,14 +2768,14 @@ function App({
     y1: "36",
     x2: "50",
     y2: "36",
-    stroke: "#5bb8d4",
+    stroke: "#3dc5e8",
     strokeWidth: "2.5",
     strokeLinecap: "round"
   }), /*#__PURE__*/React.createElement("circle", {
     cx: "36",
     cy: "36",
     r: "6",
-    stroke: "#5bb8d4",
+    stroke: "#3dc5e8",
     strokeWidth: "1.5",
     fill: "none"
   })), /*#__PURE__*/React.createElement("span", {
@@ -2985,7 +3012,7 @@ function App({
       background: C.acc,
       border: "none",
       borderRadius: 12,
-      color: "#fff",
+      color: C.accText,
       fontSize: 16,
       cursor: "pointer",
       fontWeight: 700
@@ -2998,8 +3025,8 @@ function App({
     }
   }, tab === "session" && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
-      background: "rgba(91,184,212,0.06)",
-      border: "1px solid rgba(91,184,212,0.2)",
+      background: "rgba(61,197,232,0.06)",
+      border: "1px solid rgba(61,197,232,0.2)",
       borderRadius: 12,
       padding: "14px 18px",
       marginBottom: 18
@@ -3022,7 +3049,7 @@ function App({
     }
   }, "\"", v.text, "\"")), profileDone === false && /*#__PURE__*/React.createElement("div", {
     style: {
-      background: "rgba(91,184,212,0.1)",
+      background: "rgba(61,197,232,0.1)",
       border: "1px solid " + C.acc,
       borderRadius: 12,
       padding: "16px 18px",
@@ -3056,7 +3083,7 @@ function App({
       border: "none",
       borderRadius: 9,
       padding: "9px 18px",
-      color: "#fff",
+      color: C.accText,
       fontSize: 15,
       cursor: "pointer",
       fontWeight: 700,
@@ -3066,7 +3093,7 @@ function App({
     }
   }, "Complete Setup")), profileDone === true && showSetup && /*#__PURE__*/React.createElement("div", {
     style: {
-      background: "rgba(91,184,212,0.06)",
+      background: "rgba(61,197,232,0.06)",
       border: "1px solid " + C.border,
       borderRadius: 12,
       padding: "12px 18px",
@@ -3130,7 +3157,7 @@ function App({
       },
       style: {
         padding: "6px 14px",
-        background: ciMood === m ? "rgba(91,184,212,0.2)" : C.surf,
+        background: ciMood === m ? "rgba(61,197,232,0.2)" : C.surf,
         border: "1.5px solid " + (ciMood === m ? C.acc : C.border),
         borderRadius: 20,
         color: ciMood === m ? C.acc : C.muted,
@@ -3192,8 +3219,8 @@ function App({
     }
   }, "Daily check-in complete.")), restored && /*#__PURE__*/React.createElement("div", {
     style: {
-      background: "rgba(91,184,212,0.1)",
-      border: "1px solid rgba(91,184,212,0.3)",
+      background: "rgba(61,197,232,0.1)",
+      border: "1px solid rgba(61,197,232,0.3)",
       borderRadius: 10,
       padding: "12px 16px",
       marginBottom: 18,
@@ -3498,7 +3525,7 @@ function App({
       setPhase("distortions");
     },
     style: {
-      background: distortion ? "rgba(91,184,212,0.15)" : C.card,
+      background: distortion ? "rgba(61,197,232,0.15)" : C.card,
       border: "1px solid " + (distortion ? C.acc : C.border),
       borderRadius: 18,
       padding: "5px 12px",
@@ -3514,7 +3541,7 @@ function App({
       border: "none",
       borderRadius: 18,
       padding: "5px 14px",
-      color: "#fff",
+      color: C.accText,
       fontSize: 13,
       cursor: "pointer",
       fontWeight: 700
@@ -3582,7 +3609,7 @@ function App({
       alignItems: "center",
       justifyContent: "center",
       fontSize: 15,
-      color: "#fff",
+      color: C.accText,
       fontWeight: 700,
       fontFamily: "'Playfair Display',serif"
     }
@@ -3622,7 +3649,7 @@ function App({
       border: "none",
       borderRadius: 7,
       padding: "6px 14px",
-      color: "#fff",
+      color: C.accText,
       fontSize: 14,
       cursor: "pointer",
       fontWeight: 600
@@ -3699,7 +3726,7 @@ function App({
       border: "none",
       borderRadius: 50,
       padding: "13px 20px",
-      color: "#fff",
+      color: C.accText,
       fontSize: 15,
       cursor: "pointer",
       fontWeight: 700,
@@ -3717,7 +3744,7 @@ function App({
       width: 52,
       height: 52,
       borderRadius: "50%",
-      background: "rgba(91,184,212,0.15)",
+      background: "rgba(61,197,232,0.15)",
       border: "2px solid " + C.acc,
       display: "flex",
       alignItems: "center",
@@ -3779,8 +3806,8 @@ function App({
     }
   }, summary)), distortion && /*#__PURE__*/React.createElement("div", {
     style: {
-      background: "rgba(91,184,212,0.08)",
-      border: "1px solid rgba(91,184,212,0.25)",
+      background: "rgba(61,197,232,0.08)",
+      border: "1px solid rgba(61,197,232,0.25)",
       borderRadius: 12,
       padding: "14px 18px",
       marginBottom: 16,
@@ -3858,7 +3885,7 @@ function App({
       background: C.acc,
       border: "none",
       borderRadius: 12,
-      color: "#fff",
+      color: C.accText,
       fontSize: 16,
       cursor: "pointer",
       fontWeight: 700
@@ -3910,8 +3937,8 @@ function App({
         width: 26,
         height: 26,
         borderRadius: "50%",
-        background: "rgba(91,184,212,0.15)",
-        border: "1px solid rgba(91,184,212,0.4)",
+        background: "rgba(61,197,232,0.15)",
+        border: "1px solid rgba(61,197,232,0.4)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -4002,7 +4029,7 @@ function App({
         setDistortion(distortion === d.l ? null : d.l);
       },
       style: {
-        background: on ? "rgba(91,184,212,0.15)" : C.surf,
+        background: on ? "rgba(61,197,232,0.15)" : C.surf,
         border: "1.5px solid " + (on ? C.acc : C.border),
         borderRadius: 9,
         padding: "11px 14px",
@@ -4039,7 +4066,7 @@ function App({
       background: C.acc,
       border: "none",
       borderRadius: 12,
-      color: "#fff",
+      color: C.accText,
       fontSize: 16,
       cursor: "pointer",
       fontWeight: 700
@@ -4391,8 +4418,8 @@ function App({
       }, l) : null;
     }), s.distortion && /*#__PURE__*/React.createElement("span", {
       style: {
-        background: "rgba(91,184,212,0.15)",
-        border: "1px solid rgba(91,184,212,0.3)",
+        background: "rgba(61,197,232,0.15)",
+        border: "1px solid rgba(61,197,232,0.3)",
         borderRadius: 20,
         padding: "2px 8px",
         fontSize: 13,
@@ -4588,8 +4615,8 @@ function App({
     return /*#__PURE__*/React.createElement("span", {
       key: s,
       style: {
-        background: "rgba(91,184,212,0.12)",
-        border: "1px solid rgba(91,184,212,0.25)",
+        background: "rgba(61,197,232,0.12)",
+        border: "1px solid rgba(61,197,232,0.25)",
         borderRadius: 20,
         padding: "3px 10px",
         fontSize: 13,
@@ -4679,8 +4706,8 @@ function App({
     return /*#__PURE__*/React.createElement("span", {
       key: a,
       style: {
-        background: "rgba(91,184,212,0.12)",
-        border: "1px solid rgba(91,184,212,0.25)",
+        background: "rgba(61,197,232,0.12)",
+        border: "1px solid rgba(61,197,232,0.25)",
         borderRadius: 20,
         padding: "3px 10px",
         fontSize: 13,
@@ -4714,7 +4741,7 @@ function App({
         }
       },
       style: {
-        background: on ? "rgba(91,184,212,0.2)" : C.surf,
+        background: on ? "rgba(61,197,232,0.2)" : C.surf,
         border: "1.5px solid " + (on ? C.acc : C.border),
         borderRadius: 20,
         padding: "5px 11px",
@@ -4747,7 +4774,7 @@ function App({
       background: C.acc,
       border: "none",
       borderRadius: 8,
-      color: "#fff",
+      color: C.accText,
       fontSize: 14,
       cursor: "pointer",
       fontWeight: 700
@@ -4824,7 +4851,7 @@ function App({
     style: {
       display: "inline-block",
       padding: "8px 20px",
-      border: "1px solid rgba(91,184,212,0.4)",
+      border: "1px solid rgba(61,197,232,0.4)",
       borderRadius: 20,
       color: C.acc,
       fontSize: 14,
@@ -4883,7 +4910,7 @@ function App({
       ];
       return rows.map(function(f, i){
         return React.createElement("div", { key:i, style:{ background:C.card, border:"1px solid "+C.border, borderRadius:14, padding:"20px 22px", marginBottom:14, display:"flex", gap:14, alignItems:"flex-start" } },
-          React.createElement("div", { style:{ width:38, height:38, borderRadius:10, background:"rgba(91,184,212,0.12)", border:"1px solid rgba(91,184,212,0.3)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 } }, ICONS[f[0]]),
+          React.createElement("div", { style:{ width:38, height:38, borderRadius:10, background:"rgba(61,197,232,0.12)", border:"1px solid rgba(61,197,232,0.3)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 } }, ICONS[f[0]]),
           React.createElement("div", { style:{ flex:1 } },
             React.createElement("div", { style:{ fontFamily:"'Playfair Display',serif", fontSize:18, fontWeight:600, color:"#fff", marginBottom:5 } }, f[1]),
             React.createElement("div", { style:{ fontSize:13.5, color:C.muted, lineHeight:1.7 } }, f[2])
@@ -4892,7 +4919,7 @@ function App({
       });
     })(),
     React.createElement("div", { style:{ textAlign:"center", marginTop:20 } },
-      React.createElement("button", { onClick:function(){ setTab("session"); }, style:{ background:C.acc, color:"#fff", border:"none", borderRadius:12, padding:"12px 28px", fontSize:15, fontWeight:700, cursor:"pointer", letterSpacing:0.3 } }, "Back to Session")
+      React.createElement("button", { onClick:function(){ setTab("session"); }, style:{ background:C.acc, color:C.accText, border:"none", borderRadius:12, padding:"12px 28px", fontSize:15, fontWeight:700, cursor:"pointer", letterSpacing:0.3 } }, "Back to Session")
     )
   ), tab === "legal" && /*#__PURE__*/React.createElement("div", {
     className: "fi"
@@ -5227,7 +5254,7 @@ function AdminPanel({
       background: C.acc,
       border: "none",
       borderRadius: 10,
-      color: "#fff",
+      color: C.accText,
       fontSize: 16,
       cursor: "pointer",
       fontWeight: 700,
@@ -5320,13 +5347,13 @@ function AdminPanel({
     width: "72",
     height: "72",
     rx: "14",
-    fill: "rgba(91,184,212,0.2)"
+    fill: "rgba(61,197,232,0.2)"
   }), /*#__PURE__*/React.createElement("line", {
     x1: "36",
     y1: "18",
     x2: "36",
     y2: "54",
-    stroke: "#5bb8d4",
+    stroke: "#3dc5e8",
     strokeWidth: "2.5",
     strokeLinecap: "round"
   }), /*#__PURE__*/React.createElement("line", {
@@ -5334,7 +5361,7 @@ function AdminPanel({
     y1: "36",
     x2: "50",
     y2: "36",
-    stroke: "#5bb8d4",
+    stroke: "#3dc5e8",
     strokeWidth: "2.5",
     strokeLinecap: "round"
   })), /*#__PURE__*/React.createElement("span", {
@@ -5347,7 +5374,7 @@ function AdminPanel({
     style: {
       fontSize: 13,
       color: C.dim,
-      background: "rgba(91,184,212,0.15)",
+      background: "rgba(61,197,232,0.15)",
       padding: "2px 8px",
       borderRadius: 10,
       letterSpacing: 1
@@ -5484,7 +5511,7 @@ function AdminPanel({
       }
     }, m[0]), /*#__PURE__*/React.createElement("span", {
       style: {
-        background: "rgba(91,184,212,0.15)",
+        background: "rgba(61,197,232,0.15)",
         borderRadius: 20,
         padding: "2px 10px",
         fontSize: 14,
@@ -5528,7 +5555,7 @@ function AdminPanel({
       }
     }, d[0].split(" ").slice(0, 3).join(" ")), /*#__PURE__*/React.createElement("span", {
       style: {
-        background: "rgba(91,184,212,0.15)",
+        background: "rgba(61,197,232,0.15)",
         borderRadius: 20,
         padding: "2px 10px",
         fontSize: 14,
@@ -6025,7 +6052,7 @@ function Root() {
 try {
   ReactDOM.createRoot(document.getElementById("root")).render(/*#__PURE__*/React.createElement(Root, null));
 } catch (e) {
-  document.getElementById("root").innerHTML = '<div style="padding:40px;color:#8ab8cc;font-family:sans-serif;text-align:center"><p style="font-size:18px;margin-bottom:12px">Something went wrong loading Sjalavard.</p><p style="font-size:13px;color:#4a7a94">' + e.message + '</p><button onclick="location.reload()" style="margin-top:20px;padding:10px 24px;background:#5bb8d4;border:none;border-radius:8px;color:#5591b2;font-weight:700;cursor:pointer;font-size:14px">Reload</button></div>';
+  document.getElementById("root").innerHTML = '<div style="padding:40px;color:#8ab8cc;font-family:sans-serif;text-align:center"><p style="font-size:18px;margin-bottom:12px">Something went wrong loading Sjalavard.</p><p style="font-size:13px;color:#4a7a94">' + e.message + '</p><button onclick="location.reload()" style="margin-top:20px;padding:10px 24px;background:#3dc5e8;border:none;border-radius:8px;color:#1e4e6d;font-weight:700;cursor:pointer;font-size:14px">Reload</button></div>';
 }
 </script>
 <!-- ── SJALAVARD TOUR — UI (banner + draggable card + Also Included overlay) ── -->
@@ -6037,10 +6064,10 @@ try {
     if (document.getElementById("sj-tour-banner")) return;
     var bar = document.createElement("div");
     bar.id = "sj-tour-banner";
-    bar.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:99998;background:#5bb8d4;color:#5591b2;font:700 12px/1 'Inter',system-ui,sans-serif;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 12px;box-shadow:0 2px 10px rgba(0,0,0,.2);";
+    bar.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:99998;background:#3dc5e8;color:#1e4e6d;font:700 12px/1 'Inter',system-ui,sans-serif;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 12px;box-shadow:0 2px 10px rgba(0,0,0,.2);";
     bar.innerHTML = '<span>GUIDED TOUR · sample user preview</span>' +
-      '<button onclick="window._sjTourIdx=0;_renderSjTourStep()" style="background:transparent;color:#5591b2;border:1px solid #5591b2;border-radius:6px;padding:4px 10px;font:700 11px \'Inter\',system-ui,sans-serif;cursor:pointer;">Restart</button>' +
-      '<button onclick="_exitSjTour()" style="background:#5591b2;color:#fff;border:none;border-radius:6px;padding:4px 10px;font:700 11px \'Inter\',system-ui,sans-serif;cursor:pointer;">Exit Tour</button>';
+      '<button onclick="window._sjTourIdx=0;_renderSjTourStep()" style="background:transparent;color:#1e4e6d;border:1px solid #1e4e6d;border-radius:6px;padding:4px 10px;font:700 11px \'Inter\',system-ui,sans-serif;cursor:pointer;">Restart</button>' +
+      '<button onclick="_exitSjTour()" style="background:#1e4e6d;color:#fff;border:none;border-radius:6px;padding:4px 10px;font:700 11px \'Inter\',system-ui,sans-serif;cursor:pointer;">Exit Tour</button>';
     document.body.appendChild(bar);
     document.body.style.paddingTop = "34px";
   }
@@ -6085,25 +6112,25 @@ try {
     if (!card){
       card = document.createElement("div");
       card.id = "sj-tour-card";
-      card.style.cssText = "position:fixed;bottom:20px;right:20px;z-index:99999;background:#4880a4;border:1px solid #5bb8d4;border-radius:14px;box-shadow:0 24px 60px rgba(0,0,0,.5),0 8px 16px rgba(0,0,0,.3);padding:16px 18px 14px;width:360px;max-width:calc(100vw - 32px);font-family:'Inter',sans-serif;color:#fff;";
+      card.style.cssText = "position:fixed;bottom:20px;right:20px;z-index:99999;background:#4880a4;border:1px solid #3dc5e8;border-radius:14px;box-shadow:0 24px 60px rgba(0,0,0,.5),0 8px 16px rgba(0,0,0,.3);padding:16px 18px 14px;width:360px;max-width:calc(100vw - 32px);font-family:'Inter',sans-serif;color:#fff;";
       document.body.appendChild(card);
     }
     var isLast = !!step.last;
     var pct = Math.round(((idx+1)/steps.length)*100);
     card.innerHTML =
-      '<div id="sj-tour-drag" title="Drag to move" style="display:flex;align-items:center;justify-content:space-between;margin:-6px -10px 10px;padding:6px 12px;background:#5591b2;border-radius:12px 12px 0 0;cursor:grab;user-select:none;touch-action:none;">' +
+      '<div id="sj-tour-drag" title="Drag to move" style="display:flex;align-items:center;justify-content:space-between;margin:-6px -10px 10px;padding:6px 12px;background:#1e4e6d;border-radius:12px 12px 0 0;cursor:grab;user-select:none;touch-action:none;">' +
         '<span style="display:flex;align-items:center;gap:8px;">' +
-          '<span style="color:#5bb8d4;font-size:14px;letter-spacing:-2px;">⋮⋮</span>' +
-          '<span style="font:700 10px/1 \'Inter\',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#5bb8d4;">Tour · ' + (idx+1) + ' of ' + steps.length + ' · drag to move</span>' +
+          '<span style="color:#3dc5e8;font-size:14px;letter-spacing:-2px;">⋮⋮</span>' +
+          '<span style="font:700 10px/1 \'Inter\',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#3dc5e8;">Tour · ' + (idx+1) + ' of ' + steps.length + ' · drag to move</span>' +
         '</span>' +
         '<button id="sj-tour-close" title="Close tour" style="background:none;border:none;color:#8ab8cc;font-size:20px;cursor:pointer;line-height:1;padding:0 4px;">×</button>' +
       '</div>' +
-      '<div style="height:3px;background:#5591b2;border-radius:2px;margin:0 0 12px;overflow:hidden;"><div style="height:100%;background:#5bb8d4;width:' + pct + '%;transition:width .25s;"></div></div>' +
+      '<div style="height:3px;background:#1e4e6d;border-radius:2px;margin:0 0 12px;overflow:hidden;"><div style="height:100%;background:#3dc5e8;width:' + pct + '%;transition:width .25s;"></div></div>' +
       '<h3 style="font-family:\'Playfair Display\',serif;font-size:20px;font-weight:600;color:#fff;margin:0 0 6px;line-height:1.25;">' + step.title + '</h3>' +
       '<p style="margin:0 0 14px;font-size:13px;line-height:1.7;color:#8ab8cc;">' + step.body + '</p>' +
       '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">' +
         '<button id="sj-tour-back" ' + (idx===0?'disabled':'') + ' style="background:transparent;border:1px solid #84b3d0;color:' + (idx===0?'#a5c8db':'#eaf3f9') + ';border-radius:8px;padding:8px 14px;font:600 13px \'Inter\',sans-serif;cursor:' + (idx===0?'not-allowed':'pointer') + ';">← Back</button>' +
-        '<button id="sj-tour-next" style="background:#5bb8d4;border:none;color:#5591b2;border-radius:8px;padding:9px 18px;font:700 12px \'Inter\',sans-serif;cursor:pointer;letter-spacing:.03em;">' + (isLast ? 'Finish' : 'Next →') + '</button>' +
+        '<button id="sj-tour-next" style="background:#3dc5e8;border:none;color:#1e4e6d;border-radius:8px;padding:9px 18px;font:700 12px \'Inter\',sans-serif;cursor:pointer;letter-spacing:.03em;">' + (isLast ? 'Finish' : 'Next →') + '</button>' +
       '</div>';
     document.getElementById("sj-tour-close").onclick = endCard;
     document.getElementById("sj-tour-back").onclick = function(){ if (idx>0){ window._sjTourIdx=idx-1; _renderSjTourStep(); } };
