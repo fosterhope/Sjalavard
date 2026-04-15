@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<meta name="theme-color" content="#3d7eaa"/>
+<meta name="theme-color" content="#5591b2"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
@@ -208,7 +208,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased;}
-body{background:#3d7eaa;font-family:'Inter',sans-serif;color:#fff;min-height:100vh;}
+body{background:#5591b2;font-family:'Inter',sans-serif;color:#fff;min-height:100vh;}
 input,textarea,button{font-family:'Inter',sans-serif;touch-action:manipulation;}
 button{cursor:pointer;-webkit-tap-highlight-color:transparent;}
 input:focus,textarea:focus,button:focus{outline:none;}
@@ -218,7 +218,7 @@ input:focus,textarea:focus,button:focus{outline:none;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .fi{animation:fadeIn 0.25s ease;}
 ::-webkit-scrollbar{width:4px;}
-::-webkit-scrollbar-thumb{background:#5c9bbd;border-radius:2px;}
+::-webkit-scrollbar-thumb{background:#84b3d0;border-radius:2px;}
 </style>
 <script>
 
@@ -272,8 +272,8 @@ if(IS_PWA && window.navigator.standalone === true){
     description:"AI-powered Christian life coaching from Foster Hope Ministries",
     start_url:"/",
     display:"standalone",
-    background_color:"#3d7eaa",
-    theme_color:"#3d7eaa",
+    background_color:"#5591b2",
+    theme_color:"#5591b2",
     icons:icons
   };
   var blob = new Blob([JSON.stringify(manifest)],{type:"application/json"});
@@ -458,15 +458,15 @@ async function dbGetCheckIns(uid) {
 }
 var FH_URL = "https://fosterhopewebsite.netlify.app";
 var C = {
-  bg: "#3d7eaa",
-  surf: "#2e6a91",
-  card: "#336f97",
-  border: "#5c9bbd",
-  acc: "#5bb8d4",
+  bg: "#5591b2",
+  surf: "#447c9e",
+  card: "#4880a4",
+  border: "#84b3d0",
+  acc: "#2e7ea0",
   white: "#fff",
   rose: "#e08090",
-  muted: "#c6e0ed",
-  dim: "#a5c8db",
+  muted: "#eaf3f9",
+  dim: "#cbe0ea",
   success: "#5bb8a0"
 };
 var MOODS = [{
@@ -812,7 +812,7 @@ function Spin({
   }, /*#__PURE__*/React.createElement(SvgMark, null), /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.muted,
-      fontSize: 13,
+      fontSize: 15,
       letterSpacing: 1,
       textTransform: "uppercase"
     }
@@ -828,7 +828,7 @@ function FHBar() {
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 12,
+      fontSize: 14,
       color: C.dim,
       marginBottom: 10
     }
@@ -851,7 +851,7 @@ function FHBar() {
       border: "1px solid rgba(91,184,212,0.5)",
       borderRadius: 20,
       color: C.acc,
-      fontSize: 12,
+      fontSize: 14,
       textDecoration: "none",
       fontWeight: 600
     }
@@ -895,14 +895,14 @@ function AboutModal({
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
     style: {
       fontFamily: "'Playfair Display',serif",
-      fontSize: 22,
+      fontSize: 23,
       fontWeight: 600,
       color: C.white,
       marginBottom: 2
     }
   }, "About Sjalavard"), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 11,
+      fontSize: 13,
       color: C.dim
     }
   }, "Soul care for every season")), /*#__PURE__*/React.createElement("button", {
@@ -914,7 +914,7 @@ function AboutModal({
       padding: "6px 12px",
       color: C.muted,
       cursor: "pointer",
-      fontSize: 13,
+      fontSize: 15,
       marginLeft: 16,
       flexShrink: 0
     }
@@ -937,7 +937,7 @@ function AboutModal({
         border: "none",
         borderBottom: "2px solid " + (sec === t[0] ? C.acc : "transparent"),
         color: sec === t[0] ? C.acc : C.muted,
-        fontSize: 12,
+        fontSize: 14,
         cursor: "pointer",
         fontWeight: sec === t[0] ? 700 : 400,
         whiteSpace: "nowrap"
@@ -961,7 +961,7 @@ function AboutModal({
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 14,
+      fontSize: 16,
       color: C.white,
       lineHeight: 1.85,
       fontFamily: "'Playfair Display',Georgia,serif",
@@ -970,26 +970,26 @@ function AboutModal({
     }
   }, "\"Sjalavard\" is a Swedish word meaning soul care - the tending of the inner life through honest reflection, truth, and grace."), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 12,
+      fontSize: 14,
       color: C.dim
     }
   }, "A ministry tool of Foster Hope Ministries.")), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 14,
+      fontSize: 16,
       color: C.muted,
       lineHeight: 1.8,
       marginBottom: 12
     }
   }, "Sjalavard walks with you through the thoughts that weigh you down \u2014 helping you catch the lies your mind tells you, replace them with what is actually true, and find your way back to freedom. All grounded in biblical truth and practical principles that work."), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 14,
+      fontSize: 16,
       color: C.muted,
       lineHeight: 1.8,
       marginBottom: 12
     }
   }, "Sjal draws naturally from Brennan Manning on grace, Dallas Willard on spiritual formation, Henri Nouwen on the wounded healer, Dr. Caroline Leaf on the neuroscience of thought, C.S. Lewis on truth, and others - whichever voice fits the moment, never forced."), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 14,
+      fontSize: 16,
       color: C.muted,
       lineHeight: 1.8,
       marginBottom: 16
@@ -1003,7 +1003,7 @@ function AboutModal({
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 13,
+      fontSize: 15,
       color: C.dim,
       lineHeight: 1.75
     }
@@ -1015,7 +1015,7 @@ function AboutModal({
     className: "fi"
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 11,
+      fontSize: 13,
       color: C.acc,
       fontWeight: 700,
       marginBottom: 16,
@@ -1034,7 +1034,7 @@ function AboutModal({
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
-        fontSize: 20,
+        fontSize: 21,
         flexShrink: 0,
         width: 28,
         textAlign: "center",
@@ -1042,14 +1042,14 @@ function AboutModal({
       }
     }, f[0]), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 13,
+        fontSize: 15,
         color: C.white,
         fontWeight: 600,
         marginBottom: 4
       }
     }, f[1]), /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 13,
+        fontSize: 15,
         color: C.muted,
         lineHeight: 1.65
       }
@@ -1058,7 +1058,7 @@ function AboutModal({
     className: "fi"
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 11,
+      fontSize: 13,
       color: C.acc,
       fontWeight: 700,
       marginBottom: 16,
@@ -1084,20 +1084,20 @@ function AboutModal({
         alignItems: "center",
         justifyContent: "center",
         flexShrink: 0,
-        fontSize: 12,
+        fontSize: 14,
         color: C.acc,
         fontWeight: 700
       }
     }, s[0]), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 13,
+        fontSize: 15,
         color: C.white,
         fontWeight: 600,
         marginBottom: 4
       }
     }, s[1]), /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 13,
+        fontSize: 15,
         color: C.muted,
         lineHeight: 1.65
       }
@@ -1112,7 +1112,7 @@ function AboutModal({
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 12,
+      fontSize: 14,
       color: C.muted,
       lineHeight: 1.7
     }
@@ -1120,7 +1120,7 @@ function AboutModal({
     className: "fi"
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 11,
+      fontSize: 13,
       color: C.acc,
       fontWeight: 700,
       marginBottom: 16,
@@ -1128,28 +1128,28 @@ function AboutModal({
     }
   }, "DAILY CHECK-IN"), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 14,
+      fontSize: 16,
       color: C.muted,
       lineHeight: 1.8,
       marginBottom: 12
     }
   }, "At the top of the Session tab each day is a quick check-in. Choose one of six mood words - Peaceful, Hopeful, Okay, Tired, Anxious, or Struggling - and optionally add a short note. Takes about 10 seconds."), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 14,
+      fontSize: 16,
       color: C.muted,
       lineHeight: 1.8,
       marginBottom: 12
     }
   }, "You do not need a full session every day. The check-in is a simple way to stay connected to your inner life and build a record of how you are really doing over time."), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 14,
+      fontSize: 16,
       color: C.muted,
       lineHeight: 1.8,
       marginBottom: 12
     }
   }, "Your last 14 days of check-ins and session moods are displayed as a bar chart in Past Sessions. Higher bars mean more peace, lower bars mean more distress."), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 14,
+      fontSize: 16,
       color: C.muted,
       lineHeight: 1.8
     }
@@ -1157,7 +1157,7 @@ function AboutModal({
     className: "fi"
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 11,
+      fontSize: 13,
       color: C.acc,
       fontWeight: 700,
       marginBottom: 16,
@@ -1165,21 +1165,21 @@ function AboutModal({
     }
   }, "PRAYER JOURNAL"), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 14,
+      fontSize: 16,
       color: C.muted,
       lineHeight: 1.8,
       marginBottom: 12
     }
   }, "The Prayer tab is a private, AI-free space just between you and God. Write prayers freely, give them a title, and keep them as a living record of your conversations with Him."), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 14,
+      fontSize: 16,
       color: C.muted,
       lineHeight: 1.8,
       marginBottom: 12
     }
   }, "When a prayer is answered, tap Mark answered. The entry stays in your journal with a line through it - a testimony of faithfulness you can look back on."), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 14,
+      fontSize: 16,
       color: C.muted,
       lineHeight: 1.8,
       marginBottom: 12
@@ -1193,7 +1193,7 @@ function AboutModal({
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 13,
+      fontSize: 15,
       color: C.muted,
       lineHeight: 1.7
     }
@@ -1201,7 +1201,7 @@ function AboutModal({
     className: "fi"
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 11,
+      fontSize: 13,
       color: C.acc,
       fontWeight: 700,
       marginBottom: 16,
@@ -1209,28 +1209,28 @@ function AboutModal({
     }
   }, "PAST SESSIONS"), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 14,
+      fontSize: 16,
       color: C.muted,
       lineHeight: 1.8,
       marginBottom: 12
     }
   }, "Every completed session is saved to your account and synced across all your devices. Tap any session card to expand it and review your moods, opening words, Sjal's summary, your action step, and your gratitude entries."), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 14,
+      fontSize: 16,
       color: C.muted,
       lineHeight: 1.8,
       marginBottom: 12
     }
   }, "The mood trend chart at the top shows your last 14 days of check-ins and session moods. It is a quick way to notice patterns - weeks of peace, seasons of struggle, and the movement between them."), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 14,
+      fontSize: 16,
       color: C.muted,
       lineHeight: 1.8,
       marginBottom: 12
     }
   }, "Sjal quietly draws on your last 5 sessions when coaching you - so the longer you use the app, the more Sjal understands your patterns and journey."), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 14,
+      fontSize: 16,
       color: C.muted,
       lineHeight: 1.8
     }
@@ -1238,7 +1238,7 @@ function AboutModal({
     className: "fi"
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 11,
+      fontSize: 13,
       color: C.acc,
       fontWeight: 700,
       marginBottom: 16,
@@ -1254,14 +1254,14 @@ function AboutModal({
       }
     }, /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 13,
+        fontSize: 15,
         color: C.white,
         fontWeight: 600,
         marginBottom: 4
       }
     }, item[0]), /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 13,
+        fontSize: 15,
         color: C.muted,
         lineHeight: 1.65
       }
@@ -1275,7 +1275,7 @@ function Landing({
   return /*#__PURE__*/React.createElement("div", {
     style: {
       minHeight: "100vh",
-      background: "linear-gradient(160deg,#2e6a91 0%,#3d7eaa 55%,#488ab6 100%)",
+      background: "linear-gradient(160deg,#447c9e 0%,#5591b2 55%,#66a5c4 100%)",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
@@ -1294,7 +1294,7 @@ function Landing({
   }, /*#__PURE__*/React.createElement(SvgMark, null), /*#__PURE__*/React.createElement("h1", {
     style: {
       fontFamily: "'Playfair Display',serif",
-      fontSize: 34,
+      fontSize: 35,
       fontWeight: 600,
       color: C.white,
       marginBottom: 8,
@@ -1303,7 +1303,7 @@ function Landing({
   }, "Sjalavard"), /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.muted,
-      fontSize: 14,
+      fontSize: 16,
       letterSpacing: 2,
       textTransform: "uppercase",
       fontWeight: 500,
@@ -1312,7 +1312,7 @@ function Landing({
   }, "Soul Care"), /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.acc,
-      fontSize: 15,
+      fontSize: 16,
       fontStyle: "italic",
       fontFamily: "'Playfair Display',Georgia,serif",
       marginBottom: 8,
@@ -1321,7 +1321,7 @@ function Landing({
   }, "Renew your mind. Reclaim your life."), /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.dim,
-      fontSize: 13,
+      fontSize: 15,
       fontStyle: "italic",
       marginBottom: 36
     }
@@ -1336,7 +1336,7 @@ function Landing({
   }, /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.muted,
-      fontSize: 14,
+      fontSize: 16,
       lineHeight: 1.8,
       marginBottom: 24
     }
@@ -1351,7 +1351,7 @@ function Landing({
       border: "none",
       borderRadius: 12,
       color: "#fff",
-      fontSize: 15,
+      fontSize: 16,
       cursor: "pointer",
       fontWeight: 700,
       letterSpacing: 0.3,
@@ -1368,7 +1368,7 @@ function Landing({
       borderRadius: 12,
       color: C.acc,
       cursor: "pointer",
-      fontSize: 14,
+      fontSize: 16,
       fontWeight: 700,
       letterSpacing: 0.3
     }
@@ -1384,7 +1384,7 @@ function Landing({
       borderRadius: 12,
       color: C.muted,
       cursor: "pointer",
-      fontSize: 13,
+      fontSize: 15,
       fontWeight: 500
     }
   }, "About this App and How to Use It"), /*#__PURE__*/React.createElement(FHBar, null), onAdmin && /*#__PURE__*/React.createElement("button", {
@@ -1396,7 +1396,7 @@ function Landing({
       background: "transparent",
       border: "none",
       color: C.dim,
-      fontSize: 10,
+      fontSize: 13,
       cursor: "pointer",
       letterSpacing: 0.5
     }
@@ -1503,7 +1503,7 @@ function ProfileSetup({
       borderRadius: 8,
       padding: "6px 14px",
       color: C.muted,
-      fontSize: 12,
+      fontSize: 14,
       cursor: "pointer"
     }
   }, "Close")), /*#__PURE__*/React.createElement("div", {
@@ -1514,7 +1514,7 @@ function ProfileSetup({
   }, /*#__PURE__*/React.createElement(SvgMark, null), /*#__PURE__*/React.createElement("h1", {
     style: {
       fontFamily: "'Playfair Display',serif",
-      fontSize: 30,
+      fontSize: 31,
       fontWeight: 600,
       color: C.white,
       marginBottom: 8
@@ -1522,13 +1522,13 @@ function ProfileSetup({
   }, "Welcome to Sjalavard"), /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.muted,
-      fontSize: 14,
+      fontSize: 16,
       lineHeight: 1.7,
       marginBottom: 6
     }
   }, "A private space for soul care and Spirit-led coaching."), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 11,
+      fontSize: 13,
       color: C.dim
     }
   }, "Signed in as ", /*#__PURE__*/React.createElement("span", {
@@ -1553,7 +1553,7 @@ function ProfileSetup({
       background: tab === "setup" ? C.acc : C.surf,
       border: "none",
       color: tab === "setup" ? C.bg : C.muted,
-      fontSize: 13,
+      fontSize: 15,
       cursor: "pointer",
       fontWeight: 700
     }
@@ -1567,7 +1567,7 @@ function ProfileSetup({
       background: tab === "install" ? C.acc : C.surf,
       border: "none",
       color: tab === "install" ? C.bg : C.muted,
-      fontSize: 13,
+      fontSize: 15,
       cursor: "pointer",
       fontWeight: 700
     }
@@ -1582,7 +1582,7 @@ function ProfileSetup({
   }, /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.muted,
-      fontSize: 14,
+      fontSize: 16,
       lineHeight: 1.8,
       marginBottom: 22,
       textAlign: "center"
@@ -1598,7 +1598,7 @@ function ProfileSetup({
       border: "none",
       borderRadius: 12,
       color: "#fff",
-      fontSize: 15,
+      fontSize: 16,
       cursor: "pointer",
       fontWeight: 700
     }
@@ -1613,7 +1613,7 @@ function ProfileSetup({
   }, /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.muted,
-      fontSize: 13,
+      fontSize: 15,
       marginBottom: 14,
       textAlign: "center",
       lineHeight: 1.6
@@ -1639,7 +1639,7 @@ function ProfileSetup({
         border: "1.5px solid " + (device === vl[0] ? C.acc : C.border),
         borderRadius: 7,
         color: device === vl[0] ? C.acc : C.muted,
-        fontSize: 11,
+        fontSize: 13,
         cursor: "pointer",
         fontWeight: device === vl[0] ? 700 : 400
       }
@@ -1670,14 +1670,14 @@ function ProfileSetup({
         alignItems: "center",
         justifyContent: "center",
         flexShrink: 0,
-        fontSize: 11,
+        fontSize: 13,
         color: C.acc,
         fontWeight: 700,
         marginTop: 1
       }
     }, i + 1), /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 13,
+        fontSize: 15,
         color: C.muted,
         lineHeight: 1.55,
         margin: 0,
@@ -1695,7 +1695,7 @@ function ProfileSetup({
       border: "1px solid " + C.border,
       borderRadius: 10,
       color: C.muted,
-      fontSize: 13,
+      fontSize: 15,
       cursor: "pointer"
     }
   }, "Ready - Begin Setup"))), step === 1 && /*#__PURE__*/React.createElement("div", {
@@ -1726,7 +1726,7 @@ function ProfileSetup({
   }, /*#__PURE__*/React.createElement(SvgMark, null), /*#__PURE__*/React.createElement("h2", {
     style: {
       fontFamily: "'Playfair Display',serif",
-      fontSize: 24,
+      fontSize: 25,
       color: C.white,
       fontWeight: 600,
       marginBottom: 6
@@ -1734,7 +1734,7 @@ function ProfileSetup({
   }, "About You"), /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.muted,
-      fontSize: 14
+      fontSize: 16
     }
   }, "Help Sjal know who you are.")), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -1745,7 +1745,7 @@ function ProfileSetup({
     }
   }, /*#__PURE__*/React.createElement("label", {
     style: {
-      fontSize: 11,
+      fontSize: 13,
       color: C.muted,
       letterSpacing: 1,
       textTransform: "uppercase",
@@ -1766,18 +1766,18 @@ function ProfileSetup({
       borderRadius: 10,
       padding: "12px 14px",
       color: C.white,
-      fontSize: 15,
+      fontSize: 16,
       marginBottom: 8
     }
   }), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 11,
+      fontSize: 13,
       color: C.dim,
       marginBottom: 16
     }
   }, "Signed in as ", email), /*#__PURE__*/React.createElement("label", {
     style: {
-      fontSize: 11,
+      fontSize: 13,
       color: C.muted,
       letterSpacing: 1,
       textTransform: "uppercase",
@@ -1800,7 +1800,7 @@ function ProfileSetup({
       borderRadius: 10,
       padding: "12px 14px",
       color: C.white,
-      fontSize: 14,
+      fontSize: 16,
       lineHeight: 1.75,
       resize: "vertical",
       fontFamily: "'Playfair Display',Georgia,serif",
@@ -1818,7 +1818,7 @@ function ProfileSetup({
       border: "none",
       borderRadius: 12,
       color: name.trim() ? C.bg : C.dim,
-      fontSize: 15,
+      fontSize: 16,
       cursor: name.trim() ? "pointer" : "default",
       fontWeight: 700
     }
@@ -1849,7 +1849,7 @@ function ProfileSetup({
   }, /*#__PURE__*/React.createElement(SvgMark, null), /*#__PURE__*/React.createElement("h2", {
     style: {
       fontFamily: "'Playfair Display',serif",
-      fontSize: 24,
+      fontSize: 25,
       color: C.white,
       fontWeight: 600,
       marginBottom: 6
@@ -1857,7 +1857,7 @@ function ProfileSetup({
   }, "What Do You Wrestle With?"), /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.muted,
-      fontSize: 14
+      fontSize: 16
     }
   }, "Select your common patterns.")), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -1890,7 +1890,7 @@ function ProfileSetup({
         borderRadius: 20,
         padding: "6px 12px",
         color: on ? C.acc : C.muted,
-        fontSize: 12,
+        fontSize: 14,
         cursor: "pointer",
         fontWeight: on ? 700 : 400
       }
@@ -1907,7 +1907,7 @@ function ProfileSetup({
       border: "none",
       borderRadius: 12,
       color: struggles.length ? C.bg : C.dim,
-      fontSize: 15,
+      fontSize: 16,
       cursor: struggles.length ? "pointer" : "default",
       fontWeight: 700
     }
@@ -1938,7 +1938,7 @@ function ProfileSetup({
   }, /*#__PURE__*/React.createElement(SvgMark, null), /*#__PURE__*/React.createElement("h2", {
     style: {
       fontFamily: "'Playfair Display',serif",
-      fontSize: 24,
+      fontSize: 25,
       color: C.white,
       fontWeight: 600,
       marginBottom: 6
@@ -1946,7 +1946,7 @@ function ProfileSetup({
   }, "Your Growth Goals"), /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.muted,
-      fontSize: 14
+      fontSize: 16
     }
   }, "Choose up to 2 goals.")), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -1981,7 +1981,7 @@ function ProfileSetup({
         borderRadius: 9,
         padding: "11px 14px",
         color: on ? C.white : C.muted,
-        fontSize: 13,
+        fontSize: 15,
         cursor: "pointer",
         textAlign: "left",
         display: "flex",
@@ -1998,7 +1998,7 @@ function ProfileSetup({
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
-        fontSize: 10,
+        fontSize: 13,
         color: "#fff",
         fontWeight: 700
       }
@@ -2015,7 +2015,7 @@ function ProfileSetup({
       border: "none",
       borderRadius: 12,
       color: goals.length >= 1 ? C.bg : C.dim,
-      fontSize: 15,
+      fontSize: 16,
       cursor: goals.length >= 1 ? "pointer" : "default",
       fontWeight: 700
     }
@@ -2025,7 +2025,7 @@ function ProfileSetup({
     }
   }, /*#__PURE__*/React.createElement("label", {
     style: {
-      fontSize: 11,
+      fontSize: 13,
       color: C.muted,
       letterSpacing: 1,
       textTransform: "uppercase",
@@ -2046,12 +2046,12 @@ function ProfileSetup({
       borderRadius: 10,
       padding: "11px 14px",
       color: C.white,
-      fontSize: 14,
+      fontSize: 16,
       marginBottom: 6
     }
   }), React.createElement("p", {
     style: {
-      fontSize: 11,
+      fontSize: 13,
       color: C.dim
     }
   }, "This will be added alongside your selections.")))), step === 4 && /*#__PURE__*/React.createElement("div", {
@@ -2081,7 +2081,7 @@ function ProfileSetup({
   }, /*#__PURE__*/React.createElement(SvgMark, null), /*#__PURE__*/React.createElement("h2", {
     style: {
       fontFamily: "'Playfair Display',serif",
-      fontSize: 24,
+      fontSize: 25,
       color: C.white,
       fontWeight: 600,
       marginBottom: 6
@@ -2089,7 +2089,7 @@ function ProfileSetup({
   }, "Favorite Christian Authors"), /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.muted,
-      fontSize: 14,
+      fontSize: 16,
       lineHeight: 1.6
     }
   }, "Select up to 5. Sjal weaves their voice in when it fits.")), /*#__PURE__*/React.createElement("div", {
@@ -2126,7 +2126,7 @@ function ProfileSetup({
         borderRadius: 20,
         padding: "6px 12px",
         color: on ? C.acc : maxed ? C.dim : C.muted,
-        fontSize: 12,
+        fontSize: 14,
         cursor: maxed ? "default" : "pointer",
         fontWeight: on ? 700 : 400,
         opacity: maxed ? 0.5 : 1
@@ -2134,7 +2134,7 @@ function ProfileSetup({
     }, a);
   })), /*#__PURE__*/React.createElement("label", {
     style: {
-      fontSize: 11,
+      fontSize: 13,
       color: C.muted,
       letterSpacing: 1,
       textTransform: "uppercase",
@@ -2155,19 +2155,19 @@ function ProfileSetup({
       borderRadius: 10,
       padding: "11px 14px",
       color: C.white,
-      fontSize: 14,
+      fontSize: 16,
       marginBottom: 16
     }
   }), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 11,
+      fontSize: 13,
       color: C.dim,
       marginBottom: 16,
       textAlign: "center"
     }
   }, authors.length, "/5 selected"), saveErr && /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 12,
+      fontSize: 14,
       color: C.rose,
       marginBottom: 10,
       textAlign: "center"
@@ -2182,7 +2182,7 @@ function ProfileSetup({
       border: "none",
       borderRadius: 12,
       color: saving ? C.dim : C.bg,
-      fontSize: 15,
+      fontSize: 16,
       cursor: saving ? "default" : "pointer",
       fontWeight: 700,
       marginBottom: 10
@@ -2196,7 +2196,7 @@ function ProfileSetup({
       background: "transparent",
       border: "none",
       color: C.dim,
-      fontSize: 13,
+      fontSize: 15,
       cursor: saving ? "default" : "pointer"
     }
   }, saving ? "" : "Skip"), onCancel && /*#__PURE__*/React.createElement("button", {
@@ -2207,7 +2207,7 @@ function ProfileSetup({
       background: "transparent",
       border: "none",
       color: C.dim,
-      fontSize: 12,
+      fontSize: 14,
       cursor: "pointer",
       marginTop: 4
     }
@@ -2754,13 +2754,13 @@ function App({
   })), /*#__PURE__*/React.createElement("span", {
     style: {
       fontFamily: "'Playfair Display',serif",
-      fontSize: 17,
+      fontSize: 18,
       fontWeight: 600,
       letterSpacing: -0.3
     }
   }, "Sjalavard"), /*#__PURE__*/React.createElement("span", {
     style: {
-      fontSize: 10,
+      fontSize: 13,
       color: C.muted,
       letterSpacing: 1,
       textTransform: "uppercase",
@@ -2774,7 +2774,7 @@ function App({
     }
   }, /*#__PURE__*/React.createElement("span", {
     style: {
-      fontSize: 11,
+      fontSize: 13,
       color: C.dim
     }
   }, new Date().toLocaleDateString("en-US", {
@@ -2790,7 +2790,7 @@ function App({
       borderRadius: 7,
       padding: "4px 10px",
       color: C.dim,
-      fontSize: 11,
+      fontSize: 13,
       cursor: "pointer",
       fontWeight: 600
     }
@@ -2804,7 +2804,7 @@ function App({
       borderRadius: 7,
       padding: "4px 10px",
       color: C.dim,
-      fontSize: 10,
+      fontSize: 13,
       cursor: "pointer",
       fontWeight: 600,
       letterSpacing: 0.5
@@ -2834,7 +2834,7 @@ function App({
         border: "none",
         borderBottom: "2px solid " + (tab === vl[0] ? C.acc : "transparent"),
         color: tab === vl[0] ? C.acc : C.muted,
-        fontSize: 13,
+        fontSize: 15,
         cursor: "pointer",
         fontWeight: tab === vl[0] ? 700 : 400,
         whiteSpace: "nowrap"
@@ -2863,14 +2863,14 @@ function App({
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 16,
+      fontSize: 17,
       color: C.white,
       marginBottom: 8,
       fontWeight: 600
     }
   }, "Sign out of Sjalavard?"), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 13,
+      fontSize: 15,
       color: C.muted,
       marginBottom: 22,
       lineHeight: 1.6
@@ -2892,7 +2892,7 @@ function App({
       border: "none",
       borderRadius: 9,
       color: "#fff",
-      fontSize: 13,
+      fontSize: 15,
       cursor: "pointer",
       fontWeight: 700
     }
@@ -2907,7 +2907,7 @@ function App({
       border: "1px solid " + C.border,
       borderRadius: 9,
       color: C.muted,
-      fontSize: 13,
+      fontSize: 15,
       cursor: "pointer"
     }
   }, "Cancel")))), crisis && /*#__PURE__*/React.createElement("div", {
@@ -2932,12 +2932,12 @@ function App({
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 22,
+      fontSize: 23,
       marginBottom: 10
     }
   }, "\uD83D\uDC99"), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 16,
+      fontSize: 17,
       color: C.white,
       marginBottom: 10,
       fontWeight: 600,
@@ -2945,7 +2945,7 @@ function App({
     }
   }, "You are not alone."), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 13,
+      fontSize: 15,
       color: C.muted,
       marginBottom: 18,
       lineHeight: 1.7
@@ -2960,14 +2960,14 @@ function App({
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 13,
+      fontSize: 15,
       color: C.white,
       fontWeight: 600,
       marginBottom: 4
     }
   }, "988 Suicide and Crisis Lifeline"), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 13,
+      fontSize: 15,
       color: C.muted,
       marginBottom: 4
     }
@@ -2986,7 +2986,7 @@ function App({
       border: "none",
       borderRadius: 12,
       color: "#fff",
-      fontSize: 15,
+      fontSize: 16,
       cursor: "pointer",
       fontWeight: 700
     }
@@ -3006,7 +3006,7 @@ function App({
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 10,
+      fontSize: 13,
       color: C.acc,
       letterSpacing: 1,
       fontWeight: 700,
@@ -3014,7 +3014,7 @@ function App({
     }
   }, "TODAY - ", v.ref.toUpperCase()), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 13,
+      fontSize: 15,
       color: C.muted,
       fontStyle: "italic",
       lineHeight: 1.7,
@@ -3035,14 +3035,14 @@ function App({
     }
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 13,
+      fontSize: 15,
       color: C.white,
       fontWeight: 600,
       marginBottom: 3
     }
   }, "Personalize your experience"), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 12,
+      fontSize: 14,
       color: C.muted
     }
   }, "Tell Sjal about you so coaching feels personal.")), /*#__PURE__*/React.createElement("button", {
@@ -3057,7 +3057,7 @@ function App({
       borderRadius: 9,
       padding: "9px 18px",
       color: "#fff",
-      fontSize: 13,
+      fontSize: 15,
       cursor: "pointer",
       fontWeight: 700,
       whiteSpace: "nowrap",
@@ -3077,7 +3077,7 @@ function App({
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 12,
+      fontSize: 14,
       color: C.muted
     }
   }, "Your profile is set up."), /*#__PURE__*/React.createElement("button", {
@@ -3091,7 +3091,7 @@ function App({
       borderRadius: 8,
       padding: "5px 12px",
       color: C.acc,
-      fontSize: 12,
+      fontSize: 14,
       cursor: "pointer"
     }
   }, "Edit Profile")), !ciDone ? /*#__PURE__*/React.createElement("div", {
@@ -3104,14 +3104,14 @@ function App({
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 13,
+      fontSize: 15,
       color: C.white,
       fontWeight: 600,
       marginBottom: 4
     }
   }, "Daily Check-in"), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 12,
+      fontSize: 14,
       color: C.muted,
       marginBottom: 14
     }
@@ -3134,7 +3134,7 @@ function App({
         border: "1.5px solid " + (ciMood === m ? C.acc : C.border),
         borderRadius: 20,
         color: ciMood === m ? C.acc : C.muted,
-        fontSize: 12,
+        fontSize: 14,
         cursor: "pointer",
         fontWeight: ciMood === m ? 700 : 400
       }
@@ -3152,7 +3152,7 @@ function App({
       borderRadius: 8,
       padding: "9px 12px",
       color: C.white,
-      fontSize: 13,
+      fontSize: 15,
       marginBottom: 10
     }
   }), /*#__PURE__*/React.createElement("button", {
@@ -3164,7 +3164,7 @@ function App({
       border: "none",
       borderRadius: 8,
       color: ciMood ? C.bg : C.dim,
-      fontSize: 12,
+      fontSize: 14,
       cursor: ciMood ? "pointer" : "default",
       fontWeight: 700
     }
@@ -3182,11 +3182,11 @@ function App({
   }, /*#__PURE__*/React.createElement("span", {
     style: {
       color: C.success,
-      fontSize: 14
+      fontSize: 16
     }
   }, "\u2713"), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 12,
+      fontSize: 14,
       color: C.muted,
       margin: 0
     }
@@ -3205,7 +3205,7 @@ function App({
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 13,
+      fontSize: 15,
       color: C.acc,
       margin: 0,
       fontWeight: 500
@@ -3226,7 +3226,7 @@ function App({
       borderRadius: 7,
       padding: "5px 10px",
       color: C.muted,
-      fontSize: 11,
+      fontSize: 13,
       cursor: "pointer"
     }
   }, "Start fresh")), /*#__PURE__*/React.createElement("div", {
@@ -3251,7 +3251,7 @@ function App({
   }, /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.acc,
-      fontSize: 13,
+      fontSize: 15,
       fontWeight: 600,
       marginBottom: 4,
       letterSpacing: 0.3
@@ -3259,7 +3259,7 @@ function App({
   }, greeting(firstName)), /*#__PURE__*/React.createElement("h2", {
     style: {
       fontFamily: "'Playfair Display',serif",
-      fontSize: 26,
+      fontSize: 27,
       fontWeight: 600,
       marginBottom: 6,
       letterSpacing: -0.5
@@ -3267,7 +3267,7 @@ function App({
   }, "How are you arriving?"), /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.muted,
-      fontSize: 14,
+      fontSize: 16,
       marginBottom: 24,
       lineHeight: 1.7
     }
@@ -3308,13 +3308,13 @@ function App({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        fontSize: 8,
+        fontSize: 12,
         color: "#fff",
         fontWeight: 800
       }
     }, rank), /*#__PURE__*/React.createElement("div", {
       style: {
-        fontSize: 10,
+        fontSize: 13,
         color: on ? m.c : C.muted,
         fontWeight: on ? 700 : 400,
         lineHeight: 1.3
@@ -3343,14 +3343,14 @@ function App({
         border: "1px solid " + m.c + "55",
         borderRadius: 20,
         padding: "3px 10px",
-        fontSize: 11,
+        fontSize: 13,
         color: m.c,
         fontWeight: 600
       }
     }, ["Primary", "Secondary", "Third"][i], " - ", m.l);
   })), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 11,
+      fontSize: 13,
       color: C.dim,
       margin: 0
     }
@@ -3366,7 +3366,7 @@ function App({
       border: "none",
       borderRadius: 12,
       color: moods.length > 0 ? "#fff" : C.dim,
-      fontSize: 15,
+      fontSize: 16,
       cursor: moods.length > 0 ? "pointer" : "default",
       fontWeight: 700
     }
@@ -3381,7 +3381,7 @@ function App({
       border: "none",
       color: C.muted,
       cursor: "pointer",
-      fontSize: 13,
+      fontSize: 15,
       marginBottom: 18,
       padding: 0
     }
@@ -3400,7 +3400,7 @@ function App({
         border: "1px solid " + m.c + "55",
         borderRadius: 20,
         padding: "3px 10px",
-        fontSize: 11,
+        fontSize: 13,
         color: m.c,
         fontWeight: 600
       }
@@ -3408,7 +3408,7 @@ function App({
   })), /*#__PURE__*/React.createElement("h2", {
     style: {
       fontFamily: "'Playfair Display',serif",
-      fontSize: 26,
+      fontSize: 27,
       fontWeight: 600,
       marginBottom: 6,
       letterSpacing: -0.5
@@ -3416,7 +3416,7 @@ function App({
   }, "What's on your heart?"), /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.muted,
-      fontSize: 14,
+      fontSize: 16,
       marginBottom: 16,
       lineHeight: 1.7
     }
@@ -3434,7 +3434,7 @@ function App({
       borderRadius: 12,
       padding: "16px",
       color: C.white,
-      fontSize: 15,
+      fontSize: 16,
       lineHeight: 1.85,
       resize: "vertical",
       fontFamily: "'Playfair Display',Georgia,serif"
@@ -3453,7 +3453,7 @@ function App({
       border: "none",
       borderRadius: 12,
       color: text.trim() ? C.bg : C.dim,
-      fontSize: 15,
+      fontSize: 16,
       cursor: text.trim() ? "pointer" : "default",
       fontWeight: 700
     }
@@ -3483,7 +3483,7 @@ function App({
         border: "1px solid " + m.c + "44",
         borderRadius: 20,
         padding: "3px 9px",
-        fontSize: 10,
+        fontSize: 13,
         color: m.c,
         fontWeight: 600
       }
@@ -3503,7 +3503,7 @@ function App({
       borderRadius: 18,
       padding: "5px 12px",
       color: distortion ? C.acc : C.muted,
-      fontSize: 11,
+      fontSize: 13,
       cursor: "pointer",
       fontWeight: distortion ? 600 : 400
     }
@@ -3515,7 +3515,7 @@ function App({
       borderRadius: 18,
       padding: "5px 14px",
       color: "#fff",
-      fontSize: 11,
+      fontSize: 13,
       cursor: "pointer",
       fontWeight: 700
     }
@@ -3543,7 +3543,7 @@ function App({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        fontSize: 13,
+        fontSize: 15,
         marginRight: 10,
         flexShrink: 0,
         marginTop: 2,
@@ -3559,7 +3559,7 @@ function App({
         borderRadius: m.role === "coach" ? "4px 16px 16px 16px" : "16px 4px 16px 16px",
         padding: "13px 17px",
         color: m.role === "coach" ? C.white : C.bg,
-        fontSize: 14,
+        fontSize: 16,
         lineHeight: 1.85,
         fontFamily: m.role === "coach" ? "'Playfair Display',Georgia,serif" : "'Inter',sans-serif",
         whiteSpace: "pre-wrap"
@@ -3581,7 +3581,7 @@ function App({
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      fontSize: 13,
+      fontSize: 15,
       color: "#fff",
       fontWeight: 700,
       fontFamily: "'Playfair Display',serif"
@@ -3596,7 +3596,7 @@ function App({
   }, /*#__PURE__*/React.createElement("span", {
     style: {
       color: C.muted,
-      fontSize: 18,
+      fontSize: 19,
       letterSpacing: 7
     }
   }, "..."))), err && !loading && /*#__PURE__*/React.createElement("div", {
@@ -3609,7 +3609,7 @@ function App({
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 13,
+      fontSize: 15,
       color: C.rose,
       margin: "0 0 8px"
     }
@@ -3623,7 +3623,7 @@ function App({
       borderRadius: 7,
       padding: "6px 14px",
       color: "#fff",
-      fontSize: 12,
+      fontSize: 14,
       cursor: "pointer",
       fontWeight: 600
     }
@@ -3658,7 +3658,7 @@ function App({
       border: "none",
       padding: "11px 13px",
       color: C.white,
-      fontSize: 14,
+      fontSize: 16,
       lineHeight: 1.75,
       resize: "none",
       fontFamily: "'Playfair Display',Georgia,serif"
@@ -3672,14 +3672,14 @@ function App({
       border: "none",
       borderRadius: 10,
       color: "#fff",
-      fontSize: 16,
+      fontSize: 17,
       cursor: input.trim() && !loading ? "pointer" : "default",
       fontWeight: 700,
       margin: 3
     }
   }, "\u2192")), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 10,
+      fontSize: 13,
       color: C.dim,
       textAlign: "center",
       marginTop: 8,
@@ -3700,7 +3700,7 @@ function App({
       borderRadius: 50,
       padding: "13px 20px",
       color: "#fff",
-      fontSize: 13,
+      fontSize: 15,
       cursor: "pointer",
       fontWeight: 700,
       boxShadow: "0 6px 20px rgba(0,0,0,0.4)"
@@ -3723,7 +3723,7 @@ function App({
       alignItems: "center",
       justifyContent: "center",
       margin: "0 auto 14px",
-      fontSize: 20,
+      fontSize: 21,
       color: C.acc,
       fontWeight: 700,
       fontFamily: "'Playfair Display',serif"
@@ -3731,14 +3731,14 @@ function App({
   }, "S"), /*#__PURE__*/React.createElement("h2", {
     style: {
       fontFamily: "'Playfair Display',serif",
-      fontSize: 26,
+      fontSize: 27,
       fontWeight: 600,
       marginBottom: 6
     }
   }, "Session Summary"), /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.muted,
-      fontSize: 14,
+      fontSize: 16,
       lineHeight: 1.7
     }
   }, "A reflection from Sjal before you go.")), sumLoading ? /*#__PURE__*/React.createElement("div", {
@@ -3752,13 +3752,13 @@ function App({
   }, /*#__PURE__*/React.createElement("span", {
     style: {
       color: C.muted,
-      fontSize: 22,
+      fontSize: 23,
       letterSpacing: 8
     }
   }, "..."), /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.dim,
-      fontSize: 13,
+      fontSize: 15,
       marginTop: 10
     }
   }, "Sjal is reflecting on your session...")) : /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
@@ -3771,7 +3771,7 @@ function App({
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 15,
+      fontSize: 16,
       color: C.white,
       lineHeight: 1.9,
       fontFamily: "'Playfair Display',Georgia,serif",
@@ -3790,12 +3790,12 @@ function App({
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 16,
+      fontSize: 17,
       marginTop: 1
     }
   }, "\uD83D\uDD0D"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 11,
+      fontSize: 13,
       color: C.acc,
       fontWeight: 700,
       letterSpacing: 0.5,
@@ -3803,14 +3803,14 @@ function App({
     }
   }, "PATTERN IDENTIFIED"), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 13,
+      fontSize: 15,
       color: C.white,
       fontWeight: 600,
       marginBottom: 2
     }
   }, distortion), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 12,
+      fontSize: 14,
       color: C.muted
     }
   }, function () {
@@ -3831,12 +3831,12 @@ function App({
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 16,
+      fontSize: 17,
       marginTop: 1
     }
   }, "\u2726"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 11,
+      fontSize: 13,
       color: C.success,
       fontWeight: 700,
       letterSpacing: 0.5,
@@ -3844,7 +3844,7 @@ function App({
     }
   }, "YOUR ACTION STEP"), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 13,
+      fontSize: 15,
       color: C.white,
       lineHeight: 1.6
     }
@@ -3859,7 +3859,7 @@ function App({
       border: "none",
       borderRadius: 12,
       color: "#fff",
-      fontSize: 15,
+      fontSize: 16,
       cursor: "pointer",
       fontWeight: 700
     }
@@ -3881,19 +3881,19 @@ function App({
       alignItems: "center",
       justifyContent: "center",
       margin: "0 auto 14px",
-      fontSize: 22
+      fontSize: 23
     }
   }, "\u2726"), /*#__PURE__*/React.createElement("h2", {
     style: {
       fontFamily: "'Playfair Display',serif",
-      fontSize: 26,
+      fontSize: 27,
       fontWeight: 600,
       marginBottom: 6
     }
   }, "Before you go"), /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.muted,
-      fontSize: 14,
+      fontSize: 16,
       lineHeight: 1.7
     }
   }, "Name three things you are grateful for right now.")), grat.map(function (g, gi) {
@@ -3916,7 +3916,7 @@ function App({
         alignItems: "center",
         justifyContent: "center",
         flexShrink: 0,
-        fontSize: 11,
+        fontSize: 13,
         color: C.acc,
         fontWeight: 700
       }
@@ -3935,7 +3935,7 @@ function App({
         borderRadius: 10,
         padding: "12px 14px",
         color: C.white,
-        fontSize: 14,
+        fontSize: 16,
         fontFamily: "'Playfair Display',Georgia,serif"
       }
     }));
@@ -3959,7 +3959,7 @@ function App({
       color: grat.filter(function (g) {
         return g.trim();
       }).length > 0 ? C.bg : C.dim,
-      fontSize: 15,
+      fontSize: 16,
       cursor: grat.filter(function (g) {
         return g.trim();
       }).length > 0 ? "pointer" : "default",
@@ -3976,21 +3976,21 @@ function App({
       border: "none",
       color: C.muted,
       cursor: "pointer",
-      fontSize: 13,
+      fontSize: 15,
       marginBottom: 22,
       padding: 0
     }
   }, "Back to Session"), /*#__PURE__*/React.createElement("h2", {
     style: {
       fontFamily: "'Playfair Display',serif",
-      fontSize: 26,
+      fontSize: 27,
       fontWeight: 600,
       marginBottom: 6
     }
   }, "Name a Pattern"), /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.muted,
-      fontSize: 14,
+      fontSize: 16,
       marginBottom: 20,
       lineHeight: 1.7
     }
@@ -4014,13 +4014,13 @@ function App({
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
-        fontSize: 13,
+        fontSize: 15,
         color: on ? C.acc : C.white,
         fontWeight: on ? 600 : 400
       }
     }, d.l), /*#__PURE__*/React.createElement("div", {
       style: {
-        fontSize: 11,
+        fontSize: 13,
         color: C.muted,
         marginTop: 2
       }
@@ -4040,7 +4040,7 @@ function App({
       border: "none",
       borderRadius: 12,
       color: "#fff",
-      fontSize: 15,
+      fontSize: 16,
       cursor: "pointer",
       fontWeight: 700
     }
@@ -4049,14 +4049,14 @@ function App({
   }, /*#__PURE__*/React.createElement("h2", {
     style: {
       fontFamily: "'Playfair Display',serif",
-      fontSize: 26,
+      fontSize: 27,
       fontWeight: 600,
       marginBottom: 4
     }
   }, "Prayer Journal"), /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.muted,
-      fontSize: 13,
+      fontSize: 15,
       marginBottom: 22
     }
   }, "A private space to bring your prayers before God."), /*#__PURE__*/React.createElement("div", {
@@ -4080,7 +4080,7 @@ function App({
       borderRadius: 8,
       padding: "9px 12px",
       color: C.white,
-      fontSize: 13,
+      fontSize: 15,
       marginBottom: 8
     }
   }), /*#__PURE__*/React.createElement("textarea", {
@@ -4097,7 +4097,7 @@ function App({
       borderRadius: 8,
       padding: "10px 12px",
       color: C.white,
-      fontSize: 14,
+      fontSize: 16,
       lineHeight: 1.75,
       resize: "vertical",
       fontFamily: "'Playfair Display',Georgia,serif",
@@ -4112,7 +4112,7 @@ function App({
       border: "none",
       borderRadius: 8,
       color: prayText.trim() ? C.bg : C.dim,
-      fontSize: 13,
+      fontSize: 15,
       cursor: prayText.trim() ? "pointer" : "default",
       fontWeight: 700
     }
@@ -4124,13 +4124,13 @@ function App({
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 36,
+      fontSize: 37,
       marginBottom: 12,
       opacity: 0.3
     }
   }, "\uD83D\uDE4F"), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 14,
+      fontSize: 16,
       lineHeight: 1.7
     }
   }, "Your prayers will be kept here.")) : prayers.map(function (p) {
@@ -4153,7 +4153,7 @@ function App({
       }
     }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 13,
+        fontSize: 15,
         color: p.answered ? C.success : C.white,
         fontWeight: 600,
         marginBottom: 2,
@@ -4161,7 +4161,7 @@ function App({
       }
     }, p.title), /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 11,
+        fontSize: 13,
         color: C.dim
       }
     }, p.date)), /*#__PURE__*/React.createElement("div", {
@@ -4179,7 +4179,7 @@ function App({
         borderRadius: 6,
         padding: "3px 9px",
         color: p.answered ? C.success : C.dim,
-        fontSize: 10,
+        fontSize: 13,
         cursor: "pointer",
         fontWeight: 600
       }
@@ -4193,12 +4193,12 @@ function App({
         borderRadius: 6,
         padding: "3px 8px",
         color: C.rose,
-        fontSize: 10,
+        fontSize: 13,
         cursor: "pointer"
       }
     }, "x"))), /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 13,
+        fontSize: 15,
         color: C.muted,
         lineHeight: 1.65,
         fontFamily: "'Playfair Display',Georgia,serif",
@@ -4208,14 +4208,14 @@ function App({
   })), tab === "history" && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
     style: {
       fontFamily: "'Playfair Display',serif",
-      fontSize: 26,
+      fontSize: 27,
       fontWeight: 600,
       marginBottom: 4
     }
   }, "Your Journey"), /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.muted,
-      fontSize: 13,
+      fontSize: 15,
       marginBottom: 16
     }
   }, sessions.length, " session", sessions.length !== 1 ? "s" : "", " completed"), function () {
@@ -4233,7 +4233,7 @@ function App({
       }
     }, /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 10,
+        fontSize: 13,
         color: C.acc,
         letterSpacing: 1,
         fontWeight: 700,
@@ -4267,13 +4267,13 @@ function App({
         title: d.mood || ""
       }), /*#__PURE__*/React.createElement("span", {
         style: {
-          fontSize: 8,
+          fontSize: 12,
           color: C.dim
         }
       }, d.label));
     })), /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 10,
+        fontSize: 13,
         color: C.dim,
         marginTop: 8
       }
@@ -4286,13 +4286,13 @@ function App({
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 40,
+      fontSize: 41,
       marginBottom: 14,
       opacity: 0.3
     }
   }, "\u2726"), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 15,
+      fontSize: 16,
       lineHeight: 1.7
     }
   }, "Your completed sessions will appear here.")) : sessions.map(function (s, i) {
@@ -4318,14 +4318,14 @@ function App({
       }
     }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 14,
+        fontSize: 16,
         color: C.white,
         marginBottom: 2,
         fontWeight: 600
       }
     }, s.date), /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 11,
+        fontSize: 13,
         color: C.muted,
         margin: 0
       }
@@ -4351,7 +4351,7 @@ function App({
           border: "1px solid " + m.c + "44",
           borderRadius: 20,
           padding: "2px 7px",
-          fontSize: 9,
+          fontSize: 12,
           color: m.c,
           fontWeight: 600
         }
@@ -4359,7 +4359,7 @@ function App({
     })), /*#__PURE__*/React.createElement("span", {
       style: {
         color: C.dim,
-        fontSize: 14
+        fontSize: 16
       }
     }, expanded === i ? "↑" : "↓"))), expanded === i && /*#__PURE__*/React.createElement("div", {
       style: {
@@ -4384,7 +4384,7 @@ function App({
           border: "1px solid " + m.c + "44",
           borderRadius: 20,
           padding: "2px 8px",
-          fontSize: 10,
+          fontSize: 13,
           color: m.c,
           fontWeight: 600
         }
@@ -4395,12 +4395,12 @@ function App({
         border: "1px solid rgba(91,184,212,0.3)",
         borderRadius: 20,
         padding: "2px 8px",
-        fontSize: 10,
+        fontSize: 13,
         color: C.acc
       }
     }, s.distortion)), s.opening && /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 13,
+        fontSize: 15,
         color: C.muted,
         lineHeight: 1.65,
         margin: "0 0 10px",
@@ -4408,7 +4408,7 @@ function App({
       }
     }, "\"", s.opening.slice(0, 180), s.opening.length > 180 ? "..." : "", "\""), s.summary && /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 13,
+        fontSize: 15,
         color: C.muted,
         lineHeight: 1.65,
         margin: "0 0 10px"
@@ -4423,14 +4423,14 @@ function App({
       }
     }, /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 10,
+        fontSize: 13,
         color: C.success,
         fontWeight: 700,
         marginBottom: 3
       }
     }, "ACTION STEP"), /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 12,
+        fontSize: 14,
         color: C.muted
       }
     }, s.actionStep)), s.gratitude && s.gratitude.filter(function (g) {
@@ -4444,7 +4444,7 @@ function App({
       }
     }, /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 10,
+        fontSize: 13,
         color: C.acc,
         margin: "0 0 5px",
         fontWeight: 700,
@@ -4456,14 +4456,14 @@ function App({
       return /*#__PURE__*/React.createElement("p", {
         key: gi,
         style: {
-          fontSize: 12,
+          fontSize: 14,
           color: C.muted,
           margin: "0 0 2px"
         }
       }, "- ", g);
     })), s.msgs && s.msgs.length > 0 && /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 10,
+        fontSize: 13,
         color: C.dim,
         margin: "0 0 10px",
         letterSpacing: 0.3
@@ -4484,7 +4484,7 @@ function App({
         borderRadius: 7,
         padding: "4px 10px",
         color: C.rose,
-        fontSize: 10,
+        fontSize: 13,
         cursor: "pointer",
         letterSpacing: 0.3
       }
@@ -4501,7 +4501,7 @@ function App({
   }, /*#__PURE__*/React.createElement("h2", {
     style: {
       fontFamily: "'Playfair Display',serif",
-      fontSize: 26,
+      fontSize: 27,
       fontWeight: 600
     }
   }, "My Profile"), /*#__PURE__*/React.createElement("button", {
@@ -4514,7 +4514,7 @@ function App({
       borderRadius: 8,
       padding: "7px 14px",
       color: C.acc,
-      fontSize: 12,
+      fontSize: 14,
       cursor: "pointer",
       fontWeight: 600,
       flexShrink: 0
@@ -4522,7 +4522,7 @@ function App({
   }, "Edit Setup")), /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.muted,
-      fontSize: 13,
+      fontSize: 15,
       marginBottom: 22
     }
   }, "How Sjal knows you."), /*#__PURE__*/React.createElement("div", {
@@ -4535,7 +4535,7 @@ function App({
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 10,
+      fontSize: 13,
       color: C.acc,
       letterSpacing: 1,
       textTransform: "uppercase",
@@ -4544,13 +4544,13 @@ function App({
     }
   }, "About You"), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 14,
+      fontSize: 16,
       color: C.white,
       marginBottom: 4
     }
   }, profile.firstName || "Name not set"), profile.bio && /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 13,
+      fontSize: 15,
       color: C.muted,
       lineHeight: 1.7,
       marginBottom: 4,
@@ -4558,7 +4558,7 @@ function App({
     }
   }, profile.bio), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 11,
+      fontSize: 13,
       color: C.dim
     }
   }, email)), /*#__PURE__*/React.createElement("div", {
@@ -4571,7 +4571,7 @@ function App({
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 10,
+      fontSize: 13,
       color: C.acc,
       letterSpacing: 1,
       textTransform: "uppercase",
@@ -4592,14 +4592,14 @@ function App({
         border: "1px solid rgba(91,184,212,0.25)",
         borderRadius: 20,
         padding: "3px 10px",
-        fontSize: 11,
+        fontSize: 13,
         color: C.muted
       }
     }, s);
   }) : /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.dim,
-      fontSize: 13
+      fontSize: 15
     }
   }, "None set"))), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -4611,7 +4611,7 @@ function App({
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 10,
+      fontSize: 13,
       color: C.acc,
       letterSpacing: 1,
       textTransform: "uppercase",
@@ -4622,7 +4622,7 @@ function App({
     return /*#__PURE__*/React.createElement("p", {
       key: i,
       style: {
-        fontSize: 13,
+        fontSize: 15,
         color: C.muted,
         marginBottom: 5,
         lineHeight: 1.5
@@ -4631,7 +4631,7 @@ function App({
   }) : /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.dim,
-      fontSize: 13
+      fontSize: 15
     }
   }, "None set")), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -4650,7 +4650,7 @@ function App({
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 10,
+      fontSize: 13,
       color: C.acc,
       letterSpacing: 1,
       textTransform: "uppercase",
@@ -4666,7 +4666,7 @@ function App({
       borderRadius: 6,
       padding: "3px 10px",
       color: C.muted,
-      fontSize: 11,
+      fontSize: 13,
       cursor: "pointer"
     }
   }, editAuthors ? "Cancel" : "Edit")), !editAuthors ? profile.authors && profile.authors.length ? /*#__PURE__*/React.createElement("div", {
@@ -4683,14 +4683,14 @@ function App({
         border: "1px solid rgba(91,184,212,0.25)",
         borderRadius: 20,
         padding: "3px 10px",
-        fontSize: 11,
+        fontSize: 13,
         color: C.muted
       }
     }, a);
   })) : /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.dim,
-      fontSize: 13
+      fontSize: 15
     }
   }, "None selected - Sjal will draw from classic voices.") : /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -4719,7 +4719,7 @@ function App({
         borderRadius: 20,
         padding: "5px 11px",
         color: on ? C.acc : maxed ? C.dim : C.muted,
-        fontSize: 11,
+        fontSize: 13,
         cursor: maxed ? "default" : "pointer",
         opacity: maxed ? 0.5 : 1
       }
@@ -4737,7 +4737,7 @@ function App({
       borderRadius: 8,
       padding: "10px 13px",
       color: C.white,
-      fontSize: 13,
+      fontSize: 15,
       marginBottom: 10
     }
   }), /*#__PURE__*/React.createElement("button", {
@@ -4748,7 +4748,7 @@ function App({
       border: "none",
       borderRadius: 8,
       color: "#fff",
-      fontSize: 12,
+      fontSize: 14,
       cursor: "pointer",
       fontWeight: 700
     }
@@ -4762,14 +4762,14 @@ function App({
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 13,
+      fontSize: 15,
       color: C.rose,
       fontWeight: 600,
       marginBottom: 5
     }
   }, "Account"), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 12,
+      fontSize: 14,
       color: C.muted,
       marginBottom: 14,
       lineHeight: 1.6
@@ -4792,7 +4792,7 @@ function App({
       borderRadius: 7,
       padding: "7px 14px",
       color: C.rose,
-      fontSize: 12,
+      fontSize: 14,
       cursor: "pointer",
       fontWeight: 500
     }
@@ -4804,7 +4804,7 @@ function App({
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 12,
+      fontSize: 14,
       color: C.dim,
       marginBottom: 10
     }
@@ -4827,7 +4827,7 @@ function App({
       border: "1px solid rgba(91,184,212,0.4)",
       borderRadius: 20,
       color: C.acc,
-      fontSize: 12,
+      fontSize: 14,
       textDecoration: "none",
       fontWeight: 600
     }
@@ -4842,7 +4842,7 @@ function App({
       background: "transparent",
       border: "none",
       color: C.dim,
-      fontSize: 10,
+      fontSize: 13,
       cursor: "pointer",
       letterSpacing: 0.5,
       opacity: 0.4
@@ -4851,9 +4851,9 @@ function App({
     className: "fi",
     style: { maxWidth:680, margin:"0 auto", padding:"10px 4px 80px" }
   },
-    React.createElement("div", { style:{ fontSize:11, fontWeight:700, letterSpacing:"0.16em", textTransform:"uppercase", color:C.acc, marginBottom:10 } }, "Also inside Sjalavard"),
-    React.createElement("h2", { style:{ fontFamily:"'Playfair Display',serif", fontSize:28, fontWeight:600, color:"#fff", marginBottom:10, letterSpacing:-0.5, lineHeight:1.2 } }, "Everything else you'll find inside"),
-    React.createElement("p", { style:{ fontSize:14, color:C.muted, lineHeight:1.75, marginBottom:26 } }, "Beyond the sessions and prayer journal, Sjalavard is built to be a quiet, durable companion. Here's the rest."),
+    React.createElement("div", { style:{ fontSize:13, fontWeight:700, letterSpacing:"0.16em", textTransform:"uppercase", color:C.acc, marginBottom:10 } }, "Also inside Sjalavard"),
+    React.createElement("h2", { style:{ fontFamily:"'Playfair Display',serif", fontSize:29, fontWeight:600, color:"#fff", marginBottom:10, letterSpacing:-0.5, lineHeight:1.2 } }, "Everything else you'll find inside"),
+    React.createElement("p", { style:{ fontSize:16, color:C.muted, lineHeight:1.75, marginBottom:26 } }, "Beyond the sessions and prayer journal, Sjalavard is built to be a quiet, durable companion. Here's the rest."),
     (function(){
       var svgProps = { width:22, height:22, viewBox:"0 0 24 24", fill:"none", stroke:C.acc, strokeWidth:"1.8", strokeLinecap:"round", strokeLinejoin:"round" };
       function el(tag, props){ return React.createElement(tag, props); }
@@ -4885,21 +4885,21 @@ function App({
         return React.createElement("div", { key:i, style:{ background:C.card, border:"1px solid "+C.border, borderRadius:14, padding:"20px 22px", marginBottom:14, display:"flex", gap:14, alignItems:"flex-start" } },
           React.createElement("div", { style:{ width:38, height:38, borderRadius:10, background:"rgba(91,184,212,0.12)", border:"1px solid rgba(91,184,212,0.3)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 } }, ICONS[f[0]]),
           React.createElement("div", { style:{ flex:1 } },
-            React.createElement("div", { style:{ fontFamily:"'Playfair Display',serif", fontSize:17, fontWeight:600, color:"#fff", marginBottom:5 } }, f[1]),
+            React.createElement("div", { style:{ fontFamily:"'Playfair Display',serif", fontSize:18, fontWeight:600, color:"#fff", marginBottom:5 } }, f[1]),
             React.createElement("div", { style:{ fontSize:13.5, color:C.muted, lineHeight:1.7 } }, f[2])
           )
         );
       });
     })(),
     React.createElement("div", { style:{ textAlign:"center", marginTop:20 } },
-      React.createElement("button", { onClick:function(){ setTab("session"); }, style:{ background:C.acc, color:"#fff", border:"none", borderRadius:12, padding:"12px 28px", fontSize:13, fontWeight:700, cursor:"pointer", letterSpacing:0.3 } }, "Back to Session")
+      React.createElement("button", { onClick:function(){ setTab("session"); }, style:{ background:C.acc, color:"#fff", border:"none", borderRadius:12, padding:"12px 28px", fontSize:15, fontWeight:700, cursor:"pointer", letterSpacing:0.3 } }, "Back to Session")
     )
   ), tab === "legal" && /*#__PURE__*/React.createElement("div", {
     className: "fi"
   }, /*#__PURE__*/React.createElement("h2", {
     style: {
       fontFamily: "'Playfair Display',serif",
-      fontSize: 26,
+      fontSize: 27,
       fontWeight: 600,
       marginBottom: 4,
       letterSpacing: -0.5
@@ -4907,7 +4907,7 @@ function App({
   }, "Legal"), /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.muted,
-      fontSize: 13,
+      fontSize: 15,
       marginBottom: 24
     }
   }, "Foster Hope Ministries \u2014 Effective January 1, 2025"), /*#__PURE__*/React.createElement("div", {
@@ -4920,7 +4920,7 @@ function App({
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 11,
+      fontSize: 13,
       color: C.acc,
       letterSpacing: 1,
       textTransform: "uppercase",
@@ -4929,7 +4929,7 @@ function App({
     }
   }, "Copyright"), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 13,
+      fontSize: 15,
       color: C.muted,
       lineHeight: 1.8
     }
@@ -4943,7 +4943,7 @@ function App({
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 11,
+      fontSize: 13,
       color: C.acc,
       letterSpacing: 1,
       textTransform: "uppercase",
@@ -4952,7 +4952,7 @@ function App({
     }
   }, "Terms of Use"), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 13,
+      fontSize: 15,
       color: C.muted,
       lineHeight: 1.8,
       marginBottom: 10
@@ -4961,7 +4961,7 @@ function App({
     return /*#__PURE__*/React.createElement("p", {
       key: i,
       style: {
-        fontSize: 13,
+        fontSize: 15,
         color: C.muted,
         lineHeight: 1.8,
         marginBottom: 8
@@ -4977,7 +4977,7 @@ function App({
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 11,
+      fontSize: 13,
       color: C.acc,
       letterSpacing: 1,
       textTransform: "uppercase",
@@ -4988,7 +4988,7 @@ function App({
     return /*#__PURE__*/React.createElement("p", {
       key: i,
       style: {
-        fontSize: 13,
+        fontSize: 15,
         color: C.muted,
         lineHeight: 1.8,
         marginBottom: 8
@@ -5008,7 +5008,7 @@ function App({
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 11,
+      fontSize: 13,
       color: C.acc,
       letterSpacing: 1,
       textTransform: "uppercase",
@@ -5017,21 +5017,21 @@ function App({
     }
   }, "Disclaimer"), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 13,
+      fontSize: 15,
       color: C.muted,
       lineHeight: 1.8,
       marginBottom: 8
     }
   }, "Sjalavard is provided as-is without warranties of any kind. Foster Hope Ministries makes no guarantees regarding the accuracy, completeness, or suitability of AI-generated coaching content for any particular purpose."), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 13,
+      fontSize: 15,
       color: C.muted,
       lineHeight: 1.8,
       marginBottom: 8
     }
   }, "The AI coach (Sjal) draws on Christian thought and CBT principles but is not a licensed therapist, counselor, or pastor. Content is for spiritual encouragement and reflection only."), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 13,
+      fontSize: 15,
       color: C.muted,
       lineHeight: 1.8
     }
@@ -5049,7 +5049,7 @@ function App({
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 11,
+      fontSize: 13,
       color: C.acc,
       letterSpacing: 1,
       textTransform: "uppercase",
@@ -5058,7 +5058,7 @@ function App({
     }
   }, "Third-Party Services"), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 13,
+      fontSize: 15,
       color: C.muted,
       lineHeight: 1.8,
       marginBottom: 10
@@ -5067,7 +5067,7 @@ function App({
     return /*#__PURE__*/React.createElement("p", {
       key: i,
       style: {
-        fontSize: 13,
+        fontSize: 15,
         color: C.muted,
         lineHeight: 1.8,
         marginBottom: 6
@@ -5092,7 +5092,7 @@ function App({
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 11,
+      fontSize: 13,
       color: C.acc,
       letterSpacing: 1,
       textTransform: "uppercase",
@@ -5101,7 +5101,7 @@ function App({
     }
   }, "Contact"), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 13,
+      fontSize: 15,
       color: C.muted,
       lineHeight: 1.8,
       marginBottom: 4
@@ -5112,7 +5112,7 @@ function App({
     rel: "noopener noreferrer",
     style: {
       display: "block",
-      fontSize: 13,
+      fontSize: 15,
       color: C.acc,
       textDecoration: "none",
       marginBottom: 4
@@ -5121,13 +5121,13 @@ function App({
     href: "mailto:info@fosterhope.org",
     style: {
       display: "block",
-      fontSize: 13,
+      fontSize: 15,
       color: C.acc,
       textDecoration: "none"
     }
   }, "info@fosterhope.org")), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 11,
+      fontSize: 13,
       color: C.dim,
       textAlign: "center",
       marginBottom: 24
@@ -5181,14 +5181,14 @@ function AdminPanel({
   }, /*#__PURE__*/React.createElement(SvgMark, null), /*#__PURE__*/React.createElement("h2", {
     style: {
       fontFamily: "'Playfair Display',serif",
-      fontSize: 22,
+      fontSize: 23,
       fontWeight: 600,
       marginBottom: 6
     }
   }, "Admin Access"), /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.muted,
-      fontSize: 13,
+      fontSize: 15,
       marginBottom: 24
     }
   }, "Foster Hope Ministries"), /*#__PURE__*/React.createElement("input", {
@@ -5209,14 +5209,14 @@ function AdminPanel({
       borderRadius: 10,
       padding: "12px 16px",
       color: C.white,
-      fontSize: 16,
+      fontSize: 17,
       textAlign: "center",
       marginBottom: 8
     }
   }), codeErr && /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.rose,
-      fontSize: 12,
+      fontSize: 14,
       marginBottom: 8
     }
   }, "Incorrect code"), /*#__PURE__*/React.createElement("button", {
@@ -5228,7 +5228,7 @@ function AdminPanel({
       border: "none",
       borderRadius: 10,
       color: "#fff",
-      fontSize: 15,
+      fontSize: 16,
       cursor: "pointer",
       fontWeight: 700,
       marginBottom: 10
@@ -5241,7 +5241,7 @@ function AdminPanel({
       background: "transparent",
       border: "none",
       color: C.dim,
-      fontSize: 13,
+      fontSize: 15,
       cursor: "pointer"
     }
   }, "Back to App")));
@@ -5340,12 +5340,12 @@ function AdminPanel({
   })), /*#__PURE__*/React.createElement("span", {
     style: {
       fontFamily: "'Playfair Display',serif",
-      fontSize: 16,
+      fontSize: 17,
       fontWeight: 600
     }
   }, "Sjalavard Admin"), /*#__PURE__*/React.createElement("span", {
     style: {
-      fontSize: 10,
+      fontSize: 13,
       color: C.dim,
       background: "rgba(91,184,212,0.15)",
       padding: "2px 8px",
@@ -5360,7 +5360,7 @@ function AdminPanel({
       borderRadius: 7,
       padding: "4px 12px",
       color: C.dim,
-      fontSize: 12,
+      fontSize: 14,
       cursor: "pointer"
     }
   }, "Exit Admin"))), /*#__PURE__*/React.createElement("div", {
@@ -5377,7 +5377,7 @@ function AdminPanel({
   }, /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.muted,
-      fontSize: 14,
+      fontSize: 16,
       letterSpacing: 1
     }
   }, "Loading data...")) : /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
@@ -5398,19 +5398,19 @@ function AdminPanel({
       }
     }, /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 24,
+        fontSize: 25,
         marginBottom: 4
       }
     }, s[2]), /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 26,
+        fontSize: 27,
         fontWeight: 700,
         color: C.acc,
         marginBottom: 4
       }
     }, s[1]), /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 11,
+        fontSize: 13,
         color: C.muted,
         letterSpacing: 0.5
       }
@@ -5435,7 +5435,7 @@ function AdminPanel({
         border: "none",
         borderBottom: "2px solid " + (view === t[0] ? C.acc : "transparent"),
         color: view === t[0] ? C.acc : C.muted,
-        fontSize: 13,
+        fontSize: 15,
         cursor: "pointer",
         fontWeight: view === t[0] ? 700 : 400
       }
@@ -5457,7 +5457,7 @@ function AdminPanel({
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 11,
+      fontSize: 13,
       color: C.acc,
       fontWeight: 700,
       letterSpacing: 1,
@@ -5466,7 +5466,7 @@ function AdminPanel({
   }, "TOP MOODS"), topMoods.length === 0 ? /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.dim,
-      fontSize: 13
+      fontSize: 15
     }
   }, "No data yet") : topMoods.map(function (m, i) {
     return /*#__PURE__*/React.createElement("div", {
@@ -5479,7 +5479,7 @@ function AdminPanel({
       }
     }, /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 13,
+        fontSize: 15,
         color: C.muted
       }
     }, m[0]), /*#__PURE__*/React.createElement("span", {
@@ -5487,7 +5487,7 @@ function AdminPanel({
         background: "rgba(91,184,212,0.15)",
         borderRadius: 20,
         padding: "2px 10px",
-        fontSize: 12,
+        fontSize: 14,
         color: C.acc,
         fontWeight: 600
       }
@@ -5501,7 +5501,7 @@ function AdminPanel({
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 11,
+      fontSize: 13,
       color: C.acc,
       fontWeight: 700,
       letterSpacing: 1,
@@ -5510,7 +5510,7 @@ function AdminPanel({
   }, "TOP PATTERNS"), topDist.length === 0 ? /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.dim,
-      fontSize: 13
+      fontSize: 15
     }
   }, "No data yet") : topDist.map(function (d, i) {
     return /*#__PURE__*/React.createElement("div", {
@@ -5523,7 +5523,7 @@ function AdminPanel({
       }
     }, /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 12,
+        fontSize: 14,
         color: C.muted
       }
     }, d[0].split(" ").slice(0, 3).join(" ")), /*#__PURE__*/React.createElement("span", {
@@ -5531,7 +5531,7 @@ function AdminPanel({
         background: "rgba(91,184,212,0.15)",
         borderRadius: 20,
         padding: "2px 10px",
-        fontSize: 12,
+        fontSize: 14,
         color: C.acc,
         fontWeight: 600
       }
@@ -5569,14 +5569,14 @@ function AdminPanel({
       }
     }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 14,
+        fontSize: 16,
         color: C.white,
         fontWeight: 600,
         marginBottom: 2
       }
     }, d.firstName || "Anonymous"), /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 11,
+        fontSize: 13,
         color: C.dim
       }
     }, p.email, " \xB7 ", userSessions.length, " sessions")), /*#__PURE__*/React.createElement("div", {
@@ -5587,7 +5587,7 @@ function AdminPanel({
       }
     }, d.profile_done && /*#__PURE__*/React.createElement("span", {
       style: {
-        fontSize: 10,
+        fontSize: 13,
         color: C.success,
         background: "rgba(91,184,160,0.15)",
         padding: "2px 8px",
@@ -5611,7 +5611,7 @@ function AdminPanel({
       }
     }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 10,
+        fontSize: 13,
         color: C.acc,
         fontWeight: 700,
         letterSpacing: 0.5,
@@ -5627,7 +5627,7 @@ function AdminPanel({
       return /*#__PURE__*/React.createElement("span", {
         key: s,
         style: {
-          fontSize: 10,
+          fontSize: 13,
           color: C.muted,
           background: C.surf,
           padding: "2px 8px",
@@ -5636,12 +5636,12 @@ function AdminPanel({
       }, s);
     }), (!d.struggles || d.struggles.length === 0) && /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 12,
+        fontSize: 14,
         color: C.dim
       }
     }, "None set"))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 10,
+        fontSize: 13,
         color: C.acc,
         fontWeight: 700,
         letterSpacing: 0.5,
@@ -5657,7 +5657,7 @@ function AdminPanel({
       return /*#__PURE__*/React.createElement("span", {
         key: a,
         style: {
-          fontSize: 10,
+          fontSize: 13,
           color: C.muted,
           background: C.surf,
           padding: "2px 8px",
@@ -5666,12 +5666,12 @@ function AdminPanel({
       }, a);
     }), (!d.authors || d.authors.length === 0) && /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 12,
+        fontSize: 14,
         color: C.dim
       }
     }, "None set")))), /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 10,
+        fontSize: 13,
         color: C.dim
       }
     }, "Last active: ", new Date(p.updated_at).toLocaleDateString("en-US", {
@@ -5715,14 +5715,14 @@ function AdminPanel({
       }
     }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 13,
+        fontSize: 15,
         color: C.white,
         fontWeight: 600,
         marginBottom: 2
       }
     }, d.date || new Date(s.created_at).toLocaleDateString()), /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 11,
+        fontSize: 13,
         color: C.dim
       }
     }, user ? user.data && user.data.firstName || user.email : "Unknown", " \xB7 ", (d.msgs || []).length, " exchanges")), /*#__PURE__*/React.createElement("div", {
@@ -5738,7 +5738,7 @@ function AdminPanel({
       return mood ? /*#__PURE__*/React.createElement("span", {
         key: m,
         style: {
-          fontSize: 9,
+          fontSize: 12,
           color: mood.c,
           background: "rgba(" + rgbStr(mood.c) + ",0.15)",
           padding: "2px 7px",
@@ -5756,14 +5756,14 @@ function AdminPanel({
       }
     }, d.opening && /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 13,
+        fontSize: 15,
         color: C.muted,
         fontStyle: "italic",
         marginBottom: 8
       }
     }, "\"", d.opening.slice(0, 200), d.opening.length > 200 ? "..." : "", "\""), d.summary && /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 13,
+        fontSize: 15,
         color: C.muted,
         lineHeight: 1.65,
         marginBottom: 8
@@ -5777,19 +5777,19 @@ function AdminPanel({
       }
     }, /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 10,
+        fontSize: 13,
         color: C.success,
         fontWeight: 700,
         marginBottom: 3
       }
     }, "ACTION STEP"), /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 12,
+        fontSize: 14,
         color: C.muted
       }
     }, d.actionStep)), d.distortion && /*#__PURE__*/React.createElement("p", {
       style: {
-        fontSize: 11,
+        fontSize: 13,
         color: C.acc
       }
     }, "Pattern: ", d.distortion)));
@@ -6025,7 +6025,7 @@ function Root() {
 try {
   ReactDOM.createRoot(document.getElementById("root")).render(/*#__PURE__*/React.createElement(Root, null));
 } catch (e) {
-  document.getElementById("root").innerHTML = '<div style="padding:40px;color:#8ab8cc;font-family:sans-serif;text-align:center"><p style="font-size:18px;margin-bottom:12px">Something went wrong loading Sjalavard.</p><p style="font-size:13px;color:#4a7a94">' + e.message + '</p><button onclick="location.reload()" style="margin-top:20px;padding:10px 24px;background:#5bb8d4;border:none;border-radius:8px;color:#3d7eaa;font-weight:700;cursor:pointer;font-size:14px">Reload</button></div>';
+  document.getElementById("root").innerHTML = '<div style="padding:40px;color:#8ab8cc;font-family:sans-serif;text-align:center"><p style="font-size:18px;margin-bottom:12px">Something went wrong loading Sjalavard.</p><p style="font-size:13px;color:#4a7a94">' + e.message + '</p><button onclick="location.reload()" style="margin-top:20px;padding:10px 24px;background:#5bb8d4;border:none;border-radius:8px;color:#5591b2;font-weight:700;cursor:pointer;font-size:14px">Reload</button></div>';
 }
 </script>
 <!-- ── SJALAVARD TOUR — UI (banner + draggable card + Also Included overlay) ── -->
@@ -6037,10 +6037,10 @@ try {
     if (document.getElementById("sj-tour-banner")) return;
     var bar = document.createElement("div");
     bar.id = "sj-tour-banner";
-    bar.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:99998;background:#5bb8d4;color:#3d7eaa;font:700 12px/1 'Inter',system-ui,sans-serif;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 12px;box-shadow:0 2px 10px rgba(0,0,0,.2);";
+    bar.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:99998;background:#5bb8d4;color:#5591b2;font:700 12px/1 'Inter',system-ui,sans-serif;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 12px;box-shadow:0 2px 10px rgba(0,0,0,.2);";
     bar.innerHTML = '<span>GUIDED TOUR · sample user preview</span>' +
-      '<button onclick="window._sjTourIdx=0;_renderSjTourStep()" style="background:transparent;color:#3d7eaa;border:1px solid #3d7eaa;border-radius:6px;padding:4px 10px;font:700 11px \'Inter\',system-ui,sans-serif;cursor:pointer;">Restart</button>' +
-      '<button onclick="_exitSjTour()" style="background:#3d7eaa;color:#fff;border:none;border-radius:6px;padding:4px 10px;font:700 11px \'Inter\',system-ui,sans-serif;cursor:pointer;">Exit Tour</button>';
+      '<button onclick="window._sjTourIdx=0;_renderSjTourStep()" style="background:transparent;color:#5591b2;border:1px solid #5591b2;border-radius:6px;padding:4px 10px;font:700 11px \'Inter\',system-ui,sans-serif;cursor:pointer;">Restart</button>' +
+      '<button onclick="_exitSjTour()" style="background:#5591b2;color:#fff;border:none;border-radius:6px;padding:4px 10px;font:700 11px \'Inter\',system-ui,sans-serif;cursor:pointer;">Exit Tour</button>';
     document.body.appendChild(bar);
     document.body.style.paddingTop = "34px";
   }
@@ -6085,25 +6085,25 @@ try {
     if (!card){
       card = document.createElement("div");
       card.id = "sj-tour-card";
-      card.style.cssText = "position:fixed;bottom:20px;right:20px;z-index:99999;background:#336f97;border:1px solid #5bb8d4;border-radius:14px;box-shadow:0 24px 60px rgba(0,0,0,.5),0 8px 16px rgba(0,0,0,.3);padding:16px 18px 14px;width:360px;max-width:calc(100vw - 32px);font-family:'Inter',sans-serif;color:#fff;";
+      card.style.cssText = "position:fixed;bottom:20px;right:20px;z-index:99999;background:#4880a4;border:1px solid #5bb8d4;border-radius:14px;box-shadow:0 24px 60px rgba(0,0,0,.5),0 8px 16px rgba(0,0,0,.3);padding:16px 18px 14px;width:360px;max-width:calc(100vw - 32px);font-family:'Inter',sans-serif;color:#fff;";
       document.body.appendChild(card);
     }
     var isLast = !!step.last;
     var pct = Math.round(((idx+1)/steps.length)*100);
     card.innerHTML =
-      '<div id="sj-tour-drag" title="Drag to move" style="display:flex;align-items:center;justify-content:space-between;margin:-6px -10px 10px;padding:6px 12px;background:#3d7eaa;border-radius:12px 12px 0 0;cursor:grab;user-select:none;touch-action:none;">' +
+      '<div id="sj-tour-drag" title="Drag to move" style="display:flex;align-items:center;justify-content:space-between;margin:-6px -10px 10px;padding:6px 12px;background:#5591b2;border-radius:12px 12px 0 0;cursor:grab;user-select:none;touch-action:none;">' +
         '<span style="display:flex;align-items:center;gap:8px;">' +
           '<span style="color:#5bb8d4;font-size:14px;letter-spacing:-2px;">⋮⋮</span>' +
           '<span style="font:700 10px/1 \'Inter\',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#5bb8d4;">Tour · ' + (idx+1) + ' of ' + steps.length + ' · drag to move</span>' +
         '</span>' +
         '<button id="sj-tour-close" title="Close tour" style="background:none;border:none;color:#8ab8cc;font-size:20px;cursor:pointer;line-height:1;padding:0 4px;">×</button>' +
       '</div>' +
-      '<div style="height:3px;background:#3d7eaa;border-radius:2px;margin:0 0 12px;overflow:hidden;"><div style="height:100%;background:#5bb8d4;width:' + pct + '%;transition:width .25s;"></div></div>' +
+      '<div style="height:3px;background:#5591b2;border-radius:2px;margin:0 0 12px;overflow:hidden;"><div style="height:100%;background:#5bb8d4;width:' + pct + '%;transition:width .25s;"></div></div>' +
       '<h3 style="font-family:\'Playfair Display\',serif;font-size:20px;font-weight:600;color:#fff;margin:0 0 6px;line-height:1.25;">' + step.title + '</h3>' +
       '<p style="margin:0 0 14px;font-size:13px;line-height:1.7;color:#8ab8cc;">' + step.body + '</p>' +
       '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">' +
-        '<button id="sj-tour-back" ' + (idx===0?'disabled':'') + ' style="background:transparent;border:1px solid #5c9bbd;color:' + (idx===0?'#7da4bd':'#c6e0ed') + ';border-radius:8px;padding:8px 14px;font:600 12px \'Inter\',sans-serif;cursor:' + (idx===0?'not-allowed':'pointer') + ';">← Back</button>' +
-        '<button id="sj-tour-next" style="background:#5bb8d4;border:none;color:#3d7eaa;border-radius:8px;padding:9px 18px;font:700 12px \'Inter\',sans-serif;cursor:pointer;letter-spacing:.03em;">' + (isLast ? 'Finish' : 'Next →') + '</button>' +
+        '<button id="sj-tour-back" ' + (idx===0?'disabled':'') + ' style="background:transparent;border:1px solid #84b3d0;color:' + (idx===0?'#a5c8db':'#eaf3f9') + ';border-radius:8px;padding:8px 14px;font:600 13px \'Inter\',sans-serif;cursor:' + (idx===0?'not-allowed':'pointer') + ';">← Back</button>' +
+        '<button id="sj-tour-next" style="background:#5bb8d4;border:none;color:#5591b2;border-radius:8px;padding:9px 18px;font:700 12px \'Inter\',sans-serif;cursor:pointer;letter-spacing:.03em;">' + (isLast ? 'Finish' : 'Next →') + '</button>' +
       '</div>';
     document.getElementById("sj-tour-close").onclick = endCard;
     document.getElementById("sj-tour-back").onclick = function(){ if (idx>0){ window._sjTourIdx=idx-1; _renderSjTourStep(); } };
