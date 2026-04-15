@@ -4854,27 +4854,43 @@ function App({
     React.createElement("div", { style:{ fontSize:11, fontWeight:700, letterSpacing:"0.16em", textTransform:"uppercase", color:C.acc, marginBottom:10 } }, "Also inside Sjalavard"),
     React.createElement("h2", { style:{ fontFamily:"'Playfair Display',serif", fontSize:28, fontWeight:600, color:"#fff", marginBottom:10, letterSpacing:-0.5, lineHeight:1.2 } }, "Everything else you'll find inside"),
     React.createElement("p", { style:{ fontSize:14, color:C.muted, lineHeight:1.75, marginBottom:26 } }, "Beyond the sessions and prayer journal, Sjalavard is built to be a quiet, durable companion. Here's the rest."),
-    [
-      ["📝","Daily Check-In","A simple mood + one-line note each day. Helps you and Sjal notice patterns over time. Synced across devices, replaced with a quiet confirmation once completed."],
-      ["🛟","Crisis Support","If anything in a session signals you're in danger, Sjal pauses and surfaces the 988 Suicide & Crisis Lifeline immediately. Safety comes before process, always."],
-      ["🧠","Cognitive Behavioral Therapy, Gently Woven In","The silent backbone is David Burns' Feeling Good framework — identifying cognitive distortions (mind-reading, all-or-nothing, catastrophizing) and replacing them with what is actually true. Sjal never names the framework, just uses it."],
-      ["📚","Your Chosen Voices","Pick up to 5 authors whose sensibility you want to hear — Manning, Willard, Foster, Lewis, Nouwen, Leaf, and more. Sjal weaves them in naturally, never quoted at length, never forced."],
-      ["🙏","Prayer Journal with Answered Prayers","Mark prayers answered and watch your own history of God's faithfulness grow over time."],
-      ["📱","Installable PWA — Works Offline","Add Sjalavard to your iPhone, Android, Mac, or PC home screen. Runs like a native app. Your sessions stay usable without signal."],
-      ["☁️","Cross-Device Sync","Sign in on your phone at lunch, finish on your laptop after dinner. Profile, sessions, check-ins, and prayers all follow you — encrypted and private to your account."],
-      ["🔒","Private by Design","Your sessions aren't a training dataset for anyone. Scoped storage, no third-party analytics, no ads. It's your soul care — nobody else's."],
-      ["🕊️","Sjal's Voice — Pastoral, Not Clinical","Sjal isn't a therapist and doesn't pretend to be. He listens like a friend who happens to be trained in the science and steeped in the Spirit. For crisis care, always defers to professionals."],
-      ["📖","Session Arc — 4 Movements + Gratitude","Every full session follows a shape: CBT (name the distortion), Leaf (neuroscience of thought), Author (a voice you chose), Summary (reflection + 3 questions), then Gratitude. You can close anytime."],
-      ["🏠","A Ministry of Foster Hope","Sjalavard is a free ministry tool of Foster Hope Ministries — built because life is hard and most of us don't have a pastor or therapist on call at 2am. Use it freely, share it freely."]
-    ].map(function(f, i){
-      return React.createElement("div", { key:i, style:{ background:C.card, border:"1px solid "+C.border, borderRadius:14, padding:"20px 22px", marginBottom:14, display:"flex", gap:14, alignItems:"flex-start" } },
-        React.createElement("div", { style:{ fontSize:24, lineHeight:1, flexShrink:0, marginTop:2 } }, f[0]),
-        React.createElement("div", { style:{ flex:1 } },
-          React.createElement("div", { style:{ fontFamily:"'Playfair Display',serif", fontSize:17, fontWeight:600, color:"#fff", marginBottom:5 } }, f[1]),
-          React.createElement("div", { style:{ fontSize:13.5, color:C.muted, lineHeight:1.7 } }, f[2])
-        )
-      );
-    }),
+    (function(){
+      var svgProps = { width:22, height:22, viewBox:"0 0 24 24", fill:"none", stroke:C.acc, strokeWidth:"1.8", strokeLinecap:"round", strokeLinejoin:"round" };
+      function el(tag, props){ return React.createElement(tag, props); }
+      var ICONS = {
+        check:  React.createElement("svg", svgProps, el("path",{d:"M22 11.08V12a10 10 0 1 1-5.93-9.14"}), el("polyline",{points:"22 4 12 14.01 9 11.01"})),
+        buoy:   React.createElement("svg", svgProps, el("circle",{cx:"12",cy:"12",r:"10"}), el("circle",{cx:"12",cy:"12",r:"4"}), el("line",{x1:"4.93",y1:"4.93",x2:"9.17",y2:"9.17"}), el("line",{x1:"14.83",y1:"14.83",x2:"19.07",y2:"19.07"}), el("line",{x1:"14.83",y1:"9.17",x2:"19.07",y2:"4.93"}), el("line",{x1:"4.93",y1:"19.07",x2:"9.17",y2:"14.83"})),
+        zap:    React.createElement("svg", svgProps, el("polygon",{points:"13 2 3 14 12 14 11 22 21 10 12 10 13 2"})),
+        book:   React.createElement("svg", svgProps, el("path",{d:"M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"}), el("path",{d:"M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"})),
+        heart:  React.createElement("svg", svgProps, el("path",{d:"M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"})),
+        phone:  React.createElement("svg", svgProps, el("rect",{x:"5",y:"2",width:"14",height:"20",rx:"2",ry:"2"}), el("line",{x1:"12",y1:"18",x2:"12.01",y2:"18"})),
+        cloud:  React.createElement("svg", svgProps, el("path",{d:"M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"})),
+        shield: React.createElement("svg", svgProps, el("path",{d:"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"})),
+        layers: React.createElement("svg", svgProps, el("polygon",{points:"12 2 2 7 12 12 22 7 12 2"}), el("polyline",{points:"2 17 12 22 22 17"}), el("polyline",{points:"2 12 12 17 22 12"})),
+        award:  React.createElement("svg", svgProps, el("circle",{cx:"12",cy:"8",r:"7"}), el("polyline",{points:"8.21 13.89 7 23 12 20 17 23 15.79 13.88"}))
+      };
+      var rows = [
+        ["check","Daily Check-In","A simple mood plus one-line note each day. Helps you and Sjal notice patterns over time. Synced across devices, replaced with a quiet confirmation once completed."],
+        ["buoy","Crisis Support","If anything in a session signals you are in danger, Sjal pauses and surfaces the 988 Suicide and Crisis Lifeline immediately. Safety comes before process, always."],
+        ["zap","Cognitive Behavioral Therapy, Gently Woven In","The silent backbone is David Burns and the Feeling Good framework — identifying cognitive distortions (mind-reading, all-or-nothing, catastrophizing) and replacing them with what is actually true. Sjal never names the framework, just uses it."],
+        ["book","Your Chosen Voices","Pick up to 5 authors whose sensibility you want to hear — Manning, Willard, Foster, Lewis, Nouwen, Leaf, and more. Sjal weaves them in naturally, never quoted at length, never forced."],
+        ["heart","Prayer Journal with Answered Prayers","Mark prayers as answered and watch a record of faithfulness grow over time."],
+        ["phone","Installable PWA — Works Offline","Add Sjalavard to your iPhone, Android, Mac, or PC home screen. Runs like a native app. Your sessions stay usable without signal."],
+        ["cloud","Cross-Device Sync","Sign in on your phone at lunch, finish on your laptop after dinner. Profile, sessions, check-ins, and prayers all follow you — encrypted and private to your account."],
+        ["shield","Private by Design","Your sessions are not a training dataset for anyone. Scoped storage, no third-party analytics, no ads. This is your soul care — and yours alone."],
+        ["layers","Session Arc — 4 Movements + Gratitude","Every full session follows a shape: CBT (name the distortion), Leaf (neuroscience of thought), Author (a voice you chose), Summary (reflection + 3 questions), then Gratitude. You can close anytime."],
+        ["award","A Ministry of Foster Hope","Sjalavard is a ministry tool of Foster Hope Ministries — built because life is hard and most of us do not have a pastor or therapist on call at 2am. Use it freely, share it freely."]
+      ];
+      return rows.map(function(f, i){
+        return React.createElement("div", { key:i, style:{ background:C.card, border:"1px solid "+C.border, borderRadius:14, padding:"20px 22px", marginBottom:14, display:"flex", gap:14, alignItems:"flex-start" } },
+          React.createElement("div", { style:{ width:38, height:38, borderRadius:10, background:"rgba(91,184,212,0.12)", border:"1px solid rgba(91,184,212,0.3)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 } }, ICONS[f[0]]),
+          React.createElement("div", { style:{ flex:1 } },
+            React.createElement("div", { style:{ fontFamily:"'Playfair Display',serif", fontSize:17, fontWeight:600, color:"#fff", marginBottom:5 } }, f[1]),
+            React.createElement("div", { style:{ fontSize:13.5, color:C.muted, lineHeight:1.7 } }, f[2])
+          )
+        );
+      });
+    })(),
     React.createElement("div", { style:{ textAlign:"center", marginTop:20 } },
       React.createElement("button", { onClick:function(){ setTab("session"); }, style:{ background:C.acc, color:C.bg, border:"none", borderRadius:12, padding:"12px 28px", fontSize:13, fontWeight:700, cursor:"pointer", letterSpacing:0.3 } }, "Back to Session")
     )
