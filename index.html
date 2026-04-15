@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<meta name="theme-color" content="#0f2d42"/>
+<meta name="theme-color" content="#153a52"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
@@ -14,10 +14,201 @@
 <title>Sjalavard — Soul Care</title>
 <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<!-- ── SJALAVARD TAKE A TOUR — bootstrap ─────────────────────── -->
+<script>
+(function(){
+  try {
+    var path = window.location.pathname || "";
+    var qs = new URLSearchParams(window.location.search || "");
+    var pathTour = /(^|\/)(tour|demo)\/?$/i.test(path);
+    var qTour = qs.get("tour") === "1" || qs.get("demo") === "1";
+    var flagTour = false;
+    try { flagTour = localStorage.getItem("sj_tour_mode") === "1"; } catch(e){}
+    if (pathTour || qTour || flagTour) {
+      window._sjTour = true;
+      try { localStorage.setItem("sj_tour_mode","1"); } catch(e){}
+    }
+  } catch(e){}
+
+  window._startSjTour = function() {
+    try { localStorage.setItem("sj_tour_mode","1"); } catch(e){}
+    location.href = location.origin + "/?tour=1";
+  };
+  window._exitSjTour = function() {
+    try {
+      localStorage.removeItem("sj_tour_mode");
+      Object.keys(localStorage).forEach(function(k){
+        if (k.indexOf("sj_tour_") === 0) localStorage.removeItem(k);
+      });
+    } catch(e){}
+    location.href = location.origin + "/";
+  };
+
+  if (!window._sjTour) return;
+
+  // ── Sample user + data ──
+  var TOUR_UID = "sj-tour-user";
+  var daysAgo = function(n){ var d=new Date(); d.setDate(d.getDate()-n); return d; };
+  var mdy = function(d){ return (d.getMonth()+1)+"/"+d.getDate()+"/"+d.getFullYear(); };
+  var isoDay = function(d){ return d.toISOString(); };
+
+  var tourProfile = {
+    firstName: "Alex",
+    bio: "Trying to walk through a season of anxiety and people-pleasing. Coming back to faith after years of distance. Grateful for a space to be honest.",
+    struggles: ["Anxiety", "Overthinking", "People-pleasing"],
+    goals: ["Inner peace", "Trusting God more"],
+    authors: ["Brennan Manning", "Henri Nouwen", "C.S. Lewis"],
+    profile_done: true,
+    checkins: (function(){
+      var c = {};
+      c[mdy(daysAgo(0))]  = { mood: 3, note: "Better today. Slept well.",         date: isoDay(daysAgo(0)) };
+      c[mdy(daysAgo(1))]  = { mood: 2, note: "Anxious about a meeting.",          date: isoDay(daysAgo(1)) };
+      c[mdy(daysAgo(2))]  = { mood: 4, note: "Quiet morning — prayer + coffee.",  date: isoDay(daysAgo(2)) };
+      c[mdy(daysAgo(3))]  = { mood: 2, note: "Hard conversation with a friend.",  date: isoDay(daysAgo(3)) };
+      c[mdy(daysAgo(5))]  = { mood: 3, note: "Felt God's nearness at church.",    date: isoDay(daysAgo(5)) };
+      return c;
+    })(),
+    prayers: [
+      { id:"pr1", title:"My mom's health", text:"For peace and clear results from her tests this week.", date:isoDay(daysAgo(2)), answered:false },
+      { id:"pr2", title:"Freedom from approval-seeking", text:"Lord, help me rest in being your beloved rather than proving my worth.", date:isoDay(daysAgo(6)), answered:false },
+      { id:"pr3", title:"Guidance at work", text:"Wisdom for the decision about the new role.", date:isoDay(daysAgo(10)), answered:true }
+    ]
+  };
+
+  var tourSessions = [
+    { id:"s1", user_id:TOUR_UID, created_at:isoDay(daysAgo(1)),
+      data:{ title:"Anxiety before the meeting", summary:"Explored the fear of disappointing others. Named the distortion (mind-reading). Reframed around being seen and loved as-is.",
+        messages:[
+          {role:"user",content:"I have a meeting tomorrow and I can't stop spiraling. I keep thinking they're going to think I'm not cut out for this."},
+          {role:"assistant",content:"That sounds exhausting — running the tape before it even happens. I want to gently name something you're doing: you're predicting what they'll think without evidence. What specifically makes you sure they'll land there?"},
+          {role:"user",content:"I guess... nothing concrete. Just a feeling."},
+          {role:"assistant",content:"Dr. Caroline Leaf would call that a 'toxic thought loop' — the brain treating a feeling as fact. Brennan Manning would ask: who told you your belovedness depends on their approval? What do you most want them to see tomorrow?"}
+        ] } },
+    { id:"s2", user_id:TOUR_UID, created_at:isoDay(daysAgo(4)),
+      data:{ title:"Hard conversation with a friend", summary:"Processed guilt and truth-telling. Identified 'emotional reasoning' (I feel guilty → I must be wrong). Landed in 1 Corinthians 13.",
+        messages:[
+          {role:"user",content:"I said something honest to my friend and now I feel awful. Maybe I shouldn't have."},
+          {role:"assistant",content:"Honest love sometimes hurts before it heals. Your feeling guilty doesn't automatically mean you were wrong. What would you tell a friend who'd said the same thing you said?"}
+        ] } },
+    { id:"s3", user_id:TOUR_UID, created_at:isoDay(daysAgo(9)),
+      data:{ title:"Coming back to prayer", summary:"Talked through the long drought and the fear of restarting. Lewis on practicing the presence in small doses. First small step: 2 minutes of silence each morning.",
+        messages:[
+          {role:"user",content:"I haven't prayed in months. I don't even know how to start."},
+          {role:"assistant",content:"You don't have to start where you left off. C.S. Lewis would say the first word of prayer is often just 'Here I am.' Could that be enough for today?"}
+        ] } }
+  ];
+
+  // Cache data so Root component picks it up instead of querying Supabase
+  window._sjPreloadedData = {
+    profile: tourProfile,
+    sessions: tourSessions,
+    profile_done: true
+  };
+
+  // Seed localStorage profile_done flags
+  try {
+    localStorage.setItem("sj_"+TOUR_UID+"_profile_done","true");
+    localStorage.setItem("sj_profile_done","true");
+    localStorage.setItem("sj_email_tour@sjalavard.com_profile_done","true");
+  } catch(e){}
+
+  // ── Stub Netlify Identity ──
+  var tourUser = { id:TOUR_UID, email:"tour@sjalavard.com", user_metadata:{ full_name:"Alex" } };
+  var niHandlers = {};
+  window.netlifyIdentity = {
+    on: function(evt, cb){ niHandlers[evt] = cb; if (evt === "init") setTimeout(function(){ cb(tourUser); }, 30); },
+    off: function(){},
+    init: function(){},
+    open: function(){ if (niHandlers.login) niHandlers.login(tourUser); },
+    close: function(){},
+    logout: function(){ window._exitSjTour(); },
+    currentUser: function(){ return tourUser; }
+  };
+
+  // ── Stub Supabase client ──
+  var FIX = {
+    profiles: [{ id:TOUR_UID, email:tourUser.email, data:tourProfile, updated_at:new Date().toISOString() }],
+    sessions: tourSessions
+  };
+  function match(row, filters){
+    for (var i=0;i<filters.length;i++){ var f=filters[i];
+      if (f.op==="eq" && row[f.col]!==f.val) return false;
+    }
+    return true;
+  }
+  function Q(table, op){ this.table=table; this.op=op||"select"; this.filters=[]; this.payload=null; this.singleFlag=false; }
+  Q.prototype.select = function(){ this.op="select"; return this; };
+  Q.prototype.insert = function(v){ this.op="insert"; this.payload=v; return this; };
+  Q.prototype.update = function(v){ this.op="update"; this.payload=v; return this; };
+  Q.prototype.upsert = function(v){ this.op="upsert"; this.payload=v; return this; };
+  Q.prototype.delete = function(){ this.op="delete"; return this; };
+  Q.prototype.eq = function(c,v){ this.filters.push({op:"eq",col:c,val:v}); return this; };
+  Q.prototype.neq = function(c,v){ this.filters.push({op:"neq",col:c,val:v}); return this; };
+  Q.prototype.order = function(){ return this; };
+  Q.prototype.limit = function(){ return this; };
+  Q.prototype.single = function(){ this.singleFlag=true; return this; };
+  Q.prototype.maybeSingle = function(){ this.singleFlag=true; return this; };
+  Q.prototype._run = function(){
+    var rows = FIX[this.table] || [];
+    var matched = rows.filter(function(r){ return match(r, this.filters); }.bind(this));
+    if (this.op==="select") {
+      var d = this.singleFlag ? (matched[0]||null) : matched;
+      return { data:d, error:null };
+    }
+    if (this.op==="insert" || this.op==="upsert") {
+      var items = Array.isArray(this.payload) ? this.payload : [this.payload];
+      FIX[this.table] = (FIX[this.table]||[]).concat(items);
+      return { data:items, error:null };
+    }
+    if (this.op==="update") {
+      matched.forEach(function(r){ for (var k in this.payload) r[k] = this.payload[k]; }.bind(this));
+      return { data:matched, error:null };
+    }
+    if (this.op==="delete") {
+      FIX[this.table] = (FIX[this.table]||[]).filter(function(r){ return !match(r, this.filters); }.bind(this));
+      return { data:null, error:null };
+    }
+    return { data:null, error:null };
+  };
+  Q.prototype.then = function(r,j){ try { return Promise.resolve(this._run()).then(r,j); } catch(e){ return Promise.resolve({data:null,error:e}).then(r,j); } };
+  Q.prototype.catch = function(fn){ return this.then(function(v){return v;}, fn); };
+  var tourClient = {
+    from: function(t){ return new Q(t); },
+    auth: { getUser: function(){ return Promise.resolve({data:{user:tourUser},error:null}); }, signOut: function(){ return Promise.resolve({error:null}); } },
+    channel: function(){ return { on:function(){return this;}, subscribe:function(){return {unsubscribe:function(){}};} }; },
+    removeChannel: function(){}
+  };
+  if (window.supabase && window.supabase.createClient) {
+    window.supabase.createClient = function(){ return tourClient; };
+  }
+
+  // ── Stub Gemini (fetch to /api/gemini) ──
+  var _fetch = window.fetch.bind(window);
+  var cannedReplies = [
+    "That's a heavy thought to carry. Let me sit with it for a moment. Notice what you just said — 'I always mess this up.' That's what we'd call an 'always' thought, and your brain treats it as fact even though evidence usually tells a more mixed story. When was the last time you handled something like this well, even partially?",
+    "Dr. Caroline Leaf would call what you're describing a 'toxic thought loop' — the brain rehearsing the same story until it feels like identity. The good news: thoughts that get rehearsed can also be re-rehearsed. What's one kinder sentence you could practice in its place?",
+    "Brennan Manning once wrote, 'My deepest awareness of myself is that I am deeply loved by Jesus Christ and I have done nothing to earn it or deserve it.' What do you notice in your body when you read that slowly?",
+    "Let me reflect back what I've heard: [1] A hard conversation left you anxious. [2] Your mind has been predicting the worst. [3] Underneath it, there's a longing to be seen as enough. Here are three questions to sit with this week: (a) What is true, regardless of how they respond? (b) Where is God inviting you to rest instead of prove? (c) What small act of self-kindness could you offer yourself tomorrow? Close when you're ready, and know you're not alone in this."
+  ];
+  var replyIdx = 0;
+  window.fetch = function(url, opts){
+    try {
+      var u = typeof url === "string" ? url : (url && url.url) || "";
+      if (u.indexOf("/api/gemini") >= 0 || u.indexOf("gemini") >= 0) {
+        var reply = cannedReplies[replyIdx % cannedReplies.length];
+        replyIdx++;
+        return Promise.resolve(new Response(JSON.stringify({ text: reply }), { status:200, headers:{"Content-Type":"application/json"} }));
+      }
+    } catch(e){}
+    return _fetch(url, opts);
+  };
+})();
+</script>
+<!-- ── END TOUR BOOTSTRAP ── -->
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased;}
-body{background:#0f2d42;font-family:'Inter',sans-serif;color:#fff;min-height:100vh;}
+body{background:#153a52;font-family:'Inter',sans-serif;color:#fff;min-height:100vh;}
 input,textarea,button{font-family:'Inter',sans-serif;touch-action:manipulation;}
 button{cursor:pointer;-webkit-tap-highlight-color:transparent;}
 input:focus,textarea:focus,button:focus{outline:none;}
@@ -81,8 +272,8 @@ if(IS_PWA && window.navigator.standalone === true){
     description:"AI-powered Christian life coaching from Foster Hope Ministries",
     start_url:"/",
     display:"standalone",
-    background_color:"#0f2d42",
-    theme_color:"#0f2d42",
+    background_color:"#153a52",
+    theme_color:"#153a52",
     icons:icons
   };
   var blob = new Blob([JSON.stringify(manifest)],{type:"application/json"});
@@ -267,7 +458,7 @@ async function dbGetCheckIns(uid) {
 }
 var FH_URL = "https://fosterhopewebsite.netlify.app";
 var C = {
-  bg: "#0f2d42",
+  bg: "#153a52",
   surf: "#1a3d54",
   card: "#1e4560",
   border: "#2d6b8a",
@@ -1084,7 +1275,7 @@ function Landing({
   return /*#__PURE__*/React.createElement("div", {
     style: {
       minHeight: "100vh",
-      background: "linear-gradient(160deg,#0f2537 0%,#0f2d42 55%,#1a3d54 100%)",
+      background: "linear-gradient(160deg,#0f2537 0%,#153a52 55%,#1a3d54 100%)",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
@@ -1167,6 +1358,21 @@ function Landing({
       marginBottom: 10
     }
   }, "Sign In or Create Account"), /*#__PURE__*/React.createElement("button", {
+    onClick: function () { if (window._startSjTour) window._startSjTour(); },
+    style: {
+      width: "100%",
+      padding: "12px",
+      marginBottom: 10,
+      background: "rgba(91,184,212,0.12)",
+      border: "1.5px solid " + C.acc,
+      borderRadius: 12,
+      color: C.acc,
+      cursor: "pointer",
+      fontSize: 14,
+      fontWeight: 700,
+      letterSpacing: 0.3
+    }
+  }, "Take a Tour — No Account Needed"), /*#__PURE__*/React.createElement("button", {
     onClick: function () {
       setShowAbout(true);
     },
@@ -5772,8 +5978,175 @@ function Root() {
 try {
   ReactDOM.createRoot(document.getElementById("root")).render(/*#__PURE__*/React.createElement(Root, null));
 } catch (e) {
-  document.getElementById("root").innerHTML = '<div style="padding:40px;color:#8ab8cc;font-family:sans-serif;text-align:center"><p style="font-size:18px;margin-bottom:12px">Something went wrong loading Sjalavard.</p><p style="font-size:13px;color:#4a7a94">' + e.message + '</p><button onclick="location.reload()" style="margin-top:20px;padding:10px 24px;background:#5bb8d4;border:none;border-radius:8px;color:#0f2d42;font-weight:700;cursor:pointer;font-size:14px">Reload</button></div>';
+  document.getElementById("root").innerHTML = '<div style="padding:40px;color:#8ab8cc;font-family:sans-serif;text-align:center"><p style="font-size:18px;margin-bottom:12px">Something went wrong loading Sjalavard.</p><p style="font-size:13px;color:#4a7a94">' + e.message + '</p><button onclick="location.reload()" style="margin-top:20px;padding:10px 24px;background:#5bb8d4;border:none;border-radius:8px;color:#153a52;font-weight:700;cursor:pointer;font-size:14px">Reload</button></div>';
 }
+</script>
+<!-- ── SJALAVARD TOUR — UI (banner + draggable card + Also Included overlay) ── -->
+<script>
+(function(){
+  if (!window._sjTour) return;
+
+  function ensureBanner(){
+    if (document.getElementById("sj-tour-banner")) return;
+    var bar = document.createElement("div");
+    bar.id = "sj-tour-banner";
+    bar.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:99998;background:#5bb8d4;color:#153a52;font:700 12px/1 'Inter',system-ui,sans-serif;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 12px;box-shadow:0 2px 10px rgba(0,0,0,.2);";
+    bar.innerHTML = '<span>GUIDED TOUR · sample user preview</span>' +
+      '<button onclick="window._sjTourIdx=0;_renderSjTourStep()" style="background:transparent;color:#153a52;border:1px solid #153a52;border-radius:6px;padding:4px 10px;font:700 11px \'Inter\',system-ui,sans-serif;cursor:pointer;">Restart</button>' +
+      '<button onclick="_exitSjTour()" style="background:#153a52;color:#fff;border:none;border-radius:6px;padding:4px 10px;font:700 11px \'Inter\',system-ui,sans-serif;cursor:pointer;">Exit Tour</button>';
+    document.body.appendChild(bar);
+    document.body.style.paddingTop = "34px";
+  }
+
+  var steps = [
+    { tab:null,         title:"Welcome to Sjalavard", body:"Sjalavard (pronounced 'shell-a-vord') is Swedish for 'soul care.' This tour walks you through the app using a sample user — Alex — who has 3 sessions, 5 check-ins, and 3 prayers pre-loaded. Click Next to begin." },
+    { tab:"session",    title:"Your Coach — Sjal", body:"Sjal is your AI coach, trained in David Burns' cognitive behavioral therapy, Dr. Caroline Leaf's neuroscience, and the voice of classic Christian authors like Manning, Nouwen, and Lewis. Each session unfolds over a handful of exchanges, always ending with a summary and reflection." },
+    { tab:"session",    title:"A Session in Action", body:"In a real session, you'd type what's on your heart. Sjal listens, names the distortion (gently), invites neuroscience, weaves in one of your chosen authors, then closes with a summary and questions. The sample session 'Anxiety before the meeting' from yesterday shows the arc." },
+    { tab:"journal",    title:"Prayer Journal", body:"A private place for the prayers you carry. Alex has three: a prayer for mom's health, one for freedom from approval-seeking, and one answered prayer about guidance at work. Mark prayers answered as God moves." },
+    { tab:"history",    title:"Past Sessions", body:"Every session is saved — title, summary, and the full exchange. You'll see Alex's three recent sessions here: anxiety, a hard conversation, and coming back to prayer. Revisit anytime to see how the Spirit has been working." },
+    { tab:"profile",    title:"Your Profile", body:"Alex has shared: who they are (bio), what they're walking through (anxiety, overthinking, people-pleasing), what they're seeking (inner peace, trusting God more), and whose voices they want to hear (Manning, Nouwen, Lewis). Sjal uses all of this as background — never quoted back directly, always informing." },
+    { tab:null,         title:"Also Included", body:"There is more in Sjalavard than a tour can cover. Tap Next to see the full list on its own page." },
+    { tab:"__also",     title:"Also in Sjalavard", body:"Scroll this page to see everything else — daily check-ins, crisis support, installable PWA, private encrypted storage, cross-device sync, and more." },
+    { tab:null,         title:"That's the Tour", body:"When you're ready, exit the tour and sign up — your sessions, check-ins, and prayers are private, encrypted, and sync across every device. Visit sjalavard.com to create your free account.", last:true }
+  ];
+  window._sjTourIdx = 0;
+
+  function navigate(tab){
+    if (tab === "__also") { showAlsoOverlay(); return; }
+    hideAlsoOverlay();
+    if (!tab) return;
+    // The app's main tab state lives inside a React closure — click the real tab button
+    // Buttons in sidebar/nav render with setTab(value). Find and click it.
+    try {
+      var btns = document.querySelectorAll('button');
+      for (var i=0;i<btns.length;i++){
+        var t = (btns[i].textContent||"").trim().toLowerCase();
+        if (tab==="session"  && (t==="session"||t==="sessions"))  { btns[i].click(); return; }
+        if (tab==="journal"  && (t==="prayer"||t==="prayers"||t==="journal")) { btns[i].click(); return; }
+        if (tab==="history"  && (t==="past sessions"||t==="history")) { btns[i].click(); return; }
+        if (tab==="profile"  && t==="profile") { btns[i].click(); return; }
+      }
+    } catch(e){}
+  }
+
+  function showAlsoOverlay(){
+    if (document.getElementById("sj-also-overlay")) return;
+    var ov = document.createElement("div");
+    ov.id = "sj-also-overlay";
+    ov.style.cssText = "position:fixed;top:34px;left:0;right:0;bottom:0;z-index:99000;background:#153a52;overflow-y:auto;color:#fff;padding:40px 24px 120px;";
+    var C = { surf:"#1a3d54", card:"#1e4560", border:"#2d6b8a", acc:"#5bb8d4", muted:"#8ab8cc", dim:"#4a7a94" };
+    var card = function(emoji, title, body){
+      return '<div style="background:'+C.card+';border:1px solid '+C.border+';border-radius:14px;padding:20px 22px;margin-bottom:14px;display:flex;gap:14px;align-items:flex-start;">' +
+        '<div style="font-size:24px;line-height:1;flex-shrink:0;margin-top:2px;">'+emoji+'</div>' +
+        '<div style="flex:1;"><div style="font-family:\'Playfair Display\',serif;font-size:17px;font-weight:600;color:#fff;margin-bottom:5px;">'+title+'</div><div style="font-size:13.5px;color:'+C.muted+';line-height:1.7;">'+body+'</div></div>' +
+        '</div>';
+    };
+    ov.innerHTML =
+      '<div style="max-width:680px;margin:0 auto;">' +
+        '<div style="font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:'+C.acc+';margin-bottom:10px;">Also in Sjalavard</div>' +
+        '<h1 style="font-family:\'Playfair Display\',serif;font-size:30px;font-weight:600;color:#fff;line-height:1.2;margin-bottom:10px;">Everything else you\'ll find inside</h1>' +
+        '<p style="font-size:14px;color:'+C.muted+';line-height:1.75;margin-bottom:28px;">Beyond the screens the tour walked you through, Sjalavard is built to be a quiet, durable companion. Here\'s the rest.</p>' +
+        card("📝", "Daily Check-In", "A simple mood + one-line note each day. Alex has 5 check-ins from the last week — a snapshot of the heart that helps you (and Sjal) notice patterns over time. Synced across devices, replaced with a quiet confirmation once completed.") +
+        card("🛟", "Crisis Support", "If anything in a session signals you're in danger, Sjal pauses the conversation and surfaces the 988 Suicide & Crisis Lifeline immediately. Safety comes before process, always.") +
+        card("🧠", "Cognitive Behavioral Therapy, Gently Woven In", "The silent backbone is David Burns' *Feeling Good* framework — identifying cognitive distortions (mind-reading, all-or-nothing, catastrophizing) and replacing them with what is actually true. Sjal never names the framework out loud, just uses it.") +
+        card("📚", "Your Chosen Voices", "Pick up to 5 authors whose sensibility you want to hear — Manning, Willard, Foster, Lewis, Nouwen, Leaf, and more. Sjal weaves them in naturally, never quoted at length, never forced.") +
+        card("🙏", "Prayer Journal with Answered Prayers", "Mark prayers answered and watch your own history of God's faithfulness grow. Alex has one answered prayer (work guidance) in the sample.") +
+        card("📱", "Installable PWA — Works Offline", "Add Sjalavard to your iPhone, Android, Mac, or PC home screen. Runs like a native app. Your sessions stay usable without signal.") +
+        card("☁️", "Cross-Device Sync", "Sign in on your phone at lunch, finish on your laptop after dinner. Profile, sessions, check-ins, and prayers all follow you — encrypted and private to your account.") +
+        card("🔒", "Private by Design", "Your sessions aren\'t a training dataset for anyone. RLS-scoped storage, no third-party analytics, no ads. It\'s your soul care — nobody else\'s.") +
+        card("🕊️", "Sjal\'s Voice — Pastoral, Not Clinical", "Sjal isn\'t a therapist and doesn\'t pretend to be. He listens like a friend who happens to be trained in the science and steeped in the Spirit. For crisis care, he\'ll always defer to professionals.") +
+        card("📖", "Session Arc — 4 Movements + Gratitude", "Every full session follows a shape: CBT (name the distortion), Leaf (neuroscience of thought), Author (a voice you chose), Summary (reflection + 3 questions), then Gratitude. You can close anytime.") +
+        card("🏠", "A Ministry of Foster Hope", "Sjalavard is a free ministry tool of Foster Hope Ministries — built because life is hard, and most of us don\'t have a pastor or therapist on call at 2am. Use it freely, share it freely.") +
+        '<div style="text-align:center;margin-top:24px;"><button onclick="hideSjAlsoOverlay()" style="background:'+C.acc+';color:'+'#153a52'+';border:none;border-radius:12px;padding:12px 28px;font:700 13px \'Inter\',sans-serif;cursor:pointer;letter-spacing:.03em;">Close</button></div>' +
+      '</div>';
+    document.body.appendChild(ov);
+  }
+  function hideAlsoOverlay(){ var o = document.getElementById("sj-also-overlay"); if (o) o.remove(); }
+  window.hideSjAlsoOverlay = hideAlsoOverlay;
+
+  window._renderSjTourStep = function(){
+    var idx = window._sjTourIdx | 0;
+    if (idx<0 || idx>=steps.length){ endCard(); return; }
+    var step = steps[idx];
+    navigate(step.tab);
+
+    var card = document.getElementById("sj-tour-card");
+    if (!card){
+      card = document.createElement("div");
+      card.id = "sj-tour-card";
+      card.style.cssText = "position:fixed;bottom:20px;right:20px;z-index:99999;background:#1e4560;border:1px solid #5bb8d4;border-radius:14px;box-shadow:0 24px 60px rgba(0,0,0,.5),0 8px 16px rgba(0,0,0,.3);padding:16px 18px 14px;width:360px;max-width:calc(100vw - 32px);font-family:'Inter',sans-serif;color:#fff;";
+      document.body.appendChild(card);
+    }
+    var isLast = !!step.last;
+    var pct = Math.round(((idx+1)/steps.length)*100);
+    card.innerHTML =
+      '<div id="sj-tour-drag" title="Drag to move" style="display:flex;align-items:center;justify-content:space-between;margin:-6px -10px 10px;padding:6px 12px;background:#153a52;border-radius:12px 12px 0 0;cursor:grab;user-select:none;touch-action:none;">' +
+        '<span style="display:flex;align-items:center;gap:8px;">' +
+          '<span style="color:#5bb8d4;font-size:14px;letter-spacing:-2px;">⋮⋮</span>' +
+          '<span style="font:700 10px/1 \'Inter\',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#5bb8d4;">Tour · ' + (idx+1) + ' of ' + steps.length + ' · drag to move</span>' +
+        '</span>' +
+        '<button id="sj-tour-close" title="Close tour" style="background:none;border:none;color:#8ab8cc;font-size:20px;cursor:pointer;line-height:1;padding:0 4px;">×</button>' +
+      '</div>' +
+      '<div style="height:3px;background:#153a52;border-radius:2px;margin:0 0 12px;overflow:hidden;"><div style="height:100%;background:#5bb8d4;width:' + pct + '%;transition:width .25s;"></div></div>' +
+      '<h3 style="font-family:\'Playfair Display\',serif;font-size:20px;font-weight:600;color:#fff;margin:0 0 6px;line-height:1.25;">' + step.title + '</h3>' +
+      '<p style="margin:0 0 14px;font-size:13px;line-height:1.7;color:#8ab8cc;">' + step.body + '</p>' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">' +
+        '<button id="sj-tour-back" ' + (idx===0?'disabled':'') + ' style="background:transparent;border:1px solid #2d6b8a;color:' + (idx===0?'#4a7a94':'#8ab8cc') + ';border-radius:8px;padding:8px 14px;font:600 12px \'Inter\',sans-serif;cursor:' + (idx===0?'not-allowed':'pointer') + ';">← Back</button>' +
+        '<button id="sj-tour-next" style="background:#5bb8d4;border:none;color:#153a52;border-radius:8px;padding:9px 18px;font:700 12px \'Inter\',sans-serif;cursor:pointer;letter-spacing:.03em;">' + (isLast ? 'Finish' : 'Next →') + '</button>' +
+      '</div>';
+    document.getElementById("sj-tour-close").onclick = endCard;
+    document.getElementById("sj-tour-back").onclick = function(){ if (idx>0){ window._sjTourIdx=idx-1; _renderSjTourStep(); } };
+    document.getElementById("sj-tour-next").onclick = function(){ if (isLast) endCard(); else { window._sjTourIdx=idx+1; _renderSjTourStep(); } };
+    attachDrag();
+    attachKeys();
+  };
+
+  var drag = { on:false, dx:0, dy:0 };
+  function attachDrag(){
+    var h = document.getElementById("sj-tour-drag");
+    var c = document.getElementById("sj-tour-card");
+    if (!h||!c||h._bound) return;
+    h._bound = true;
+    function start(e){ var p=e.touches?e.touches[0]:e; var r=c.getBoundingClientRect();
+      drag.on=true; drag.dx=p.clientX-r.left; drag.dy=p.clientY-r.top;
+      c.style.bottom="auto"; c.style.right="auto"; }
+    function move(e){ if (!drag.on) return; var p=e.touches?e.touches[0]:e;
+      c.style.left=(p.clientX-drag.dx)+"px"; c.style.top=(p.clientY-drag.dy)+"px"; }
+    function end(){ drag.on=false; }
+    h.addEventListener("mousedown",start);
+    h.addEventListener("touchstart",start,{passive:true});
+    document.addEventListener("mousemove",move);
+    document.addEventListener("touchmove",move,{passive:true});
+    document.addEventListener("mouseup",end);
+    document.addEventListener("touchend",end);
+  }
+  function attachKeys(){
+    if (window._sjTourKeys) return;
+    window._sjTourKeys = true;
+    document.addEventListener("keydown", function(e){
+      if (!document.getElementById("sj-tour-card")) return;
+      var tg=e.target; var tn=(tg&&tg.tagName)||"";
+      if (tn==="INPUT"||tn==="TEXTAREA"||(tg&&tg.isContentEditable)) return;
+      if (e.key==="ArrowRight"){ var n=document.getElementById("sj-tour-next"); if (n) n.click(); }
+      else if (e.key==="ArrowLeft"){ var b=document.getElementById("sj-tour-back"); if (b&&!b.disabled) b.click(); }
+      else if (e.key==="Escape"){ endCard(); hideAlsoOverlay(); }
+    });
+  }
+  function endCard(){ var c=document.getElementById("sj-tour-card"); if (c) c.remove(); }
+
+  function waitForApp(n){
+    n = n||0;
+    ensureBanner();
+    if (document.querySelector('#root > *')) {
+      window._sjTourIdx = 0;
+      _renderSjTourStep();
+      return;
+    }
+    if (n>50) return;
+    setTimeout(function(){ waitForApp(n+1); }, 200);
+  }
+  setTimeout(waitForApp, 500);
+})();
 </script>
 </body>
 </html>
