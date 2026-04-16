@@ -1,0 +1,14 @@
+# Local backups
+.local-backup-*/
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Env (never commit secrets)
+.env
+.env.local

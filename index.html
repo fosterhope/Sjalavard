@@ -2282,6 +2282,8 @@ function App({
   var [allCheckIns, setAllCheckIns] = useState({});
   var [editAuthorsList, setEditAuthorsList] = useState([]);
   var [editAuthorsOther, setEditAuthorsOther] = useState("");
+  var [assignment, setAssignment] = useState("");
+  var [asmLoading, setAsmLoading] = useState(false);
   var bottomRef = useRef(null);
   useEffect(function () {
     async function load() {
@@ -2373,6 +2375,22 @@ function App({
       behavior: "smooth"
     });
   }, [msgs, loading]);
+  // Detect natural session close — AI was instructed to end with a pause phrase
+  var sessionClosed = false;
+  for (var _ci = msgs.length - 1; _ci >= 0; _ci--) {
+    if (msgs[_ci].role === "coach") {
+      sessionClosed = /(place|time) to pause/i.test(msgs[_ci].content || "");
+      break;
+    }
+  }
+  // When session closes, auto-generate a short take-home assignment
+  useEffect(function () {
+    if (sessionClosed && !assignment && !asmLoading) {
+      genAssignment();
+    } else if (!sessionClosed && assignment) {
+      setAssignment("");
+    }
+  }, [sessionClosed]);
   var moodObjs = moods.map(function (l) {
     return MOODS.find(function (m) {
       return m.l === l;
@@ -2432,6 +2450,44 @@ function App({
       setErr(e.message || "Connection interrupted. Please try again.");
     }
     setLoading(false);
+  }
+  async function genAssignment() {
+    if (asmLoading) return;
+    setAsmLoading(true);
+    try {
+      var sysPrompt = "You are Sjal, a Christian life coach. The session has just closed. Based on the conversation, create ONE practical assignment the person can complete in 2 to 5 minutes. Make it specific to what was discussed today. Ground it in biblical truth when natural. Format: 2 to 3 sentences. Start with an action verb (Write, Notice, Pause, Pray, Read, Breathe, etc). No preamble, no heading, no numbered list. Warm, pastoral, concrete.";
+      var res = await fetch("/api/gemini", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [{
+              text: sysPrompt
+            }]
+          },
+          contents: msgs.map(function (m) {
+            return {
+              role: m.role === "coach" ? "model" : "user",
+              parts: [{
+                text: m.content
+              }]
+            };
+          }),
+          generationConfig: {
+            maxOutputTokens: 300
+          }
+        })
+      });
+      if (!res.ok) throw new Error("Error " + res.status);
+      var data = await res.json();
+      var txt = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text || "";
+      setAssignment((txt || "").trim() || "Take 2 to 5 minutes to sit quietly and bring what you shared today to God in your own prayer.");
+    } catch (e) {
+      setAssignment("Take 2 to 5 minutes to sit quietly and bring what you shared today to God in your own prayer.");
+    }
+    setAsmLoading(false);
   }
   async function startSession() {
     if (!text.trim()) return;
@@ -3656,7 +3712,61 @@ function App({
     }
   }, "Try Again")), /*#__PURE__*/React.createElement("div", {
     ref: bottomRef
-  })), /*#__PURE__*/React.createElement("div", {
+  })), sessionClosed ? /*#__PURE__*/React.createElement("div", {
+    className: "fi",
+    style: {
+      background: C.card,
+      border: "1.5px solid " + C.acc,
+      borderRadius: 14,
+      padding: "18px 20px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      marginBottom: 12,
+      paddingBottom: 12,
+      borderBottom: "1px solid " + C.border
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 28,
+      height: 28,
+      borderRadius: "50%",
+      background: C.acc,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      color: "#fff",
+      fontSize: 15,
+      fontWeight: 700
+    }
+  }, "\u2713"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: C.muted,
+      letterSpacing: 0.5,
+      textTransform: "uppercase",
+      fontWeight: 600
+    }
+  }, "Something to try")), asmLoading ? /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 15,
+      color: C.muted,
+      margin: 0,
+      fontStyle: "italic"
+    }
+  }, "Preparing something for you...") : /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 16,
+      color: C.white,
+      margin: 0,
+      lineHeight: 1.75,
+      fontFamily: "'Playfair Display',Georgia,serif",
+      whiteSpace: "pre-wrap"
+    }
+  }, assignment)) : /*#__PURE__*/React.createElement("div", {
     style: {
       background: C.card,
       border: "1px solid " + C.border,
@@ -3704,7 +3814,7 @@ function App({
       fontWeight: 700,
       margin: 3
     }
-  }, "\u2192")), /*#__PURE__*/React.createElement("p", {
+  }, "\u2192")), !sessionClosed && /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 13,
       color: C.dim,

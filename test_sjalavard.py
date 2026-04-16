@@ -1,10 +1,26 @@
 """
 Sjalavard HTML Test Suite — v2 with corrected patterns
 """
-import re, sys
+import re, sys, os
 
-with open('/home/claude/sj_final.html') as f:
-    HTML = f.read()
+# Try local index.html first, then fall back to legacy CI paths
+_candidate_paths = [
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'index.html'),
+    'index.html',
+    '/home/runner/sj_final.html',
+    '/home/claude/sj_final.html',
+]
+HTML = None
+for _p in _candidate_paths:
+    try:
+        with open(_p) as f:
+            HTML = f.read()
+            break
+    except FileNotFoundError:
+        continue
+if HTML is None:
+    print('Could not find index.html (tried: ' + ', '.join(_candidate_paths) + ')')
+    sys.exit(1)
 
 # Extract just the compiled script block
 # Extract the largest script block (the main app)
