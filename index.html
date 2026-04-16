@@ -2282,8 +2282,6 @@ function App({
   var [allCheckIns, setAllCheckIns] = useState({});
   var [editAuthorsList, setEditAuthorsList] = useState([]);
   var [editAuthorsOther, setEditAuthorsOther] = useState("");
-  var [assignment, setAssignment] = useState("");
-  var [asmLoading, setAsmLoading] = useState(false);
   var bottomRef = useRef(null);
   useEffect(function () {
     async function load() {
@@ -2383,12 +2381,13 @@ function App({
       break;
     }
   }
-  // When session closes, auto-generate a short take-home assignment
+  // When session closes naturally, auto-generate the summary inline (without jumping to summary phase)
   useEffect(function () {
-    if (sessionClosed && !assignment && !asmLoading) {
-      genAssignment();
-    } else if (!sessionClosed && assignment) {
-      setAssignment("");
+    if (sessionClosed && !summary && !sumLoading) {
+      genSummary(true);
+    } else if (!sessionClosed && summary && phase === "coach") {
+      setSummary("");
+      setActionStep("");
     }
   }, [sessionClosed]);
   var moodObjs = moods.map(function (l) {
@@ -2451,44 +2450,6 @@ function App({
     }
     setLoading(false);
   }
-  async function genAssignment() {
-    if (asmLoading) return;
-    setAsmLoading(true);
-    try {
-      var sysPrompt = "You are Sjal, a Christian life coach. The session has just closed. Based on the conversation, create ONE practical assignment the person can complete in 2 to 5 minutes. Make it specific to what was discussed today. Ground it in biblical truth when natural. Format: 2 to 3 sentences. Start with an action verb (Write, Notice, Pause, Pray, Read, Breathe, etc). No preamble, no heading, no numbered list. Warm, pastoral, concrete.";
-      var res = await fetch("/api/gemini", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [{
-              text: sysPrompt
-            }]
-          },
-          contents: msgs.map(function (m) {
-            return {
-              role: m.role === "coach" ? "model" : "user",
-              parts: [{
-                text: m.content
-              }]
-            };
-          }),
-          generationConfig: {
-            maxOutputTokens: 300
-          }
-        })
-      });
-      if (!res.ok) throw new Error("Error " + res.status);
-      var data = await res.json();
-      var txt = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text || "";
-      setAssignment((txt || "").trim() || "Take 2 to 5 minutes to sit quietly and bring what you shared today to God in your own prayer.");
-    } catch (e) {
-      setAssignment("Take 2 to 5 minutes to sit quietly and bring what you shared today to God in your own prayer.");
-    }
-    setAsmLoading(false);
-  }
   async function startSession() {
     if (!text.trim()) return;
     if (hasCrisis(text)) setCrisis(true);
@@ -2531,11 +2492,11 @@ function App({
     }));
     await callCoach(hist);
   }
-  async function genSummary() {
+  async function genSummary(stayInChat) {
     setSumLoading(true);
     setSummary("");
     setActionStep("");
-    setPhase("summary");
+    if (!stayInChat) setPhase("summary");
     try {
       var dLine = distortion ? "Cognitive distortion identified: " + distortion + "." : "No specific distortion was named.";
       var hist = msgs.map(function (m) {
@@ -3718,14 +3679,14 @@ function App({
       background: C.card,
       border: "1.5px solid " + C.acc,
       borderRadius: 14,
-      padding: "18px 20px"
+      padding: "20px 22px"
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       alignItems: "center",
       gap: 10,
-      marginBottom: 12,
+      marginBottom: 14,
       paddingBottom: 12,
       borderBottom: "1px solid " + C.border
     }
@@ -3750,23 +3711,62 @@ function App({
       textTransform: "uppercase",
       fontWeight: 600
     }
-  }, "Something to try")), asmLoading ? /*#__PURE__*/React.createElement("p", {
+  }, "Session Summary")), sumLoading ? /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 15,
       color: C.muted,
       margin: 0,
       fontStyle: "italic"
     }
-  }, "Preparing something for you...") : /*#__PURE__*/React.createElement("p", {
+  }, "Summarizing the session...") : /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 16,
       color: C.white,
-      margin: 0,
+      margin: "0 0 16px",
       lineHeight: 1.75,
       fontFamily: "'Playfair Display',Georgia,serif",
       whiteSpace: "pre-wrap"
     }
-  }, assignment)) : /*#__PURE__*/React.createElement("div", {
+  }, summary), actionStep && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "rgba(61,197,232,0.08)",
+      border: "1px solid " + C.border,
+      borderRadius: 10,
+      padding: "12px 14px",
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: C.acc,
+      fontWeight: 600,
+      letterSpacing: 0.5,
+      textTransform: "uppercase",
+      marginBottom: 6
+    }
+  }, "\u2192 Action Step"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 15,
+      color: C.white,
+      margin: 0,
+      lineHeight: 1.6
+    }
+  }, actionStep)), /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setPhase("gratitude");
+    },
+    style: {
+      width: "100%",
+      background: C.acc,
+      border: "none",
+      borderRadius: 10,
+      padding: "12px 18px",
+      color: C.accText || "#fff",
+      fontSize: 16,
+      cursor: "pointer",
+      fontWeight: 700
+    }
+  }, "Continue to Gratitude \u2192"))) : /*#__PURE__*/React.createElement("div", {
     style: {
       background: C.card,
       border: "1px solid " + C.border,
@@ -3822,7 +3822,7 @@ function App({
       marginTop: 8,
       letterSpacing: 0.3
     }
-  }, "ENTER TO SEND - SHIFT+ENTER FOR NEW LINE"), /*#__PURE__*/React.createElement("div", {
+  }, "ENTER TO SEND - SHIFT+ENTER FOR NEW LINE"), !sessionClosed && /*#__PURE__*/React.createElement("div", {
     style: {
       position: "fixed",
       bottom: 20,
