@@ -24,16 +24,30 @@ exports.handler = async function(event) {
       body.generationConfig = { maxOutputTokens: 3000 };
     }
 
-    const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + GEMINI_KEY,
-      {
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + GEMINI_KEY;
+    const fetchBody = JSON.stringify(body);
+
+    let response;
+    let data;
+    const maxRetries = 2;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      }
-    );
+        body: fetchBody,
+      });
 
-    const data = await response.json();
+      data = await response.json();
+
+      // Retry on overload (503) or rate limit (429)
+      if ((response.status === 503 || response.status === 429) && attempt < maxRetries) {
+        await new Promise(function(resolve) { setTimeout(resolve, 2000); });
+        continue;
+      }
+
+      break;
+    }
 
     return {
       statusCode: response.status,
