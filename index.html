@@ -19,7 +19,7 @@
    /version.txt in sync.
    ───────────────────────────────────────────────────────────────────────── */
 (function(){
-  var APP_VERSION = "sjalavard-2026-04-23-focus-guide";
+  var APP_VERSION = "sjalavard-2026-04-23-focus-tour";
   var STORAGE_KEY = "sj_app_v";
   var LIVE_URL    = "https://sjalavard.netlify.app";
   var ADMIN_EMAILS = ["fosterhopefamily@gmail.com"];
@@ -276,6 +276,29 @@
     goals: ["Inner peace", "Trusting God more"],
     authors: ["Brennan Manning", "Henri Nouwen", "C.S. Lewis"],
     profile_done: true,
+    focus: {
+      id: "f_tour_pp",
+      title: "People-pleasing with boundaries",
+      description: "I want to learn to say no without guilt and stop performing for approval.",
+      startedAt: isoDay(daysAgo(18)),
+      lastWorkedAt: isoDay(daysAgo(4)),
+      sessionCount: 4,
+      status: "active",
+      thread: [
+        { date: "Fri, " + daysAgo(4).toLocaleDateString("en-US", { month: "short", day: "numeric" }), savedAt: daysAgo(4).getTime(),
+          insight: "Beneath the 'yes' is a fear that if I disappoint someone, I lose them.",
+          actionStep: "Say no to one small thing this week without over-explaining.",
+          moods: ["Anxious"], distortion: "Emotional reasoning" },
+        { date: "Mon, " + daysAgo(10).toLocaleDateString("en-US", { month: "short", day: "numeric" }), savedAt: daysAgo(10).getTime(),
+          insight: "Mind-reading kicks in the moment I feel someone's displeasure — even when it isn't real.",
+          actionStep: "Notice one mind-read this week and name it out loud.",
+          moods: ["Overwhelmed"], distortion: "Mind reading" },
+        { date: "Thu, " + daysAgo(14).toLocaleDateString("en-US", { month: "short", day: "numeric" }), savedAt: daysAgo(14).getTime(),
+          insight: "My worth got tied to being useful long before I could name it.",
+          actionStep: "Sit with being God's beloved for 2 minutes each morning.",
+          moods: ["Weary"], distortion: "Should statements" }
+      ]
+    },
     checkins: (function(){
       var c = {};
       c[mdy(daysAgo(0))]  = { mood: 3, note: "Better today. Slept well.",         date: isoDay(daysAgo(0)) };
@@ -7273,14 +7296,16 @@ try {
   }
 
   var steps = [
-    { tab:null,         title:"Welcome to Sjalavard", body:"Sjalavard (pronounced 'shell-a-vord') is Swedish for 'soul care.' This tour walks you through the app using a sample user — Alex — who has 3 sessions, 5 check-ins, and 3 prayers pre-loaded. Click Next to begin." },
-    { tab:"session",    title:"Your Coach — Sjal", body:"Sjal is your coach, trained in David Burns' cognitive behavioral therapy, Dr. Caroline Leaf's neuroscience, and the voice of classic Christian authors like Manning, Nouwen, and Lewis. Each session unfolds over a handful of exchanges, always ending with a summary and reflection." },
-    { tab:"session",    title:"A Session in Action", body:"In a real session, you'd type what's on your heart. Sjal listens, names the distortion (gently), invites neuroscience, weaves in one of your chosen authors, then closes with a summary and questions. The sample session 'Anxiety before the meeting' from yesterday shows the arc." },
-    { tab:"journal",    title:"Prayer Journal", body:"A private place for the prayers you carry. Alex has three: a prayer for mom's health, one for freedom from approval-seeking, and one answered prayer about guidance at work. Mark prayers answered as God moves." },
-    { tab:"history",    title:"Past Sessions", body:"Every session is saved — title, summary, and the full exchange. You'll see Alex's three recent sessions here: anxiety, a hard conversation, and coming back to prayer. Revisit anytime to see how the Spirit has been working." },
-    { tab:"profile",    title:"Your Profile", body:"Alex has shared: who they are (bio), what they're walking through (anxiety, overthinking, people-pleasing), what they're seeking (inner peace, trusting God more), and whose voices they want to hear (Manning, Nouwen, Lewis). Sjal uses all of this as background — never quoted back directly, always informing." },
+    { tab:null,         title:"Welcome to Sjalavard", body:"Sjalavard (pronounced 'shell-a-vord') is Swedish for 'soul care.' This tour walks you through the app using a sample user — Alex — who has 3 sessions, 5 check-ins, 3 prayers, and an ongoing Focus pre-loaded. Click Next to begin." },
+    { tab:"session",    title:"Your Coach — Sjal", body:"Sjal draws from David Burns' cognitive behavioral therapy, Dr. Caroline Leaf's neuroscience, and classic voices like Manning, Nouwen, and Lewis. For ongoing Focus work, Sjal also pulls from a curated library of Christian clinicians and formation voices — Dr. Curt Thompson, Dr. Henry Cloud, Dan Allender, Diane Langberg, David Benner, Timothy Keller, and more — matched to the area you're tending." },
+    { tab:"session",    title:"Two kinds of sessions", body:"Every time you arrive, you choose: a Regular Session for whatever's on your heart today, or a Focus Session to keep walking with your ongoing Focus. Regular Sessions react to the moment. Focus Sessions are guiding — Sjal leads, remembers last time, follows up on your action step, and shifts posture as you go deeper." },
+    { tab:"session",    title:"A Session in Action", body:"In a real session, you'd type what's on your heart. Sjal listens, names the distortion (gently), invites neuroscience, weaves in one of your chosen authors, then closes with a summary and a small action step. The sample session 'Anxiety before the meeting' from yesterday shows the arc." },
+    { tab:"focus",      title:"Your Focus — ongoing work", body:"Alex is tending one area over time: people-pleasing. You can see the thread of insights from four prior Focus Sessions — what was noticed, what they took away to practice. Sjal's posture shifts by session count: orient, then deepen, then integrate. Each Focus Session opens by bridging to the last and asking how the action step went." },
+    { tab:"journal",    title:"Prayer Journal", body:"A private place for the prayers you carry. Alex has three: a prayer for mom's health, one for freedom from approval-seeking, and one answered prayer about guidance at work. Prayers can also be linked to your Focus — they show up in the Focus tab counts. Mark prayers answered as God moves." },
+    { tab:"history",    title:"Past Sessions", body:"Every session is saved — title, summary, action step, and the full exchange. You'll see Alex's three recent sessions here: anxiety, a hard conversation, and coming back to prayer. Revisit anytime to see how the Spirit has been working." },
+    { tab:"profile",    title:"Your Profile", body:"Alex has shared: who they are (bio), what they're walking through (anxiety, overthinking, people-pleasing), what they're seeking (inner peace, trusting God more), and whose voices they want to hear. Sjal uses all of this as background. The Focus card here is also where you start, edit, or graduate an ongoing Focus." },
     { tab:"features",   title:"Also in Sjalavard", body:"This is the full-page list of everything else inside — daily check-ins, crisis support, installable PWA, private storage, cross-device sync, and more. Scroll the page to read them all, then click Next." },
-    { tab:null,         title:"That's the Tour", body:"When you're ready, exit the tour and sign up — your sessions, check-ins, and prayers are private, encrypted, and sync across every device. Visit sjalavard.com to create your free account.", last:true }
+    { tab:null,         title:"That's the Tour", body:"When you're ready, exit the tour and sign up — your sessions, check-ins, prayers, and Focus are private, encrypted, and sync across every device. Visit sjalavard.com to create your free account.", last:true }
   ];
   window._sjTourIdx = 0;
 
@@ -7291,6 +7316,7 @@ try {
       for (var i=0;i<btns.length;i++){
         var t = (btns[i].textContent||"").trim().toLowerCase();
         if (tab==="session"  && (t==="session"||t==="sessions"))  { btns[i].click(); return; }
+        if (tab==="focus"    && t==="focus") { btns[i].click(); return; }
         if (tab==="journal"  && (t==="prayer"||t==="prayers"||t==="journal")) { btns[i].click(); return; }
         if (tab==="history"  && (t==="past sessions"||t==="history")) { btns[i].click(); return; }
         if (tab==="profile"  && t==="profile") { btns[i].click(); return; }
