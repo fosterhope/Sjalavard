@@ -19,7 +19,7 @@
    /version.txt in sync.
    ───────────────────────────────────────────────────────────────────────── */
 (function(){
-  var APP_VERSION = "sjalavard-2026-04-23-focus-tour";
+  var APP_VERSION = "sjalavard-2026-04-24-patterns-bank-quick";
   var STORAGE_KEY = "sj_app_v";
   var LIVE_URL    = "https://sjalavard.netlify.app";
   var ADMIN_EMAILS = ["fosterhopefamily@gmail.com"];
@@ -786,6 +786,46 @@ async function dbClearFocus(uid, email) {
     return null;
   }
 }
+// Patterns — recurring thoughts the user names and tracks. Stored as
+// profile.data.patterns (active) and profile.data.patternsArchive (retired).
+// Uses the same read-merge-write shape as prayers/checkins.
+async function dbSavePatterns(uid, email, patterns, patternsArchive) {
+  try {
+    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).single();
+    var data = r.data && r.data.data || {};
+    data.patterns = patterns || [];
+    if (patternsArchive !== undefined) data.patternsArchive = patternsArchive;
+    await getSbWithAuth().from("profiles").upsert({
+      id: uid,
+      email: email,
+      data: data,
+      updated_at: new Date().toISOString()
+    });
+    return data;
+  } catch (e) {
+    console.error("dbSavePatterns error:", e.message);
+    return null;
+  }
+}
+// Memory Bank — banked truths / key identity lines Sjal carries across sessions.
+// Stored as profile.data.memoryBank. Populated by user-initiated actions only.
+async function dbSaveMemoryBank(uid, email, memoryBank) {
+  try {
+    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).single();
+    var data = r.data && r.data.data || {};
+    data.memoryBank = memoryBank || [];
+    await getSbWithAuth().from("profiles").upsert({
+      id: uid,
+      email: email,
+      data: data,
+      updated_at: new Date().toISOString()
+    });
+    return data;
+  } catch (e) {
+    console.error("dbSaveMemoryBank error:", e.message);
+    return null;
+  }
+}
 var FH_URL = "https://fosterhopewebsite.netlify.app";
 // Mirrors the CSS :root variables — keep in sync
 var C = {
@@ -1155,7 +1195,37 @@ function buildSys(p, sessions, mode) {
     }
     focusBlock += "\nStill follow the full 4-response session arc below. Name the focus openly. Honor continuity. LEAD the work — do not wait for them to bring a specific incident.";
   }
-  return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care.\nYou combine CBT (David Burns), neuroscience, biblical truth, and Spirit-led pastoral care.\nSjalavard\'s mission: walk with people through the thoughts that weigh them down — helping them catch the lies their mind tells them, replace them with what is actually true, and find their way back to freedom. All grounded in biblical truth and practical principles that work." + authLine + "\nPrioritize grace, identity in Christ, Spirit transformation.\n" + (p.firstName ? "Name: " + p.firstName + ".\n" : "") + (p.bio ? "About this person: " + p.bio + "\n" : "") + "BACKGROUND CONTEXT (do not bring up directly - use only as quiet background awareness):\nPatterns this person has named: " + struggles + ".\nDirections they want to grow: " + goals + "\n\nNEVER reference these lists by name. Let the person lead. Your job is to follow them.\nNEVER write prayers. Invite the person to pray in their own words instead.\nIf someone expresses suicidal thoughts, acknowledge their pain, show care, provide 988 Lifeline. Do not proceed until safety is addressed." + focusBlock + "\n\nSession arc:\nResponse 1: Lead with CBT (David Burns). Validate their feelings. Gently identify the cognitive distortion at work. Ask one question.\nResponse 2: Bring in Dr. Caroline Leaf. Help them understand how this thought pattern affects the brain and how the mind can be rewired. Ask one question.\nResponse 3: Draw from the person\'s chosen author naturally and without forcing it. Offer spiritual grounding. Ask one question.\nResponse 4: Wrap up. Give a warm summary of the session. Offer 3 guided reflection questions for them to sit with. Invite them to bring what was discussed to God in their own prayer — do not write a prayer for them. Then transition to gratitude.\n\nKeep each response warm, direct, and focused. No flattery. This is holy ground." + mem;
+  // Patterns — specific recurring thoughts the user has logged and is watching.
+  // Background awareness only — never name them unless the user brings one up.
+  var patternsBlock = "";
+  if (p.patterns && p.patterns.length) {
+    var activePatterns = p.patterns.filter(function (pt) { return !pt.retired; });
+    if (activePatterns.length) {
+      patternsBlock = "\n\nRecurring thoughts this person has named and is trying to catch (background awareness — never name them directly unless the person raises one):";
+      activePatterns.slice(0, 8).forEach(function (pt) {
+        var line = "\n- Thought: \"" + (pt.thought || "") + "\"";
+        if (pt.truth) line += "  |  Truth they want to replace it with: \"" + pt.truth + "\"";
+        var catches = (pt.catches || []).length;
+        if (catches) line += "  (caught " + catches + " time" + (catches === 1 ? "" : "s") + ")";
+        patternsBlock += line;
+      });
+    }
+  }
+  // Memory Bank — things the user has explicitly banked for Sjal to carry forward.
+  // These are identity truths, key reframes, formative moments. Reference naturally when fitting.
+  var memoryBlock = "";
+  if (p.memoryBank && p.memoryBank.length) {
+    memoryBlock = "\n\nTHINGS SJAL REMEMBERS ABOUT THIS PERSON (banked by them over time — carry these forward, reference naturally when truly fitting, never force):";
+    p.memoryBank.slice(0, 10).forEach(function (m) {
+      if (m && m.text) memoryBlock += "\n- " + m.text;
+    });
+  }
+  // Quick Session — single-shot CBT reframe. No session arc, no gratitude, no summary.
+  // User hands over one caught thought; Sjal gives ONE focused response.
+  if (mode === "quick") {
+    return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care. This is a QUICK SESSION — a single one-shot CBT reframe on ONE thought the person has caught.\n\n" + (p.firstName ? "Name: " + p.firstName + ".\n" : "") + patternsBlock + memoryBlock + "\n\nRespond ONCE with exactly these four beats, in order, warm and direct:\n1. Validate the feeling underneath the thought in one short sentence. Meet them where they are.\n2. Gently name the cognitive distortion at work (the David Burns framework — use accessible language, e.g. \"mind reading,\" \"emotional reasoning,\" \"catastrophizing\"). One sentence.\n3. Offer a truer replacement thought in one or two sentences. Honest, grounded, Spirit-aware, not platitude. If the person already wrote their own truth in their message, build on it rather than override it.\n4. One small invitation they can carry into the next hour. One sentence. Something doable.\n\nRULES:\n- No questions. This is one-shot, not a conversation.\n- Keep the whole response under 6 sentences.\n- End with the invitation — do not wrap up with a blessing or flourish.\n- If the person expresses suicidal thoughts, stop the reframe, acknowledge their pain, provide 988 Lifeline, and encourage them to reach out now.\n- NEVER write prayers. You may invite them to pray in their own words.\nThis is holy ground. One truth, gently.";
+  }
+  return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care.\nYou combine CBT (David Burns), neuroscience, biblical truth, and Spirit-led pastoral care.\nSjalavard\'s mission: walk with people through the thoughts that weigh them down — helping them catch the lies their mind tells them, replace them with what is actually true, and find their way back to freedom. All grounded in biblical truth and practical principles that work." + authLine + "\nPrioritize grace, identity in Christ, Spirit transformation.\n" + (p.firstName ? "Name: " + p.firstName + ".\n" : "") + (p.bio ? "About this person: " + p.bio + "\n" : "") + "BACKGROUND CONTEXT (do not bring up directly - use only as quiet background awareness):\nPatterns this person has named: " + struggles + ".\nDirections they want to grow: " + goals + "\n\nNEVER reference these lists by name. Let the person lead. Your job is to follow them.\nNEVER write prayers. Invite the person to pray in their own words instead.\nIf someone expresses suicidal thoughts, acknowledge their pain, show care, provide 988 Lifeline. Do not proceed until safety is addressed." + patternsBlock + memoryBlock + focusBlock + "\n\nSession arc:\nResponse 1: Lead with CBT (David Burns). Validate their feelings. Gently identify the cognitive distortion at work. Ask one question.\nResponse 2: Bring in Dr. Caroline Leaf. Help them understand how this thought pattern affects the brain and how the mind can be rewired. Ask one question.\nResponse 3: Draw from the person\'s chosen author naturally and without forcing it. Offer spiritual grounding. Ask one question.\nResponse 4: Wrap up. Give a warm summary of the session. Offer 3 guided reflection questions for them to sit with. Invite them to bring what was discussed to God in their own prayer — do not write a prayer for them. Then transition to gratitude.\n\nKeep each response warm, direct, and focused. No flattery. This is holy ground." + mem;
 }
 function autoBackup(uid, email, profile, sessions, prayers, checkins) {
   try {
@@ -2748,6 +2818,21 @@ function App({
   var [focusDesc, setFocusDesc] = useState("");
   var [focusEditing, setFocusEditing] = useState(false);
   var [focusGradConfirm, setFocusGradConfirm] = useState(false);
+  // Patterns — recurring thoughts the user catches. Form + retired-list state.
+  var [patternsEditing, setPatternsEditing] = useState(false);
+  var [patternEditId, setPatternEditId] = useState(null);
+  var [patternThought, setPatternThought] = useState("");
+  var [patternTruth, setPatternTruth] = useState("");
+  // Memory Bank — user-curated bank of truths Sjal carries forward.
+  var [memEditing, setMemEditing] = useState(false);
+  var [memDraft, setMemDraft] = useState("");
+  // Quick Session — third mode; single-shot CBT reframe on one thought.
+  var [quickReply, setQuickReply] = useState("");
+  var [quickLoading, setQuickLoading] = useState(false);
+  var [quickErr, setQuickErr] = useState(null);
+  var [quickSaved, setQuickSaved] = useState(false);
+  // Transient "banked" toast when user hits "Sjal, remember this" on a coach message.
+  var [bankedAt, setBankedAt] = useState(-1);
   var bottomRef = useRef(null);
   useEffect(function () {
     async function load() {
@@ -2931,6 +3016,153 @@ function App({
       role: "user",
       content: "My moods: " + ms + ".\n\n" + text
     }]);
+  }
+  // Quick Session — one-shot CBT reframe. Takes the thought in the "text" state,
+  // asks Sjal for a single focused response, then shows a result screen
+  // with Save-as-Pattern / Bank-the-truth / New-thought actions.
+  async function runQuickSession() {
+    if (!text.trim()) return;
+    if (hasCrisis(text)) setCrisis(true);
+    setQuickLoading(true);
+    setQuickErr(null);
+    setQuickReply("");
+    try {
+      var sys = buildSys(profile, sessions, "quick");
+      var res = await fetch("/api/gemini", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: sys }] },
+          contents: [{
+            role: "user",
+            parts: [{ text: "The thought I caught: " + text.trim() }]
+          }],
+          generationConfig: { maxOutputTokens: 700 }
+        })
+      });
+      if (!res.ok) {
+        var ed = await res.json().catch(function () { return {}; });
+        throw new Error(ed && ed.error && ed.error.message || "Error " + res.status);
+      }
+      var data = await res.json();
+      var reply = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text || "I am here. Take a slow breath, and let us hold this thought together with truth.";
+      setQuickReply(reply.trim());
+      setPhase("quickResult");
+      // Also save as a lightweight "quick" session row so it appears in history.
+      try {
+        var qSession = {
+          type: "quick",
+          date: new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }),
+          time: new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
+          savedAt: Date.now(),
+          opening: text.trim(),
+          msgs: [
+            { role: "user", content: text.trim() },
+            { role: "coach", content: reply.trim() }
+          ],
+          summary: reply.trim(),
+          focusId: null
+        };
+        await dbAddSession(uid, qSession);
+        setSessions(function (prev) { return [qSession, ...prev]; });
+      } catch (se) { console.warn("quick session save failed", se); }
+    } catch (e) {
+      setQuickErr(e.message || "Connection interrupted. Please try again.");
+    }
+    setQuickLoading(false);
+  }
+  // Save the thought + truth from a Quick Session as a new Pattern the user will watch.
+  async function saveQuickAsPattern() {
+    if (!text.trim()) return;
+    var truth = extractTruthFromReply(quickReply);
+    var newPattern = {
+      id: "pt_" + Date.now(),
+      thought: text.trim(),
+      truth: truth || "",
+      firstLogged: new Date().toISOString(),
+      catches: [{ savedAt: Date.now(), date: new Date().toLocaleDateString("en-US"), note: "" }],
+      retired: false
+    };
+    var list = ((profile.patterns || []).concat([newPattern]));
+    var archive = profile.patternsArchive || [];
+    var updated = await dbSavePatterns(uid, email, list, archive);
+    if (updated) {
+      setProfile(function (prev) {
+        return Object.assign({}, prev, { patterns: list, patternsArchive: archive });
+      });
+      setQuickSaved(true);
+      setTimeout(function () { setQuickSaved(false); }, 2500);
+    }
+  }
+  // Bank the Quick Session reply from Sjal (or a distilled truth from it) as a memoryBank entry.
+  async function bankQuickTruth() {
+    if (!quickReply.trim()) return;
+    var truth = extractTruthFromReply(quickReply) || quickReply.trim();
+    var entry = {
+      id: "mb_" + Date.now(),
+      text: truth.slice(0, 400),
+      savedAt: new Date().toISOString(),
+      source: "quickSession"
+    };
+    var list = (profile.memoryBank || []).slice();
+    list.unshift(entry);
+    var updated = await dbSaveMemoryBank(uid, email, list);
+    if (updated) {
+      setProfile(function (prev) {
+        return Object.assign({}, prev, { memoryBank: list });
+      });
+      setQuickSaved(true);
+      setTimeout(function () { setQuickSaved(false); }, 2500);
+    }
+  }
+  // Heuristic: extract the "replacement / truer thought" sentence from the quick reply.
+  // Looks for the third beat of the Quick system prompt. Falls back to first sentence after distortion mention.
+  function extractTruthFromReply(reply) {
+    if (!reply) return "";
+    // Split into sentences and return the first non-validation, non-invitation sentence.
+    var sentences = reply.split(/(?<=[.!?])\s+/).filter(function (s) { return s && s.length > 15; });
+    if (sentences.length <= 1) return sentences[0] || "";
+    // Skip validation (usually first sentence) — return the middle portion.
+    if (sentences.length === 2) return sentences[1];
+    if (sentences.length >= 3) {
+      // Beat 3 is the truer thought; beats 1+2 are validation + distortion.
+      return sentences.slice(2, Math.min(sentences.length - 1, 4)).join(" ");
+    }
+    return sentences[0];
+  }
+  // Reset the Quick Session state for a new thought.
+  function resetQuick() {
+    setText("");
+    setQuickReply("");
+    setQuickErr(null);
+    setQuickSaved(false);
+    setPhase("quickShare");
+  }
+  // "Sjal, remember this" — user-initiated bank from any coach message.
+  async function bankCoachMessage(content, idx) {
+    if (!content || !content.trim()) return;
+    var entry = {
+      id: "mb_" + Date.now(),
+      text: content.trim().slice(0, 400),
+      savedAt: new Date().toISOString(),
+      source: "session"
+    };
+    var list = (profile.memoryBank || []).slice();
+    // Avoid duplicates of the exact same text.
+    if (list.some(function (m) { return m.text === entry.text; })) {
+      setBankedAt(idx);
+      setTimeout(function () { setBankedAt(-1); }, 1800);
+      return;
+    }
+    list.unshift(entry);
+    var updated = await dbSaveMemoryBank(uid, email, list);
+    if (updated) {
+      setProfile(function (prev) {
+        return Object.assign({}, prev, { memoryBank: list });
+      });
+      setBankedAt(idx);
+      setTimeout(function () { setBankedAt(-1); }, 1800);
+    }
   }
   async function sendMsg() {
     if (!input.trim() || loading) return;
@@ -3787,7 +4019,69 @@ function App({
       color: C.muted,
       margin: 0
     }
-  }, "Daily check-in complete.")), restored && /*#__PURE__*/React.createElement("div", {
+  }, "Daily check-in complete.")), profile.patterns && profile.patterns.filter(function (pt) { return !pt.retired; }).length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: "1px solid " + C.border,
+      borderRadius: 14,
+      padding: "14px 18px",
+      marginBottom: 18
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: C.acc,
+      fontWeight: 700,
+      letterSpacing: 0.5,
+      textTransform: "uppercase",
+      marginBottom: 8
+    }
+  }, "Caught a pattern today?"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 6
+    }
+  }, profile.patterns.filter(function (pt) { return !pt.retired; }).map(function (pt) {
+    return /*#__PURE__*/React.createElement("button", {
+      key: pt.id,
+      onClick: async function () {
+        var entry = { savedAt: Date.now(), date: new Date().toLocaleDateString("en-US"), note: "" };
+        var list = (profile.patterns || []).map(function (x) {
+          if (x.id !== pt.id) return x;
+          return Object.assign({}, x, { catches: (x.catches || []).concat([entry]) });
+        });
+        var updated = await dbSavePatterns(uid, email, list, profile.patternsArchive || []);
+        if (updated) {
+          setProfile(function (prev) { return Object.assign({}, prev, { patterns: list }); });
+        }
+      },
+      title: "Tap to log a catch. Long press / shift-click to reframe with Sjal.",
+      onContextMenu: function (e) {
+        e.preventDefault();
+        setText(pt.thought);
+        setSessionMode("quick");
+        setPhase("quickShare");
+        setQuickReply("");
+        setQuickErr(null);
+        setQuickSaved(false);
+      },
+      style: {
+        background: C.surf,
+        border: "1px solid " + C.border,
+        borderRadius: 18,
+        padding: "5px 12px",
+        color: C.muted,
+        fontSize: 13,
+        cursor: "pointer",
+        fontFamily: "'Inter',sans-serif",
+        maxWidth: "100%",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap"
+      }
+    }, "\u2713 ", pt.thought.length > 50 ? pt.thought.slice(0, 47) + "..." : pt.thought);
+  }))), restored && /*#__PURE__*/React.createElement("div", {
     style: {
       background: "rgba(61,197,232,0.1)",
       border: "1px solid rgba(61,197,232,0.3)",
@@ -3947,7 +4241,41 @@ function App({
       fontSize: 12,
       opacity: 0.8
     }
-  }, "One area to tend over time"))), /*#__PURE__*/React.createElement("h2", {
+  }, "One area to tend over time")), /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setSessionMode("quick");
+      setPhase("quickShare");
+      setMoods([]);
+      setText("");
+      setQuickReply("");
+      setQuickErr(null);
+      setQuickSaved(false);
+    },
+    style: {
+      flex: 1,
+      padding: "12px 10px",
+      background: sessionMode === "quick" ? "rgba(228,161,74,0.18)" : C.surf,
+      border: "1.5px solid " + (sessionMode === "quick" ? "#e4a14a" : C.border),
+      borderRadius: 10,
+      color: sessionMode === "quick" ? "#e4a14a" : C.muted,
+      fontSize: 14,
+      cursor: "pointer",
+      fontWeight: sessionMode === "quick" ? 700 : 500,
+      textAlign: "center",
+      lineHeight: 1.3
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 700,
+      marginBottom: 2
+    }
+  }, "\u26A1 Quick Session"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      opacity: 0.85
+    }
+  }, "Reframe one thought, fast"))), /*#__PURE__*/React.createElement("h2", {
     style: {
       fontFamily: "'Playfair Display',serif",
       fontSize: 27,
@@ -4148,7 +4476,216 @@ function App({
       cursor: text.trim() ? "pointer" : "default",
       fontWeight: 700
     }
-  }, "Begin Session with Sjal"))), phase === "coach" && /*#__PURE__*/React.createElement("div", {
+  }, "Begin Session with Sjal"))), phase === "quickShare" && /*#__PURE__*/React.createElement("div", {
+    className: "fi"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setPhase("mood");
+      setSessionMode("regular");
+    },
+    style: {
+      background: "transparent",
+      border: "none",
+      color: C.muted,
+      cursor: "pointer",
+      fontSize: 15,
+      marginBottom: 14,
+      padding: 0
+    }
+  }, "Back"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 6,
+      marginBottom: 10,
+      padding: "4px 12px",
+      background: "rgba(228,161,74,0.15)",
+      border: "1px solid rgba(228,161,74,0.4)",
+      borderRadius: 20,
+      fontSize: 11,
+      color: "#e4a14a",
+      fontWeight: 700,
+      letterSpacing: 0.5,
+      textTransform: "uppercase"
+    }
+  }, "\u26A1 Quick Session"), /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontFamily: "'Playfair Display',serif",
+      fontSize: 27,
+      fontWeight: 600,
+      marginBottom: 6,
+      letterSpacing: -0.5
+    }
+  }, "What thought is caught in your mind?"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: C.muted,
+      fontSize: 16,
+      marginBottom: 16,
+      lineHeight: 1.7
+    }
+  }, "One thought, one reframe. Share it as you are hearing it in your head."), /*#__PURE__*/React.createElement("textarea", {
+    value: text,
+    onChange: function (e) { setText(e.target.value); },
+    placeholder: "I am going to get in trouble...  I am never going to get this right...  They are going to leave me...",
+    rows: 4,
+    style: {
+      width: "100%",
+      background: C.card,
+      border: "1.5px solid " + C.border,
+      borderRadius: 12,
+      padding: "14px",
+      color: C.white,
+      fontSize: 16,
+      lineHeight: 1.75,
+      resize: "vertical",
+      fontFamily: "'Playfair Display',Georgia,serif"
+    }
+  }), quickErr && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 14,
+      color: C.rose,
+      marginTop: 10
+    }
+  }, quickErr), /*#__PURE__*/React.createElement("button", {
+    onClick: runQuickSession,
+    disabled: quickLoading || !text.trim(),
+    style: {
+      width: "100%",
+      marginTop: 14,
+      padding: "14px",
+      background: (quickLoading || !text.trim()) ? C.border : "#e4a14a",
+      border: "none",
+      borderRadius: 12,
+      color: (quickLoading || !text.trim()) ? C.dim : "#1e4e6d",
+      fontSize: 16,
+      cursor: (quickLoading || !text.trim()) ? "default" : "pointer",
+      fontWeight: 700
+    }
+  }, quickLoading ? "Sjal is reflecting..." : "Reframe this thought \u2192")), phase === "quickResult" && /*#__PURE__*/React.createElement("div", {
+    className: "fi"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 6,
+      marginBottom: 14,
+      padding: "4px 12px",
+      background: "rgba(228,161,74,0.15)",
+      border: "1px solid rgba(228,161,74,0.4)",
+      borderRadius: 20,
+      fontSize: 11,
+      color: "#e4a14a",
+      fontWeight: 700,
+      letterSpacing: 0.5,
+      textTransform: "uppercase"
+    }
+  }, "\u26A1 Quick Session"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "rgba(224,128,144,0.08)",
+      border: "1px solid rgba(224,128,144,0.25)",
+      borderRadius: 12,
+      padding: "14px 18px",
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: C.muted,
+      marginBottom: 6,
+      letterSpacing: 0.4,
+      textTransform: "uppercase",
+      fontWeight: 700
+    }
+  }, "The thought you caught"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 16,
+      color: C.white,
+      fontStyle: "italic",
+      lineHeight: 1.7,
+      fontFamily: "'Playfair Display',Georgia,serif"
+    }
+  }, "\"", text, "\"")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: "1.5px solid " + C.border,
+      borderRadius: 12,
+      padding: "18px 20px",
+      marginBottom: 16,
+      whiteSpace: "pre-wrap",
+      fontSize: 16,
+      lineHeight: 1.85,
+      color: C.white,
+      fontFamily: "'Playfair Display',Georgia,serif"
+    }
+  }, quickReply), quickSaved && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: C.success,
+      marginBottom: 10,
+      fontWeight: 600
+    }
+  }, "\u2713 Saved"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: saveQuickAsPattern,
+    style: {
+      flex: "1 1 auto",
+      padding: "11px 14px",
+      background: "rgba(61,197,232,0.15)",
+      border: "1px solid " + C.acc,
+      borderRadius: 9,
+      color: C.acc,
+      fontSize: 14,
+      cursor: "pointer",
+      fontWeight: 600
+    }
+  }, "Save as Pattern"), /*#__PURE__*/React.createElement("button", {
+    onClick: bankQuickTruth,
+    style: {
+      flex: "1 1 auto",
+      padding: "11px 14px",
+      background: "rgba(91,184,160,0.15)",
+      border: "1px solid " + C.success,
+      borderRadius: 9,
+      color: C.success,
+      fontSize: 14,
+      cursor: "pointer",
+      fontWeight: 600
+    }
+  }, "Bank the truth"), /*#__PURE__*/React.createElement("button", {
+    onClick: resetQuick,
+    style: {
+      flex: "1 1 auto",
+      padding: "11px 14px",
+      background: "transparent",
+      border: "1px solid " + C.border,
+      borderRadius: 9,
+      color: C.muted,
+      fontSize: 14,
+      cursor: "pointer",
+      fontWeight: 600
+    }
+  }, "New thought")), /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setText("");
+      setQuickReply("");
+      setQuickErr(null);
+      setSessionMode("regular");
+      setPhase("mood");
+    },
+    style: {
+      marginTop: 18,
+      background: "transparent",
+      border: "none",
+      color: C.dim,
+      fontSize: 14,
+      cursor: "pointer"
+    }
+  }, "\u2190 Back to Session")), phase === "coach" && /*#__PURE__*/React.createElement("div", {
     className: "fi"
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -4255,7 +4792,29 @@ function App({
         fontFamily: m.role === "coach" ? "'Playfair Display',Georgia,serif" : "'Inter',sans-serif",
         whiteSpace: "pre-wrap"
       }
-    }, m.content));
+    }, m.content, m.role === "coach" && /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: 10,
+        paddingTop: 8,
+        borderTop: "1px solid rgba(255,255,255,0.12)",
+        display: "flex",
+        justifyContent: "flex-end"
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: function () { bankCoachMessage(m.content, i); },
+      title: "Add this to Sjal\u2019s memory bank so it carries into future sessions",
+      style: {
+        background: bankedAt === i ? "rgba(91,184,160,0.15)" : "transparent",
+        border: "1px solid " + (bankedAt === i ? C.success : C.border),
+        borderRadius: 16,
+        padding: "3px 10px",
+        color: bankedAt === i ? C.success : C.muted,
+        fontSize: 11,
+        cursor: "pointer",
+        fontWeight: 600,
+        letterSpacing: 0.3
+      }
+    }, bankedAt === i ? "\u2713 Banked" : "Sjal, remember this"))));
   }), loading && /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
@@ -6003,6 +6562,449 @@ function App({
       cursor: "pointer"
     }
   }, "Cancel")))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: "1px solid " + C.border,
+      borderRadius: 13,
+      padding: "18px 20px",
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: C.acc,
+      letterSpacing: 1,
+      textTransform: "uppercase",
+      fontWeight: 700
+    }
+  }, "Patterns I\u2019m catching"), !patternsEditing && /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setPatternEditId(null);
+      setPatternThought("");
+      setPatternTruth("");
+      setPatternsEditing(true);
+    },
+    style: {
+      background: "transparent",
+      border: "1px solid " + C.border,
+      borderRadius: 6,
+      padding: "3px 10px",
+      color: C.muted,
+      fontSize: 13,
+      cursor: "pointer"
+    }
+  }, "+ Add pattern")), !patternsEditing && (!profile.patterns || profile.patterns.filter(function (pt) { return !pt.retired; }).length === 0) && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 14,
+      color: C.dim,
+      lineHeight: 1.6,
+      margin: 0
+    }
+  }, "Log specific recurring thoughts you want to catch \u2014 like \"I'm going to get in trouble.\" Each catch is a small victory. Sjal will know about them, but won't bring them up unless you do."), !patternsEditing && profile.patterns && profile.patterns.filter(function (pt) { return !pt.retired; }).length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 8
+    }
+  }, profile.patterns.filter(function (pt) { return !pt.retired; }).map(function (pt) {
+    var catchCount = (pt.catches || []).length;
+    return /*#__PURE__*/React.createElement("div", {
+      key: pt.id,
+      style: {
+        background: C.surf,
+        border: "1px solid " + C.border,
+        borderRadius: 9,
+        padding: "10px 13px"
+      }
+    }, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 14,
+        color: C.white,
+        fontStyle: "italic",
+        marginBottom: 4,
+        fontFamily: "'Playfair Display',Georgia,serif"
+      }
+    }, "\u201C", pt.thought, "\u201D"), pt.truth && /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 13,
+        color: C.success,
+        marginBottom: 6,
+        lineHeight: 1.5
+      }
+    }, "Truth: ", pt.truth), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 6,
+        alignItems: "center",
+        flexWrap: "wrap"
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: async function () {
+        var entry = { savedAt: Date.now(), date: new Date().toLocaleDateString("en-US"), note: "" };
+        var list = (profile.patterns || []).map(function (x) {
+          if (x.id !== pt.id) return x;
+          return Object.assign({}, x, { catches: (x.catches || []).concat([entry]) });
+        });
+        var updated = await dbSavePatterns(uid, email, list, profile.patternsArchive || []);
+        if (updated) {
+          setProfile(function (prev) { return Object.assign({}, prev, { patterns: list }); });
+        }
+      },
+      style: {
+        background: "rgba(91,184,160,0.15)",
+        border: "1px solid " + C.success,
+        borderRadius: 6,
+        padding: "3px 10px",
+        color: C.success,
+        fontSize: 12,
+        cursor: "pointer",
+        fontWeight: 600
+      }
+    }, "I caught it"), /*#__PURE__*/React.createElement("button", {
+      onClick: function () {
+        setText(pt.thought);
+        setSessionMode("quick");
+        setPhase("quickShare");
+        setQuickReply("");
+        setQuickErr(null);
+        setQuickSaved(false);
+        setTab("session");
+      },
+      style: {
+        background: "rgba(228,161,74,0.12)",
+        border: "1px solid rgba(228,161,74,0.45)",
+        borderRadius: 6,
+        padding: "3px 10px",
+        color: "#e4a14a",
+        fontSize: 12,
+        cursor: "pointer",
+        fontWeight: 600
+      }
+    }, "\u26A1 Reframe"), /*#__PURE__*/React.createElement("button", {
+      onClick: function () {
+        setPatternEditId(pt.id);
+        setPatternThought(pt.thought || "");
+        setPatternTruth(pt.truth || "");
+        setPatternsEditing(true);
+      },
+      style: {
+        background: "transparent",
+        border: "1px solid " + C.border,
+        borderRadius: 6,
+        padding: "3px 10px",
+        color: C.muted,
+        fontSize: 12,
+        cursor: "pointer"
+      }
+    }, "Edit"), /*#__PURE__*/React.createElement("button", {
+      onClick: async function () {
+        var list = (profile.patterns || []).filter(function (x) { return x.id !== pt.id; });
+        var archive = (profile.patternsArchive || []).slice();
+        archive.unshift(Object.assign({}, pt, { retired: true, retiredAt: new Date().toISOString() }));
+        var updated = await dbSavePatterns(uid, email, list, archive);
+        if (updated) {
+          setProfile(function (prev) { return Object.assign({}, prev, { patterns: list, patternsArchive: archive }); });
+        }
+      },
+      style: {
+        background: "transparent",
+        border: "1px solid " + C.border,
+        borderRadius: 6,
+        padding: "3px 10px",
+        color: C.dim,
+        fontSize: 12,
+        cursor: "pointer"
+      }
+    }, "Retire"), catchCount > 0 && /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 11,
+        color: C.dim,
+        marginLeft: "auto"
+      }
+    }, "Caught ", catchCount, " time", catchCount === 1 ? "" : "s")));
+  })), patternsEditing && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("input", {
+    value: patternThought,
+    onChange: function (e) { setPatternThought(e.target.value); },
+    placeholder: "The thought (e.g. I am going to get in trouble)",
+    maxLength: 200,
+    style: {
+      width: "100%",
+      background: C.surf,
+      border: "1px solid " + C.border,
+      borderRadius: 8,
+      padding: "10px 13px",
+      color: C.white,
+      fontSize: 15,
+      marginBottom: 8
+    }
+  }), /*#__PURE__*/React.createElement("input", {
+    value: patternTruth,
+    onChange: function (e) { setPatternTruth(e.target.value); },
+    placeholder: "The truth that replaces it (optional, e.g. I never get in trouble)",
+    maxLength: 240,
+    style: {
+      width: "100%",
+      background: C.surf,
+      border: "1px solid " + C.border,
+      borderRadius: 8,
+      padding: "10px 13px",
+      color: C.white,
+      fontSize: 15,
+      marginBottom: 10
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: { display: "flex", gap: 8 }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: async function () {
+      if (!patternThought.trim()) return;
+      var list = (profile.patterns || []).slice();
+      if (patternEditId) {
+        list = list.map(function (x) {
+          if (x.id !== patternEditId) return x;
+          return Object.assign({}, x, { thought: patternThought.trim(), truth: patternTruth.trim() });
+        });
+      } else {
+        list.push({
+          id: "pt_" + Date.now(),
+          thought: patternThought.trim(),
+          truth: patternTruth.trim(),
+          firstLogged: new Date().toISOString(),
+          catches: [],
+          retired: false
+        });
+      }
+      var updated = await dbSavePatterns(uid, email, list, profile.patternsArchive || []);
+      if (updated) {
+        setProfile(function (prev) { return Object.assign({}, prev, { patterns: list }); });
+      }
+      setPatternsEditing(false);
+      setPatternEditId(null);
+      setPatternThought("");
+      setPatternTruth("");
+    },
+    disabled: !patternThought.trim(),
+    style: {
+      padding: "9px 18px",
+      background: patternThought.trim() ? C.acc : C.border,
+      border: "none",
+      borderRadius: 8,
+      color: patternThought.trim() ? C.accText : C.dim,
+      fontSize: 14,
+      cursor: patternThought.trim() ? "pointer" : "default",
+      fontWeight: 700
+    }
+  }, patternEditId ? "Save changes" : "Add pattern"), /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setPatternsEditing(false);
+      setPatternEditId(null);
+      setPatternThought("");
+      setPatternTruth("");
+    },
+    style: {
+      padding: "9px 16px",
+      background: "transparent",
+      border: "1px solid " + C.border,
+      borderRadius: 8,
+      color: C.muted,
+      fontSize: 14,
+      cursor: "pointer"
+    }
+  }, "Cancel"))), profile.patternsArchive && profile.patternsArchive.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 14,
+      paddingTop: 10,
+      borderTop: "1px solid " + C.border
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: C.dim,
+      letterSpacing: 0.5,
+      textTransform: "uppercase",
+      fontWeight: 700,
+      marginBottom: 6
+    }
+  }, "Retired \u00b7 ", profile.patternsArchive.length), profile.patternsArchive.slice(0, 3).map(function (pt) {
+    return /*#__PURE__*/React.createElement("p", {
+      key: pt.id,
+      style: {
+        fontSize: 13,
+        color: C.dim,
+        margin: "3px 0",
+        fontStyle: "italic"
+      }
+    }, "\u201C", pt.thought, "\u201D");
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: "1px solid " + C.border,
+      borderRadius: 13,
+      padding: "18px 20px",
+      marginBottom: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: C.success,
+      letterSpacing: 1,
+      textTransform: "uppercase",
+      fontWeight: 700
+    }
+  }, "Sjal\u2019s Memory Bank"), !memEditing && /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setMemDraft("");
+      setMemEditing(true);
+    },
+    style: {
+      background: "transparent",
+      border: "1px solid " + C.border,
+      borderRadius: 6,
+      padding: "3px 10px",
+      color: C.muted,
+      fontSize: 13,
+      cursor: "pointer"
+    }
+  }, "+ Add to bank")), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: C.dim,
+      lineHeight: 1.55,
+      marginBottom: 12
+    }
+  }, "Truths Sjal carries forward into every session. Add one yourself, or tap \u201CSjal, remember this\u201D on any response Sjal gives during a session."), memEditing && /*#__PURE__*/React.createElement("div", {
+    style: { marginBottom: 12 }
+  }, /*#__PURE__*/React.createElement("textarea", {
+    value: memDraft,
+    onChange: function (e) { setMemDraft(e.target.value); },
+    placeholder: "A truth, identity reminder, or hard-won insight you want Sjal to remember...",
+    rows: 3,
+    maxLength: 400,
+    style: {
+      width: "100%",
+      background: C.surf,
+      border: "1px solid " + C.border,
+      borderRadius: 8,
+      padding: "10px 13px",
+      color: C.white,
+      fontSize: 15,
+      lineHeight: 1.55,
+      resize: "vertical",
+      marginBottom: 8
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: { display: "flex", gap: 8 }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: async function () {
+      if (!memDraft.trim()) return;
+      var entry = {
+        id: "mb_" + Date.now(),
+        text: memDraft.trim().slice(0, 400),
+        savedAt: new Date().toISOString(),
+        source: "user"
+      };
+      var list = (profile.memoryBank || []).slice();
+      list.unshift(entry);
+      var updated = await dbSaveMemoryBank(uid, email, list);
+      if (updated) {
+        setProfile(function (prev) { return Object.assign({}, prev, { memoryBank: list }); });
+      }
+      setMemDraft("");
+      setMemEditing(false);
+    },
+    disabled: !memDraft.trim(),
+    style: {
+      padding: "9px 18px",
+      background: memDraft.trim() ? C.success : C.border,
+      border: "none",
+      borderRadius: 8,
+      color: memDraft.trim() ? "#fff" : C.dim,
+      fontSize: 14,
+      cursor: memDraft.trim() ? "pointer" : "default",
+      fontWeight: 700
+    }
+  }, "Bank it"), /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setMemDraft("");
+      setMemEditing(false);
+    },
+    style: {
+      padding: "9px 16px",
+      background: "transparent",
+      border: "1px solid " + C.border,
+      borderRadius: 8,
+      color: C.muted,
+      fontSize: 14,
+      cursor: "pointer"
+    }
+  }, "Cancel"))), (!profile.memoryBank || profile.memoryBank.length === 0) && !memEditing && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: C.dim,
+      fontStyle: "italic",
+      margin: 0
+    }
+  }, "Nothing banked yet."), profile.memoryBank && profile.memoryBank.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 6
+    }
+  }, profile.memoryBank.map(function (m) {
+    return /*#__PURE__*/React.createElement("div", {
+      key: m.id,
+      style: {
+        background: C.surf,
+        border: "1px solid " + C.border,
+        borderRadius: 8,
+        padding: "9px 12px",
+        display: "flex",
+        gap: 8,
+        alignItems: "flex-start"
+      }
+    }, /*#__PURE__*/React.createElement("p", {
+      style: {
+        flex: 1,
+        fontSize: 13.5,
+        color: C.white,
+        lineHeight: 1.6,
+        margin: 0,
+        fontFamily: "'Playfair Display',Georgia,serif"
+      }
+    }, m.text), /*#__PURE__*/React.createElement("button", {
+      onClick: async function () {
+        var list = (profile.memoryBank || []).filter(function (x) { return x.id !== m.id; });
+        var updated = await dbSaveMemoryBank(uid, email, list);
+        if (updated) {
+          setProfile(function (prev) { return Object.assign({}, prev, { memoryBank: list }); });
+        }
+      },
+      title: "Remove from memory bank",
+      style: {
+        background: "transparent",
+        border: "1px solid " + C.border,
+        borderRadius: 6,
+        padding: "2px 8px",
+        color: C.dim,
+        fontSize: 11,
+        cursor: "pointer",
+        flexShrink: 0
+      }
+    }, "\u00D7"));
+  }))), /*#__PURE__*/React.createElement("div", {
     style: {
       background: "rgba(224,128,144,0.08)",
       border: "1px solid rgba(224,128,144,0.25)",
