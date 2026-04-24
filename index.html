@@ -19,7 +19,7 @@
    /version.txt in sync.
    ───────────────────────────────────────────────────────────────────────── */
 (function(){
-  var APP_VERSION = "sjalavard-2026-04-23-focus";
+  var APP_VERSION = "sjalavard-2026-04-23-focus-guide";
   var STORAGE_KEY = "sj_app_v";
   var LIVE_URL    = "https://sjalavard.netlify.app";
   var ADMIN_EMAILS = ["fosterhopefamily@gmail.com"];
@@ -878,6 +878,107 @@ var STRUGGLES = ["Jealousy or envy", "Worry or anxiety", "Feeling not enough", "
 var GOALS = ["Love people better, even those I disagree with", "Be free from jealousy and envy toward others", "Not feel overwhelmed by big tasks or new things", "Handle social anxiety better", "Stop needing others approval to feel okay", "Use my phone and social media less", "Grow in patience and self-control", "Heal from past wounds or trauma", "Deepen my prayer and spiritual life", "Improve my relationships", "Find more peace and less anxiety", "Grow in my sense of purpose and calling", "Be more present with the people I love", "Trust God more deeply"];
 var ALL_AUTHORS = ["C.S. Lewis", "A.W. Tozer", "Dallas Willard", "Brennan Manning", "Henri Nouwen", "Richard Foster", "Eugene Peterson", "John Mark Comer", "Timothy Keller", "N.T. Wright", "Max Lucado", "Charles Spurgeon", "Oswald Chambers", "Francis Chan", "Beth Moore", "Andrew Murray", "Thomas a Kempis", "John Piper", "R.C. Sproul", "Tony Evans", "Dr. Caroline Leaf"];
 var CRISIS_WORDS = ["suicide", "kill myself", "end my life", "don't want to live", "want to die", "can't go on", "no reason to live", "harm myself", "self harm", "hurt myself"];
+// FOCUS_VOICES — curated Christian clinicians + formation voices Sjal can draw from
+// during a Focus Session (in addition to Burns/CBT and Leaf/neuroscience which run
+// through every session). Each voice has specialties used for routing by focus topic.
+var FOCUS_VOICES = [{
+  name: "Dr. Curt Thompson",
+  specialties: ["shame", "attachment", "identity", "anxiety", "insecurity", "connection", "belonging"],
+  frame: "Christian psychiatrist who bridges neuroscience, attachment, and spiritual formation. Strong on the embodied experience of shame and being truly known."
+}, {
+  name: "Dr. Henry Cloud",
+  specialties: ["boundaries", "relationships", "codependency", "growth", "people-pleasing", "anger", "marriage", "conflict"],
+  frame: "Christian clinical psychologist. Direct and practical. Essential on how to say no, own your yes, and grow into emotional maturity."
+}, {
+  name: "Dr. John Townsend",
+  specialties: ["boundaries", "relationships", "emotional growth", "parenting", "conflict"],
+  frame: "Christian psychologist, often with Henry Cloud. Gentle and clear on emotional boundaries and relational maturity."
+}, {
+  name: "Dan Allender",
+  specialties: ["trauma", "story", "shame", "sexual brokenness", "wounded heart", "abuse", "past"],
+  frame: "Christian psychologist and story-work master. How your past shapes your present and how redemption re-writes both."
+}, {
+  name: "Diane Langberg",
+  specialties: ["trauma", "abuse", "suffering", "grief", "loss", "church hurt"],
+  frame: "Christian clinical psychologist with decades in trauma. Gentle, Christ-centered voice for soul care in the presence of deep pain."
+}, {
+  name: "Larry Crabb",
+  specialties: ["heart", "pretending", "inside out", "connecting", "deeper change", "soul"],
+  frame: "Christian psychologist who combined psychology with spiritual direction. Goes under the symptoms to the heart issue."
+}, {
+  name: "Jay Stringer",
+  specialties: ["sexual brokenness", "compulsion", "unwanted behaviors", "lust", "addiction", "arousal"],
+  frame: "Christian therapist who does rigorous pattern work on unwanted sexual behaviors and maps story to current struggle."
+}, {
+  name: "Gary Chapman",
+  specialties: ["anger", "love languages", "marriage", "family", "communication"],
+  frame: "Accessible Christian counselor. Very practical on anger, relational warmth, and how love is actually received."
+}, {
+  name: "David Benner",
+  specialties: ["true self", "false self", "surrender", "identity", "spiritual formation", "contemplation"],
+  frame: "Psychologist and spiritual director. Gentle, deep, contemplative. Helps you meet your true self in Christ."
+}, {
+  name: "Timothy Keller",
+  specialties: ["gospel perspective", "fear", "idols", "heart", "suffering", "marriage", "doubt", "work"],
+  frame: "Gospel-centered pastor who diagnoses the idols underneath our fears and longings and points to Christ as the truer satisfaction."
+}, {
+  name: "Gerald May",
+  specialties: ["addiction", "grace", "desire", "attachment", "compulsion"],
+  frame: "Christian psychiatrist with a rare, thoughtful take on compulsion and the grace that meets it."
+}];
+function pickVoicesForFocus(focus) {
+  if (!focus || !focus.title) return [];
+  var hay = ((focus.title || "") + " " + (focus.description || "")).toLowerCase();
+  var scored = FOCUS_VOICES.map(function (v) {
+    var score = 0;
+    v.specialties.forEach(function (s) {
+      if (hay.indexOf(s.toLowerCase()) > -1) score += 2;
+    });
+    return {
+      voice: v,
+      score: score
+    };
+  });
+  scored.sort(function (a, b) {
+    return b.score - a.score;
+  });
+  var top = scored.filter(function (x) {
+    return x.score > 0;
+  }).slice(0, 4);
+  // Always include at least 3 voices — fall back to generally useful ones.
+  var fallbacks = ["Dr. Curt Thompson", "Dr. Henry Cloud", "David Benner"];
+  fallbacks.forEach(function (n) {
+    if (top.length >= 3) return;
+    if (top.find(function (x) {
+      return x.voice.name === n;
+    })) return;
+    var v = FOCUS_VOICES.find(function (x) {
+      return x.name === n;
+    });
+    if (v) top.push({
+      voice: v,
+      score: 0
+    });
+  });
+  return top.slice(0, 4).map(function (x) {
+    return x.voice;
+  });
+}
+function focusPhase(count) {
+  var c = count || 0;
+  if (c <= 2) return {
+    label: "orient",
+    instruction: "This is early (session " + (c || 1) + "). Help them name what is happening, the specific patterns, and what they feel when this shows up. Gentle curiosity. Do not rush to roots or solutions."
+  };
+  if (c <= 6) return {
+    label: "deepen",
+    instruction: "You have been walking with this for " + c + " sessions now. Start asking about roots — family of origin, formative moments, core beliefs that feed this. Go gently deeper."
+  };
+  return {
+    label: "integrate",
+    instruction: "You have a real relationship with this person now (" + c + " sessions). Point to growth they have shown. Gently test new patterns against their real life. Celebrate small wins. Invite them to carry what they have learned into the week."
+  };
+}
 var VERSES = [{
   ref: "Isaiah 41:10",
   text: "Do not fear, for I am with you; do not be dismayed, for I am your God."
@@ -985,20 +1086,51 @@ function buildSys(p, sessions, mode) {
     }
   }
   // Focus context — only injected when this is a Focus Session and the user has set one.
-  // Focus is user-chosen and user-named, so Sjal can reference it openly (unlike struggles/goals).
+  // A Focus Session is GUIDING ongoing work on an area, not reacting to a single incident.
+  // Sjal leads: draws from a curriculum of proven Christian voices, shifts posture by phase,
+  // opens with a bridge to last time, and follows up on the prior action step.
   var focusBlock = "";
   if (mode === "focus" && p.focus && p.focus.title) {
     var f = p.focus;
-    focusBlock = "\n\nCURRENT FOCUS (the user has chosen to work on this area over time — name it openly and honor the continuity):\nFocus: " + f.title + ".";
-    if (f.description) focusBlock += "\nTheir words on why: " + f.description;
-    if (f.sessionCount) focusBlock += "\nSessions on this focus so far: " + f.sessionCount + ".";
+    var fCount = f.sessionCount || 0;
+    var fPhase = focusPhase(fCount);
+    var fVoices = pickVoicesForFocus(f);
+    focusBlock = "\n\nCURRENT FOCUS — the user has chosen to tend this area over time. Name it openly, honor the continuity, and lead them.";
+    focusBlock += "\nFocus: " + f.title + ".";
+    if (f.description) focusBlock += "\nTheir words on why it matters: " + f.description;
+    focusBlock += "\nSessions on this focus so far: " + fCount + " (" + fPhase.label + " phase).";
     if (f.thread && f.thread.length) {
-      var recentInsights = f.thread.slice(0, 5).map(function (t) {
-        return "- " + (t.date || "") + ": " + (t.insight || "");
-      }).join("\n");
-      focusBlock += "\nRecent threads of insight (most recent first):\n" + recentInsights;
+      var last = f.thread[0];
+      focusBlock += "\n\nLAST TIME TOGETHER: " + (last.insight || "");
+      if (last.actionStep) {
+        focusBlock += "\nAction step they took away last time: \"" + last.actionStep + "\"";
+      }
+      var earlier = f.thread.slice(1, 5);
+      if (earlier.length) {
+        focusBlock += "\nEarlier threads (most recent first):";
+        earlier.forEach(function (t) {
+          focusBlock += "\n- " + (t.date || "") + ": " + (t.insight || "");
+        });
+      }
     }
-    focusBlock += "\n\nThis is a FOCUS SESSION. Open by naming the focus directly. Connect to earlier threads when natural. Honor their ongoing work. Still follow the 4-response session arc below.";
+    if (fVoices.length) {
+      focusBlock += "\n\nFOR THIS FOCUS, draw especially from these voices (alongside CBT/Burns and Leaf):";
+      fVoices.forEach(function (v) {
+        focusBlock += "\n- " + v.name + ": " + v.frame;
+      });
+    }
+    focusBlock += "\n\nPHASE GUIDANCE: " + fPhase.instruction;
+    focusBlock += "\n\nThis is a FOCUS SESSION — a guiding session, not reactive triage. BEFORE the CBT work in Response 1, open with a brief bridge:";
+    if (f.thread && f.thread.length) {
+      focusBlock += "\n- Briefly reference what you noticed last time (one line).";
+      if (f.thread[0].actionStep) {
+        focusBlock += "\n- Then gently ask how the action step from last session went.";
+      }
+      focusBlock += "\n- Then flow naturally into their current share and the Response 1 CBT work.";
+    } else {
+      focusBlock += "\n- This is the first Focus Session. Welcome them to this ongoing work. Help them name where they are starting.";
+    }
+    focusBlock += "\nStill follow the full 4-response session arc below. Name the focus openly. Honor continuity. LEAD the work — do not wait for them to bring a specific incident.";
   }
   return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care.\nYou combine CBT (David Burns), neuroscience, biblical truth, and Spirit-led pastoral care.\nSjalavard\'s mission: walk with people through the thoughts that weigh them down — helping them catch the lies their mind tells them, replace them with what is actually true, and find their way back to freedom. All grounded in biblical truth and practical principles that work." + authLine + "\nPrioritize grace, identity in Christ, Spirit transformation.\n" + (p.firstName ? "Name: " + p.firstName + ".\n" : "") + (p.bio ? "About this person: " + p.bio + "\n" : "") + "BACKGROUND CONTEXT (do not bring up directly - use only as quiet background awareness):\nPatterns this person has named: " + struggles + ".\nDirections they want to grow: " + goals + "\n\nNEVER reference these lists by name. Let the person lead. Your job is to follow them.\nNEVER write prayers. Invite the person to pray in their own words instead.\nIf someone expresses suicidal thoughts, acknowledge their pain, show care, provide 988 Lifeline. Do not proceed until safety is addressed." + focusBlock + "\n\nSession arc:\nResponse 1: Lead with CBT (David Burns). Validate their feelings. Gently identify the cognitive distortion at work. Ask one question.\nResponse 2: Bring in Dr. Caroline Leaf. Help them understand how this thought pattern affects the brain and how the mind can be rewired. Ask one question.\nResponse 3: Draw from the person\'s chosen author naturally and without forcing it. Offer spiritual grounding. Ask one question.\nResponse 4: Wrap up. Give a warm summary of the session. Offer 3 guided reflection questions for them to sit with. Invite them to bring what was discussed to God in their own prayer — do not write a prayer for them. Then transition to gratitude.\n\nKeep each response warm, direct, and focused. No flattery. This is holy ground." + mem;
 }
@@ -2887,6 +3019,7 @@ function App({
         date: s.date,
         savedAt: s.savedAt,
         insight: insight,
+        actionStep: actionStep || "",
         moods: s.moods,
         distortion: s.distortion
       };
