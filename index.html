@@ -12,6 +12,223 @@
 <link rel="icon" type="image/png" sizes="192x192" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAEPElEQVR42u3dPVLbQBiAYWnHvVsqGsoMR6ChySW4BT5GcotcgoYmR2Ao01DR+gSkIsM4/pFkab273/OUDODgfK92FxnouwtY395/dLBj+/Lc537M3sATOYje0BM5ht7QEzmGZPipzZyz1ht8Iq8GyfATeTXoDT6RV4Nk+Im8GiTDT+QIkuEncgTJ8BM5gmT4iRxBMvxEjiB5ioisL+Xqv7669r8RyPb9Le/jHbhH0F9q+A08uYPYF8Eq+57M4HNkLnKvDH2uq7/Bp4QVYXcVSIafkleE2T/vzoynWr8QRDCHlcEn8tkgLbH9MfyUfEH9OutuhBFaKrlUWHq20pzbH8NPLRF8znwquU5YetacAXAGcPUn6iqQvOafsBHd3n+kUkqES8yeMwDOACAAEID9P7HOAVYArAAgABAACAAEAAIAAUC7Vp6CvO4eNyff5/fPH54oKwAIAAQAAgABgABAACAAEAAIAAQAAgABgABAACAAEAAIAAQAAgABIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAKBK/fr2/mPqB6+vrj2DAw3543i7/LG8YbbvbwJoafCFIACDL4QsATgDVDL8S35eh2CqGVIRCCDs8ItAAOGHXwQCqNbQQ6zDrgCau/qPHeoh728VEEBTV34rQX4rT8GyV/9DQ/zr+7c/u297eHq92ffxxx7j7nEjFCtAXVf+fcN/7O0GfDlV3QluYc97aMhPrQRRtn1TuBPc0PCPeT9sgZobfhEIAAQAAgABgACqN/Zbmy18K1QATBpqw59PVS+FKPGO6LGbc/v+vQ/d5ubYtzgfnl5v9n3c2MfBClBsHIeu8Ife7lWfVoCiV6UpL1Ybus2Z+mI7rABVbJOW+DgEUNzZZOwwL/FDNgigipXAlV8ATa4CNT+eAChmKA2/AMJGYPgFEDYCwz8/vxy3kIOvwZ/Ob4duNASDL4CQIRj8fAE4A+AQDAIAAYAAQAAgABAACAAEAAIAAYAAQAAgABAACAAEAAIAAYAAQAAgABAACAAEAAIAAYAAQAAgABAACAAEAAIAAcC8/JE8queP5IEAQAAgABAACAAEAMsEcM73X2EO586gFQArAAgABOAcQJz9f9d1Xdq+PPeeSkIG9PLcp1JKhEvMnDMAzgBWASJe/f8FMNc5QATUMvyfM59KrhOWni1nAJwB5twGWQUo/er/ddZXS/+D/eA8JV9MU+1fAIZ/tgCWuissAkqZmd0Z3zvw5/yuoFNsibjUxXLfBX51qS9QCJSwSzi45VlyFbAykHvgD23vj+75c0cAOYf/v0MwRJOmlgO1X/0HrQAioNXhH7wFEgEtDv+oM4AIaG34Rx+CRUBLwz86ABHQ0vB33Yn7AKe4T0Ctgz95BbAa0Mrwn70CWA2odfBnWQGsBtQ8/LOuAFYEahn6LAGIgRp2FRfZtgiCUrbRfwE/L7EnRpblCgAAAABJRU5ErkJggg=="/>
 <link rel="icon" type="image/png" sizes="512x512" href="data:image/png;base64,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"/>
 <title>Sjalavard — Soul Care</title>
+<script>
+/* ─────────────────────────────────────────────────────────────────────────
+   Auto cache-reset (full admin-driven) — keeps every user on the latest
+   deploy without reinstalling. Bump APP_VERSION on every deploy and keep
+   /version.txt in sync.
+   ───────────────────────────────────────────────────────────────────────── */
+(function(){
+  var APP_VERSION = "sjalavard-2026-04-23-focus";
+  var STORAGE_KEY = "sj_app_v";
+  var LIVE_URL    = "https://sjalavard.netlify.app";
+  var ADMIN_EMAILS = ["fosterhopefamily@gmail.com"];
+  window.__APP_VERSION__ = APP_VERSION;
+
+  try {
+    var stored = null;
+    try { stored = localStorage.getItem(STORAGE_KEY); } catch(e){}
+    if (stored && stored !== APP_VERSION) {
+      var tasks = [];
+      if ("serviceWorker" in navigator && navigator.serviceWorker.getRegistrations) {
+        tasks.push(navigator.serviceWorker.getRegistrations().then(function(regs){
+          return Promise.all(regs.map(function(r){ return r.unregister().catch(function(){}); }));
+        }).catch(function(){}));
+      }
+      if (window.caches && caches.keys) {
+        tasks.push(caches.keys().then(function(keys){
+          return Promise.all(keys.map(function(k){ return caches.delete(k).catch(function(){}); }));
+        }).catch(function(){}));
+      }
+      try { localStorage.setItem(STORAGE_KEY, APP_VERSION); } catch(e){}
+      Promise.all(tasks).then(function(){
+        console.log("[Sjalavard] Version changed (" + stored + " → " + APP_VERSION + ") — cache cleared, reloading");
+        setTimeout(function(){ window.location.reload(); }, 200);
+      });
+      return;
+    }
+    if (!stored) { try { localStorage.setItem(STORAGE_KEY, APP_VERSION); } catch(e){} }
+  } catch(e) { /* fail open */ }
+
+  if ("serviceWorker" in navigator &&
+      (location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
+    window.addEventListener("load", function(){
+      navigator.serviceWorker.register("/sw.js").catch(function(){});
+    });
+  }
+
+  window._sjClearAppCache = async function(){
+    try {
+      if (window.caches && caches.keys) {
+        var keys = await caches.keys();
+        await Promise.all(keys.map(function(k){ return caches.delete(k); }));
+      }
+      if ("serviceWorker" in navigator && navigator.serviceWorker.getRegistrations) {
+        var regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(function(r){ return r.unregister(); }));
+      }
+      try { localStorage.setItem(STORAGE_KEY, APP_VERSION); } catch(e){}
+    } catch(e){ console.warn("[Sjalavard] cache clear failed", e); }
+    setTimeout(function(){ window.location.reload(); }, 400);
+  };
+
+  function _sjGetClient(){
+    if (window.__supa__ && window.__supa__.from) return window.__supa__;
+    try {
+      if (window.supabase && window.supabase.createClient) {
+        return window.supabase.createClient(
+          "https://rlwdqrvosbbdwmnrohxd.supabase.co",
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJsd2RxcnZvc2JiZHdtbnJvaHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MjA1NjQsImV4cCI6MjA4ODk5NjU2NH0.x1FzJ-qYL-27a-CMABhNzOGlpCH3nbeH42Nls7XkQX8"
+        );
+      }
+    } catch(e){}
+    return null;
+  }
+
+  function _sjIsAdmin(){
+    try {
+      var u = (window.netlifyIdentity && window.netlifyIdentity.currentUser && window.netlifyIdentity.currentUser()) || null;
+      if (!u || !u.email) return false;
+      return ADMIN_EMAILS.indexOf(u.email) >= 0;
+    } catch(e){ return false; }
+  }
+
+  window._sjAdminForceCacheBust = async function(){
+    try {
+      if (!_sjIsAdmin()) { alert("Admin only."); return; }
+      var client = _sjGetClient();
+      if (!client) { alert("Supabase not ready yet."); return; }
+      var bust = String(Date.now());
+      var res = await client.from("app_config").upsert({ key: "cache_bust_version", value: bust }, { onConflict: "key" });
+      if (res.error) {
+        if ((res.error.message || "").toLowerCase().indexOf("does not exist") >= 0 ||
+            res.error.code === "42P01" || res.error.code === "PGRST205") {
+          _sjShowAdminCacheSetup();
+          return;
+        }
+        alert("Force refresh failed: " + res.error.message);
+        return;
+      }
+      alert("✓ Cache refresh queued for all users.");
+    } catch(e){ alert("Force refresh failed: " + (e && e.message || e)); }
+  };
+
+  window._sjCheckAdminCacheBust = async function(){
+    try {
+      if (localStorage.getItem("sj_app_config_missing") === "1") return;
+      var client = _sjGetClient();
+      if (!client) return;
+      var res = await client.from("app_config").select("value").eq("key", "cache_bust_version").maybeSingle();
+      if (res.error) {
+        if ((res.error.message || "").toLowerCase().indexOf("does not exist") >= 0 ||
+            res.error.code === "42P01" || res.error.code === "PGRST205") {
+          localStorage.setItem("sj_app_config_missing", "1");
+        }
+        return;
+      }
+      if (!res.data) return;
+      var remoteV = res.data.value;
+      var localV  = localStorage.getItem("sj_admin_cache_bust_v") || "";
+      if (remoteV && remoteV !== localV) {
+        localStorage.setItem("sj_admin_cache_bust_v", remoteV);
+        await window._sjClearAppCache();
+      }
+    } catch(e){ /* silent */ }
+  };
+
+  function _sjRenderAdminButton(){
+    try {
+      var isAdmin = _sjIsAdmin();
+      var btn = document.getElementById("sj-admin-cachebust");
+      if (isAdmin && !btn) {
+        btn = document.createElement("button");
+        btn.id = "sj-admin-cachebust";
+        btn.type = "button";
+        btn.title = "Force every user's app to refresh on their next load";
+        btn.textContent = "↻ Force refresh all users";
+        btn.style.cssText = "position:fixed;bottom:12px;right:12px;z-index:99998;background:#1e4e6d;color:#fff;border:1.5px solid #a8cde0;border-radius:999px;padding:8px 14px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.2)";
+        btn.addEventListener("click", function(){
+          if (confirm("Force a one-time silent refresh for every signed-in user? They won't lose any data.")) {
+            window._sjAdminForceCacheBust();
+          }
+        });
+        (document.body || document.documentElement).appendChild(btn);
+      } else if (!isAdmin && btn) {
+        btn.remove();
+      }
+    } catch(e){}
+  }
+  window._sjRenderAdminButton = _sjRenderAdminButton;
+
+  var _sjWireIdentity = function(){
+    try {
+      if (!window.netlifyIdentity || !window.netlifyIdentity.on) return false;
+      window.netlifyIdentity.on("init",   function(){ _sjRenderAdminButton(); window._sjCheckAdminCacheBust && window._sjCheckAdminCacheBust(); });
+      window.netlifyIdentity.on("login",  function(){ _sjRenderAdminButton(); window._sjCheckAdminCacheBust && window._sjCheckAdminCacheBust(); });
+      window.netlifyIdentity.on("logout", function(){ _sjRenderAdminButton(); });
+      return true;
+    } catch(e){ return false; }
+  };
+  var _sjWait = 0;
+  var _sjTimer = setInterval(function(){
+    if (_sjWireIdentity() || ++_sjWait > 50) clearInterval(_sjTimer);
+  }, 200);
+
+  function _sjShowAdminCacheSetup(){
+    var m = document.createElement("div");
+    m.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;font-family:inherit";
+    m.innerHTML =
+      '<div style="background:#fff;border-radius:14px;padding:24px;max-width:540px;width:100%;max-height:90vh;overflow:auto">' +
+        '<div style="font-weight:700;font-size:15px;margin-bottom:8px">One-time Supabase setup for Sjalavard</div>' +
+        '<div style="font-size:13px;color:#555;margin-bottom:12px">Run this once in the Sjalavard Supabase SQL editor (rlwdqrvosbbdwmnrohxd), then click Force refresh again:</div>' +
+        '<pre style="background:#f5f7fa;border:1px solid #dde5ec;border-radius:8px;padding:12px;font-size:11px;overflow:auto;white-space:pre-wrap;margin:0 0 12px">CREATE TABLE IF NOT EXISTS app_config (\n  key TEXT PRIMARY KEY,\n  value TEXT,\n  updated_at TIMESTAMPTZ DEFAULT now()\n);\nALTER TABLE app_config ENABLE ROW LEVEL SECURITY;\nCREATE POLICY "app_config_read_all" ON app_config FOR SELECT USING (true);\nCREATE POLICY "app_config_write_auth" ON app_config FOR ALL USING (auth.role() = \'authenticated\') WITH CHECK (auth.role() = \'authenticated\');</pre>' +
+        '<button id="sj-setup-close" style="background:#1e4e6d;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer">Close</button>' +
+      '</div>';
+    document.body.appendChild(m);
+    var c = document.getElementById("sj-setup-close");
+    if (c) c.addEventListener("click", function(){ m.remove(); try { localStorage.removeItem("sj_app_config_missing"); } catch(e){} });
+  }
+
+  try {
+    var origin = (window.location && window.location.origin) || "";
+    var isLocalCopy = origin === "null" || /^file:/.test(origin);
+    if (isLocalCopy) {
+      setTimeout(function(){
+        fetch(LIVE_URL + "/version.txt?ts=" + Date.now(), { cache: "no-store" })
+          .then(function(r){ return r.ok ? r.text() : null; })
+          .then(function(txt){
+            if (!txt) return;
+            var remote = txt.trim();
+            if (!remote || remote <= APP_VERSION) return;
+            if (sessionStorage.getItem("sj-update-dismissed") === remote) return;
+            _sjShowUpdateBanner(remote);
+          })
+          .catch(function(){});
+      }, 1500);
+    }
+  } catch(e){}
+
+  function _sjShowUpdateBanner(remote){
+    if (document.getElementById("sj-update-banner")) return;
+    var b = document.createElement("div");
+    b.id = "sj-update-banner";
+    b.style.cssText = "position:fixed;top:10px;right:10px;z-index:99999;max-width:340px;background:#fff;border:1.5px solid #a8cde0;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:12px 14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:.85rem;color:#1e4e6d";
+    b.innerHTML =
+      '<div style="font-weight:700;margin-bottom:4px">Update available</div>' +
+      '<div style="font-size:.78rem;color:#5a6470;margin-bottom:8px">Your copy: <code>' + APP_VERSION + '</code><br>Live: <code>' + remote + '</code></div>' +
+      '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
+        '<a href="' + LIVE_URL + '" target="_blank" rel="noopener" style="background:#1e4e6d;color:#fff;text-decoration:none;padding:6px 10px;border-radius:6px;font-weight:600;font-size:.78rem">Open live</a>' +
+        '<button id="sj-update-dismiss" style="all:unset;cursor:pointer;color:#94a3b8;font-size:.78rem;padding:6px 4px">Not now</button>' +
+      '</div>';
+    (document.body || document.documentElement).appendChild(b);
+    var d = document.getElementById("sj-update-dismiss");
+    if (d) d.addEventListener("click", function(){
+      try { sessionStorage.setItem("sj-update-dismissed", remote); } catch(e){}
+      b.remove();
+    });
+  }
+})();
+</script>
 <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <!-- ── SJALAVARD TAKE A TOUR — bootstrap ─────────────────────── -->
@@ -336,6 +553,9 @@ var SB_URL = "https://rlwdqrvosbbdwmnrohxd.supabase.co";
 var SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJsd2RxcnZvc2JiZHdtbnJvaHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MjA1NjQsImV4cCI6MjA4ODk5NjU2NH0.x1FzJ-qYL-27a-CMABhNzOGlpCH3nbeH42Nls7XkQX8";
 var _supabaseLib = typeof supabase !== "undefined" ? supabase : window.supabase;
 var sb = _supabaseLib.createClient(SB_URL, SB_KEY);
+// Expose the shared client so the top-of-head cache-reset code can reuse it
+// for admin force-refresh polling (avoids creating a second Supabase client).
+try { window.__supa__ = sb; } catch(e){}
 function getSbWithAuth() {
   return sb; // RLS disabled
 }
@@ -475,6 +695,72 @@ async function dbGetCheckIns(uid) {
     return r.data && r.data.data && r.data.data.checkins || {};
   } catch (e) {
     return {};
+  }
+}
+
+// Focus Supabase functions — one ongoing area a user tends over time.
+// Read-merge-write pattern against profiles.data (same shape as check-ins/prayers).
+async function dbSetFocus(uid, email, focusObj) {
+  try {
+    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).single();
+    var data = r.data && r.data.data || {};
+    data.focus = focusObj;
+    await getSbWithAuth().from("profiles").upsert({
+      id: uid,
+      email: email,
+      data: data,
+      updated_at: new Date().toISOString()
+    });
+    return data;
+  } catch (e) {
+    console.error("dbSetFocus error:", e.message);
+    return null;
+  }
+}
+async function dbAppendFocusThread(uid, email, entry) {
+  try {
+    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).single();
+    var data = r.data && r.data.data || {};
+    if (!data.focus) return null;
+    if (!data.focus.thread) data.focus.thread = [];
+    data.focus.thread.unshift(entry);
+    data.focus.sessionCount = (data.focus.sessionCount || 0) + 1;
+    data.focus.lastWorkedAt = new Date().toISOString();
+    await getSbWithAuth().from("profiles").upsert({
+      id: uid,
+      email: email,
+      data: data,
+      updated_at: new Date().toISOString()
+    });
+    return data.focus;
+  } catch (e) {
+    console.error("dbAppendFocusThread error:", e.message);
+    return null;
+  }
+}
+async function dbClearFocus(uid, email) {
+  try {
+    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).single();
+    var data = r.data && r.data.data || {};
+    if (data.focus) {
+      if (!data.focusHistory) data.focusHistory = [];
+      var graduated = Object.assign({}, data.focus, {
+        status: "graduated",
+        graduatedAt: new Date().toISOString()
+      });
+      data.focusHistory.unshift(graduated);
+    }
+    data.focus = null;
+    await getSbWithAuth().from("profiles").upsert({
+      id: uid,
+      email: email,
+      data: data,
+      updated_at: new Date().toISOString()
+    });
+    return data;
+  } catch (e) {
+    console.error("dbClearFocus error:", e.message);
+    return null;
   }
 }
 var FH_URL = "https://fosterhopewebsite.netlify.app";
@@ -676,7 +962,7 @@ function lsDel(k, uid) {
     localStorage.removeItem(key);
   } catch (e) {}
 }
-function buildSys(p, sessions) {
+function buildSys(p, sessions, mode) {
   var goals = p.goals && p.goals.length ? p.goals.map(function (g, i) {
     return i + 1 + ". " + g;
   }).join("\n") : "Not specified.";
@@ -698,7 +984,23 @@ function buildSys(p, sessions) {
       }).join("\n");
     }
   }
-  return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care.\nYou combine CBT (David Burns), neuroscience, biblical truth, and Spirit-led pastoral care.\nSjalavard\'s mission: walk with people through the thoughts that weigh them down — helping them catch the lies their mind tells them, replace them with what is actually true, and find their way back to freedom. All grounded in biblical truth and practical principles that work." + authLine + "\nPrioritize grace, identity in Christ, Spirit transformation.\n" + (p.firstName ? "Name: " + p.firstName + ".\n" : "") + (p.bio ? "About this person: " + p.bio + "\n" : "") + "BACKGROUND CONTEXT (do not bring up directly - use only as quiet background awareness):\nPatterns this person has named: " + struggles + ".\nDirections they want to grow: " + goals + "\n\nNEVER reference these lists by name. Let the person lead. Your job is to follow them.\nNEVER write prayers. Invite the person to pray in their own words instead.\nIf someone expresses suicidal thoughts, acknowledge their pain, show care, provide 988 Lifeline. Do not proceed until safety is addressed.\n\nSession arc:\nResponse 1: Lead with CBT (David Burns). Validate their feelings. Gently identify the cognitive distortion at work. Ask one question.\nResponse 2: Bring in Dr. Caroline Leaf. Help them understand how this thought pattern affects the brain and how the mind can be rewired. Ask one question.\nResponse 3: Draw from the person\'s chosen author naturally and without forcing it. Offer spiritual grounding. Ask one question.\nResponse 4: Wrap up. Give a warm summary of the session. Offer 3 guided reflection questions for them to sit with. Invite them to bring what was discussed to God in their own prayer — do not write a prayer for them. Then transition to gratitude.\n\nKeep each response warm, direct, and focused. No flattery. This is holy ground." + mem;
+  // Focus context — only injected when this is a Focus Session and the user has set one.
+  // Focus is user-chosen and user-named, so Sjal can reference it openly (unlike struggles/goals).
+  var focusBlock = "";
+  if (mode === "focus" && p.focus && p.focus.title) {
+    var f = p.focus;
+    focusBlock = "\n\nCURRENT FOCUS (the user has chosen to work on this area over time — name it openly and honor the continuity):\nFocus: " + f.title + ".";
+    if (f.description) focusBlock += "\nTheir words on why: " + f.description;
+    if (f.sessionCount) focusBlock += "\nSessions on this focus so far: " + f.sessionCount + ".";
+    if (f.thread && f.thread.length) {
+      var recentInsights = f.thread.slice(0, 5).map(function (t) {
+        return "- " + (t.date || "") + ": " + (t.insight || "");
+      }).join("\n");
+      focusBlock += "\nRecent threads of insight (most recent first):\n" + recentInsights;
+    }
+    focusBlock += "\n\nThis is a FOCUS SESSION. Open by naming the focus directly. Connect to earlier threads when natural. Honor their ongoing work. Still follow the 4-response session arc below.";
+  }
+  return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care.\nYou combine CBT (David Burns), neuroscience, biblical truth, and Spirit-led pastoral care.\nSjalavard\'s mission: walk with people through the thoughts that weigh them down — helping them catch the lies their mind tells them, replace them with what is actually true, and find their way back to freedom. All grounded in biblical truth and practical principles that work." + authLine + "\nPrioritize grace, identity in Christ, Spirit transformation.\n" + (p.firstName ? "Name: " + p.firstName + ".\n" : "") + (p.bio ? "About this person: " + p.bio + "\n" : "") + "BACKGROUND CONTEXT (do not bring up directly - use only as quiet background awareness):\nPatterns this person has named: " + struggles + ".\nDirections they want to grow: " + goals + "\n\nNEVER reference these lists by name. Let the person lead. Your job is to follow them.\nNEVER write prayers. Invite the person to pray in their own words instead.\nIf someone expresses suicidal thoughts, acknowledge their pain, show care, provide 988 Lifeline. Do not proceed until safety is addressed." + focusBlock + "\n\nSession arc:\nResponse 1: Lead with CBT (David Burns). Validate their feelings. Gently identify the cognitive distortion at work. Ask one question.\nResponse 2: Bring in Dr. Caroline Leaf. Help them understand how this thought pattern affects the brain and how the mind can be rewired. Ask one question.\nResponse 3: Draw from the person\'s chosen author naturally and without forcing it. Offer spiritual grounding. Ask one question.\nResponse 4: Wrap up. Give a warm summary of the session. Offer 3 guided reflection questions for them to sit with. Invite them to bring what was discussed to God in their own prayer — do not write a prayer for them. Then transition to gratitude.\n\nKeep each response warm, direct, and focused. No flattery. This is holy ground." + mem;
 }
 function autoBackup(uid, email, profile, sessions, prayers, checkins) {
   try {
@@ -2273,15 +2575,24 @@ function App({
   var [ciMood, setCiMood] = useState("");
   var [ciNote, setCiNote] = useState("");
   var [ciDone, setCiDone] = useState(false);
+  var [ciFocusUp, setCiFocusUp] = useState(null); // null | true | false — optional Focus tie-in
   var [prayers, setPrayers] = useState([]);
   var [prayText, setPrayText] = useState("");
   var [prayTitle, setPrayTitle] = useState("");
+  var [prayLinkFocus, setPrayLinkFocus] = useState(false);
   var [expanded, setExpanded] = useState(null);
   var [editAuthors, setEditAuthors] = useState(false);
   var [showSetup, setShowSetup] = useState(false);
   var [allCheckIns, setAllCheckIns] = useState({});
   var [editAuthorsList, setEditAuthorsList] = useState([]);
   var [editAuthorsOther, setEditAuthorsOther] = useState("");
+  // Focus feature: one ongoing area a user tends over time.
+  // sessionMode: "regular" (open-ended) or "focus" (loads Focus context into buildSys and writes a thread insight on completion).
+  var [sessionMode, setSessionMode] = useState("regular");
+  var [focusTitle, setFocusTitle] = useState("");
+  var [focusDesc, setFocusDesc] = useState("");
+  var [focusEditing, setFocusEditing] = useState(false);
+  var [focusGradConfirm, setFocusGradConfirm] = useState(false);
   var bottomRef = useRef(null);
   useEffect(function () {
     async function load() {
@@ -2405,7 +2716,7 @@ function App({
       var count = hist.filter(function (m) {
         return m.role === "user";
       }).length;
-      var sys = buildSys(profile, sessions);
+      var sys = buildSys(profile, sessions, sessionMode);
       var closeNote = count >= 5 ? "\n\nINSTRUCTION: Close this session now. Summarize the key insight and reframe. Invite the person to bring what was discussed to God in their own prayer — do not write a prayer yourself. End with 'This feels like a good place to pause.'" : "";
       var res = await fetch("/api/gemini", {
         method: "POST",
@@ -2535,6 +2846,7 @@ function App({
     setSumLoading(false);
   }
   async function saveSession() {
+    var isFocus = sessionMode === "focus" && profile.focus && profile.focus.id;
     var s = {
       date: new Date().toLocaleDateString("en-US", {
         weekday: "long",
@@ -2552,12 +2864,41 @@ function App({
       opening: text,
       gratitude: [...grat],
       summary: summary,
-      actionStep: actionStep
+      actionStep: actionStep,
+      focusId: isFocus ? profile.focus.id : null
     };
     await dbAddSession(uid, s);
     setSessions(function (prev) {
       return [s, ...prev];
     });
+    // If this was a Focus Session, append a one-line thread insight to profile.focus.thread.
+    // Use the first sentence of the summary to keep it tight — no extra Gemini call.
+    if (isFocus) {
+      var insight = "";
+      if (summary) {
+        var firstSentence = summary.split(/(?<=[.!?])\s/)[0] || summary;
+        insight = firstSentence.slice(0, 220);
+      } else if (actionStep) {
+        insight = actionStep.slice(0, 220);
+      } else {
+        insight = "Sat with " + profile.focus.title + ".";
+      }
+      var threadEntry = {
+        date: s.date,
+        savedAt: s.savedAt,
+        insight: insight,
+        moods: s.moods,
+        distortion: s.distortion
+      };
+      var updated = await dbAppendFocusThread(uid, email, threadEntry);
+      if (updated) {
+        setProfile(function (prev) {
+          return Object.assign({}, prev, {
+            focus: updated
+          });
+        });
+      }
+    }
     lsDel("draft", uid);
     setPhase("mood");
     setMoods([]);
@@ -2571,6 +2912,7 @@ function App({
     setGrat(["", "", ""]);
     setSummary("");
     setActionStep("");
+    setSessionMode("regular");
   }
   function toggleMood(l) {
     var i = moods.indexOf(l);
@@ -2590,6 +2932,10 @@ function App({
       note: ciNote,
       date: today
     };
+    if (profile.focus && ciFocusUp !== null) {
+      entry.focusShowedUp = ciFocusUp;
+      entry.focusId = profile.focus.id;
+    }
     // Save to Supabase for cross-device sync
     dbSaveCheckIn(uid, today, entry);
     // Update local state immediately for responsive UI
@@ -2613,11 +2959,15 @@ function App({
       }),
       answered: false
     };
+    if (prayLinkFocus && profile.focus && profile.focus.id) {
+      entry.linkedFocus = profile.focus.id;
+    }
     var u = [entry, ...prayers];
     setPrayers(u);
     dbSavePrayers(uid, u);
     setPrayText("");
     setPrayTitle("");
+    setPrayLinkFocus(false);
   }
   function togglePray(id) {
     var u = prayers.map(function (p) {
@@ -2866,7 +3216,11 @@ function App({
       display: "flex",
       overflowX: "auto"
     }
-  }, [["session", "Session"], ["journal", "Prayer"], ["history", "Past Sessions"], ["profile", "Profile"], ["included", "Features"], ["legal", "Legal"]].map(function (vl) {
+  }, (function () {
+    var base = [["session", "Session"]];
+    if (profile.focus || profile.focusHistory && profile.focusHistory.length) base.push(["focus", "Focus"]);
+    return base.concat([["journal", "Prayer"], ["history", "Past Sessions"], ["profile", "Profile"], ["included", "Features"], ["legal", "Legal"]]);
+  })().map(function (vl) {
     return /*#__PURE__*/React.createElement("button", {
       key: vl[0],
       onClick: function () {
@@ -3199,7 +3553,50 @@ function App({
       fontSize: 15,
       marginBottom: 10
     }
-  }), /*#__PURE__*/React.createElement("button", {
+  }), profile.focus && profile.focus.title && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 12,
+      padding: "10px 12px",
+      background: "rgba(91,184,160,0.06)",
+      border: "1px solid rgba(91,184,160,0.2)",
+      borderRadius: 8
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: C.muted,
+      marginBottom: 8
+    }
+  }, "Did ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: C.success,
+      fontWeight: 600
+    }
+  }, profile.focus.title), " show up today?"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 6
+    }
+  }, [["yes", true], ["no", false], ["skip", null]].map(function (opt) {
+    var selected = ciFocusUp === opt[1];
+    return /*#__PURE__*/React.createElement("button", {
+      key: opt[0],
+      onClick: function () {
+        setCiFocusUp(opt[1]);
+      },
+      style: {
+        padding: "5px 12px",
+        background: selected ? "rgba(91,184,160,0.2)" : C.surf,
+        border: "1px solid " + (selected ? C.success : C.border),
+        borderRadius: 16,
+        color: selected ? C.success : C.muted,
+        fontSize: 13,
+        cursor: "pointer",
+        fontWeight: selected ? 700 : 400,
+        textTransform: "capitalize"
+      }
+    }, opt[0]);
+  }))), /*#__PURE__*/React.createElement("button", {
     onClick: saveCI,
     disabled: !ciMood,
     style: {
@@ -3300,7 +3697,101 @@ function App({
       marginBottom: 4,
       letterSpacing: 0.3
     }
-  }, greeting(firstName)), /*#__PURE__*/React.createElement("h2", {
+  }, greeting(firstName)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      marginBottom: 18,
+      marginTop: 6
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setSessionMode("regular");
+    },
+    style: {
+      flex: 1,
+      padding: "12px 10px",
+      background: sessionMode === "regular" ? "rgba(61,197,232,0.18)" : C.surf,
+      border: "1.5px solid " + (sessionMode === "regular" ? C.acc : C.border),
+      borderRadius: 10,
+      color: sessionMode === "regular" ? C.acc : C.muted,
+      fontSize: 14,
+      cursor: "pointer",
+      fontWeight: sessionMode === "regular" ? 700 : 500,
+      textAlign: "center",
+      lineHeight: 1.3
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 700,
+      marginBottom: 2
+    }
+  }, "Regular Session"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      opacity: 0.85
+    }
+  }, "Whatever is on your heart")), profile.focus && profile.focus.title ? /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setSessionMode("focus");
+    },
+    style: {
+      flex: 1,
+      padding: "12px 10px",
+      background: sessionMode === "focus" ? "rgba(91,184,160,0.18)" : C.surf,
+      border: "1.5px solid " + (sessionMode === "focus" ? C.success : C.border),
+      borderRadius: 10,
+      color: sessionMode === "focus" ? C.success : C.muted,
+      fontSize: 14,
+      cursor: "pointer",
+      fontWeight: sessionMode === "focus" ? 700 : 500,
+      textAlign: "center",
+      lineHeight: 1.3
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 700,
+      marginBottom: 2
+    }
+  }, "Work on your Focus"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      opacity: 0.85,
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap"
+    }
+  }, profile.focus.title)) : /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setTab("focus");
+    },
+    style: {
+      flex: 1,
+      padding: "12px 10px",
+      background: C.surf,
+      border: "1.5px dashed " + C.border,
+      borderRadius: 10,
+      color: C.muted,
+      fontSize: 14,
+      cursor: "pointer",
+      fontWeight: 500,
+      textAlign: "center",
+      lineHeight: 1.3
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 600,
+      marginBottom: 2
+    }
+  }, "Set a Focus \u2192"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      opacity: 0.8
+    }
+  }, "One area to tend over time"))), /*#__PURE__*/React.createElement("h2", {
     style: {
       fontFamily: "'Playfair Display',serif",
       fontSize: 27,
@@ -4181,7 +4672,195 @@ function App({
       cursor: "pointer",
       fontWeight: 700
     }
-  }, "Return to Session")))), tab === "journal" && /*#__PURE__*/React.createElement("div", {
+  }, "Return to Session")))), tab === "focus" && /*#__PURE__*/React.createElement("div", {
+    className: "fi"
+  }, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontFamily: "'Playfair Display',serif",
+      fontSize: 27,
+      fontWeight: 600,
+      marginBottom: 4
+    }
+  }, "Your Focus"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: C.muted,
+      fontSize: 15,
+      marginBottom: 22
+    }
+  }, "One area you are tending over time."), !profile.focus ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: "1px dashed " + C.border,
+      borderRadius: 14,
+      padding: "32px 22px",
+      textAlign: "center"
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 16,
+      color: C.muted,
+      lineHeight: 1.7,
+      marginBottom: 16
+    }
+  }, "You haven\'t set a Focus yet. Pick one area you want to grow or heal in \u2014 Sjal will walk with you through it, session by session."), /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setTab("profile");
+    },
+    style: {
+      padding: "11px 22px",
+      background: C.acc,
+      border: "none",
+      borderRadius: 10,
+      color: C.accText,
+      fontSize: 15,
+      cursor: "pointer",
+      fontWeight: 700
+    }
+  }, "Set a Focus in Profile")) : /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: "1px solid rgba(91,184,160,0.35)",
+      borderRadius: 14,
+      padding: "20px 22px",
+      marginBottom: 18
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: C.success,
+      letterSpacing: 1,
+      textTransform: "uppercase",
+      fontWeight: 700,
+      marginBottom: 6
+    }
+  }, "Current Focus"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 22,
+      color: C.white,
+      fontWeight: 600,
+      marginBottom: 6,
+      fontFamily: "'Playfair Display',serif"
+    }
+  }, profile.focus.title), profile.focus.description && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 15,
+      color: C.muted,
+      lineHeight: 1.65,
+      marginBottom: 12,
+      fontStyle: "italic"
+    }
+  }, profile.focus.description), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 18,
+      flexWrap: "wrap",
+      fontSize: 13,
+      color: C.dim
+    }
+  }, /*#__PURE__*/React.createElement("span", null, (profile.focus.sessionCount || 0) + " Focus session" + ((profile.focus.sessionCount || 0) === 1 ? "" : "s")), (function () {
+    var count = 0;
+    Object.keys(allCheckIns || {}).forEach(function (k) {
+      if (allCheckIns[k] && allCheckIns[k].focusShowedUp === true && allCheckIns[k].focusId === profile.focus.id) count++;
+    });
+    return /*#__PURE__*/React.createElement("span", null, count + " check-in" + (count === 1 ? "" : "s") + " where it showed up");
+  })(), (function () {
+    var count = (prayers || []).filter(function (p) {
+      return p.linkedFocus === profile.focus.id;
+    }).length;
+    return /*#__PURE__*/React.createElement("span", null, count + " linked prayer" + (count === 1 ? "" : "s"));
+  })(), profile.focus.startedAt && /*#__PURE__*/React.createElement("span", null, "Started " + new Date(profile.focus.startedAt).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric"
+  })))), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: C.acc,
+      letterSpacing: 1,
+      textTransform: "uppercase",
+      fontWeight: 700,
+      marginBottom: 10
+    }
+  }, "Thread of insight"), profile.focus.thread && profile.focus.thread.length ? profile.focus.thread.map(function (t, i) {
+    return /*#__PURE__*/React.createElement("div", {
+      key: (t.savedAt || i) + "_" + i,
+      style: {
+        background: C.card,
+        border: "1px solid " + C.border,
+        borderRadius: 12,
+        padding: "14px 16px",
+        marginBottom: 10
+      }
+    }, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 12,
+        color: C.dim,
+        marginBottom: 5,
+        letterSpacing: 0.5
+      }
+    }, t.date || ""), /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 15,
+        color: C.muted,
+        lineHeight: 1.65,
+        margin: 0,
+        fontFamily: "'Playfair Display',Georgia,serif",
+        fontStyle: "italic"
+      }
+    }, t.insight || ""));
+  }) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: "1px dashed " + C.border,
+      borderRadius: 12,
+      padding: "22px 16px",
+      textAlign: "center",
+      color: C.dim,
+      fontSize: 14,
+      lineHeight: 1.6
+    }
+  }, "No Focus sessions yet. Start one from the Session tab to build your thread.")), profile.focusHistory && profile.focusHistory.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 28,
+      paddingTop: 18,
+      borderTop: "1px solid " + C.border
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: C.dim,
+      letterSpacing: 1,
+      textTransform: "uppercase",
+      fontWeight: 700,
+      marginBottom: 10
+    }
+  }, "Graduated"), profile.focusHistory.map(function (fh, i) {
+    return /*#__PURE__*/React.createElement("div", {
+      key: (fh.id || i) + "_" + i,
+      style: {
+        background: "rgba(91,184,160,0.05)",
+        border: "1px solid rgba(91,184,160,0.2)",
+        borderRadius: 10,
+        padding: "10px 14px",
+        marginBottom: 8
+      }
+    }, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 15,
+        color: C.white,
+        fontWeight: 600,
+        marginBottom: 2
+      }
+    }, fh.title), /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 12,
+        color: C.dim
+      }
+    }, (fh.sessionCount || 0) + " session" + ((fh.sessionCount || 0) === 1 ? "" : "s") + (fh.graduatedAt ? " \u00b7 graduated " + new Date(fh.graduatedAt).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric"
+    }) : "")));
+  }))), tab === "journal" && /*#__PURE__*/React.createElement("div", {
     className: "fi"
   }, /*#__PURE__*/React.createElement("h2", {
     style: {
@@ -4240,7 +4919,34 @@ function App({
       fontFamily: "'Playfair Display',Georgia,serif",
       marginBottom: 10
     }
-  }), /*#__PURE__*/React.createElement("button", {
+  }), profile.focus && profile.focus.title && /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      marginBottom: 10,
+      cursor: "pointer",
+      fontSize: 14,
+      color: C.muted
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: prayLinkFocus,
+    onChange: function (e) {
+      setPrayLinkFocus(e.target.checked);
+    },
+    style: {
+      width: 16,
+      height: 16,
+      accentColor: C.success,
+      cursor: "pointer"
+    }
+  }), "Link to my Focus: ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: C.success,
+      fontWeight: 600
+    }
+  }, profile.focus.title)), /*#__PURE__*/React.createElement("button", {
     onClick: savePray,
     disabled: !prayText.trim(),
     style: {
@@ -4890,6 +5596,257 @@ function App({
       fontWeight: 700
     }
   }, "Save Authors"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: "1px solid " + (profile.focus ? "rgba(91,184,160,0.4)" : C.border),
+      borderRadius: 13,
+      padding: "18px 20px",
+      marginBottom: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: profile.focus ? C.success : C.acc,
+      letterSpacing: 1,
+      textTransform: "uppercase",
+      fontWeight: 700
+    }
+  }, "Your Focus"), !focusEditing && /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setFocusTitle(profile.focus && profile.focus.title || "");
+      setFocusDesc(profile.focus && profile.focus.description || "");
+      setFocusEditing(true);
+    },
+    style: {
+      background: "transparent",
+      border: "1px solid " + C.border,
+      borderRadius: 6,
+      padding: "3px 10px",
+      color: C.muted,
+      fontSize: 13,
+      cursor: "pointer"
+    }
+  }, profile.focus ? "Edit" : "Set a Focus")), !focusEditing && !profile.focus && /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: C.dim,
+      fontSize: 15,
+      lineHeight: 1.6,
+      margin: 0
+    }
+  }, "Choose one area you want to tend over time \u2014 something to grow in or heal around (for example, \"social anxiety\", \"anger with my kids\", \"fear of rejection\"). Each Focus Session builds on the last."), !focusEditing && profile.focus && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 17,
+      color: C.white,
+      fontWeight: 600,
+      marginBottom: 4,
+      fontFamily: "'Playfair Display',serif"
+    }
+  }, profile.focus.title), profile.focus.description && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 14,
+      color: C.muted,
+      lineHeight: 1.6,
+      marginBottom: 10,
+      fontStyle: "italic"
+    }
+  }, profile.focus.description), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 14,
+      fontSize: 13,
+      color: C.dim,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("span", null, (profile.focus.sessionCount || 0) + " session" + ((profile.focus.sessionCount || 0) === 1 ? "" : "s")), profile.focus.startedAt && /*#__PURE__*/React.createElement("span", null, "Started " + new Date(profile.focus.startedAt).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric"
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setTab("focus");
+    },
+    style: {
+      background: "rgba(91,184,160,0.15)",
+      border: "1px solid rgba(91,184,160,0.4)",
+      borderRadius: 7,
+      padding: "6px 14px",
+      color: C.success,
+      fontSize: 13,
+      cursor: "pointer",
+      fontWeight: 600
+    }
+  }, "View Journey"), /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setFocusGradConfirm(true);
+    },
+    style: {
+      background: "transparent",
+      border: "1px solid " + C.border,
+      borderRadius: 7,
+      padding: "6px 14px",
+      color: C.muted,
+      fontSize: 13,
+      cursor: "pointer"
+    }
+  }, "Graduate this Focus"))), focusEditing && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("input", {
+    value: focusTitle,
+    onChange: function (e) {
+      setFocusTitle(e.target.value);
+    },
+    placeholder: "Your focus (e.g. Social anxiety)",
+    maxLength: 60,
+    style: {
+      width: "100%",
+      background: C.surf,
+      border: "1px solid " + C.border,
+      borderRadius: 8,
+      padding: "10px 13px",
+      color: C.white,
+      fontSize: 16,
+      marginBottom: 8
+    }
+  }), /*#__PURE__*/React.createElement("textarea", {
+    value: focusDesc,
+    onChange: function (e) {
+      setFocusDesc(e.target.value);
+    },
+    placeholder: "Why this matters to you (one line)",
+    rows: 2,
+    maxLength: 240,
+    style: {
+      width: "100%",
+      background: C.surf,
+      border: "1px solid " + C.border,
+      borderRadius: 8,
+      padding: "10px 13px",
+      color: C.white,
+      fontSize: 15,
+      lineHeight: 1.5,
+      marginBottom: 10,
+      resize: "vertical"
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: async function () {
+      if (!focusTitle.trim()) return;
+      var existing = profile.focus;
+      var nf = {
+        id: existing && existing.id ? existing.id : "f_" + Date.now(),
+        title: focusTitle.trim(),
+        description: focusDesc.trim(),
+        startedAt: existing && existing.startedAt ? existing.startedAt : new Date().toISOString(),
+        lastWorkedAt: existing && existing.lastWorkedAt ? existing.lastWorkedAt : null,
+        sessionCount: existing && existing.sessionCount || 0,
+        thread: existing && existing.thread || [],
+        status: "active"
+      };
+      await dbSetFocus(uid, email, nf);
+      setProfile(function (prev) {
+        return Object.assign({}, prev, {
+          focus: nf
+        });
+      });
+      setFocusEditing(false);
+    },
+    disabled: !focusTitle.trim(),
+    style: {
+      padding: "9px 18px",
+      background: focusTitle.trim() ? C.acc : C.border,
+      border: "none",
+      borderRadius: 8,
+      color: focusTitle.trim() ? C.accText : C.dim,
+      fontSize: 14,
+      cursor: focusTitle.trim() ? "pointer" : "default",
+      fontWeight: 700
+    }
+  }, profile.focus ? "Save" : "Start my Focus"), /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setFocusEditing(false);
+      setFocusTitle("");
+      setFocusDesc("");
+    },
+    style: {
+      padding: "9px 16px",
+      background: "transparent",
+      border: "1px solid " + C.border,
+      borderRadius: 8,
+      color: C.muted,
+      fontSize: 14,
+      cursor: "pointer"
+    }
+  }, "Cancel"))), focusGradConfirm && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 12,
+      padding: "12px 14px",
+      background: "rgba(224,128,144,0.08)",
+      border: "1px solid rgba(224,128,144,0.3)",
+      borderRadius: 10
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 14,
+      color: C.white,
+      marginBottom: 10,
+      lineHeight: 1.5
+    }
+  }, "Graduate this Focus? It will be archived and you can start a new one."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: async function () {
+      var updated = await dbClearFocus(uid, email);
+      setProfile(function (prev) {
+        return Object.assign({}, prev, {
+          focus: null,
+          focusHistory: updated && updated.focusHistory || prev.focusHistory || []
+        });
+      });
+      setFocusGradConfirm(false);
+      if (sessionMode === "focus") setSessionMode("regular");
+      setTab("profile");
+    },
+    style: {
+      padding: "7px 14px",
+      background: C.success,
+      border: "none",
+      borderRadius: 7,
+      color: "#fff",
+      fontSize: 13,
+      cursor: "pointer",
+      fontWeight: 700
+    }
+  }, "Yes, graduate"), /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setFocusGradConfirm(false);
+    },
+    style: {
+      padding: "7px 14px",
+      background: "transparent",
+      border: "1px solid " + C.border,
+      borderRadius: 7,
+      color: C.muted,
+      fontSize: 13,
+      cursor: "pointer"
+    }
+  }, "Cancel")))), /*#__PURE__*/React.createElement("div", {
     style: {
       background: "rgba(224,128,144,0.08)",
       border: "1px solid rgba(224,128,144,0.25)",
