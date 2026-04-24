@@ -19,7 +19,7 @@
    /version.txt in sync.
    ───────────────────────────────────────────────────────────────────────── */
 (function(){
-  var APP_VERSION = "sjalavard-2026-04-24-patterns-bank-quick";
+  var APP_VERSION = "sjalavard-2026-04-24-tour-update";
   var STORAGE_KEY = "sj_app_v";
   var LIVE_URL    = "https://sjalavard.netlify.app";
   var ADMIN_EMAILS = ["fosterhopefamily@gmail.com"];
@@ -299,6 +299,35 @@
           moods: ["Weary"], distortion: "Should statements" }
       ]
     },
+    patterns: [
+      { id: "pt_tour_1",
+        thought: "They're going to think I'm not enough.",
+        truth: "I am God's beloved without performing.",
+        firstLogged: isoDay(daysAgo(15)),
+        catches: [
+          { savedAt: daysAgo(0).getTime(), date: mdy(daysAgo(0)), note: "" },
+          { savedAt: daysAgo(2).getTime(), date: mdy(daysAgo(2)), note: "" },
+          { savedAt: daysAgo(4).getTime(), date: mdy(daysAgo(4)), note: "" },
+          { savedAt: daysAgo(7).getTime(), date: mdy(daysAgo(7)), note: "" },
+          { savedAt: daysAgo(11).getTime(), date: mdy(daysAgo(11)), note: "" }
+        ],
+        retired: false },
+      { id: "pt_tour_2",
+        thought: "If I say no, they'll be hurt.",
+        truth: "A clear no can be a kindness — to them and to me.",
+        firstLogged: isoDay(daysAgo(10)),
+        catches: [
+          { savedAt: daysAgo(1).getTime(), date: mdy(daysAgo(1)), note: "" },
+          { savedAt: daysAgo(5).getTime(), date: mdy(daysAgo(5)), note: "" }
+        ],
+        retired: false }
+    ],
+    patternsArchive: [],
+    memoryBank: [
+      { id: "mb_tour_1", text: "My belovedness does not depend on their approval.", savedAt: isoDay(daysAgo(4)), source: "session" },
+      { id: "mb_tour_2", text: "A clear no can be a kindness, not a betrayal.", savedAt: isoDay(daysAgo(7)), source: "user" },
+      { id: "mb_tour_3", text: "Feeling guilty does not automatically mean I was wrong.", savedAt: isoDay(daysAgo(11)), source: "session" }
+    ],
     checkins: (function(){
       var c = {};
       c[mdy(daysAgo(0))]  = { mood: 3, note: "Better today. Slept well.",         date: isoDay(daysAgo(0)) };
@@ -8302,10 +8331,13 @@ try {
     { tab:"session",    title:"Your Coach — Sjal", body:"Sjal draws from David Burns' cognitive behavioral therapy, Dr. Caroline Leaf's neuroscience, and classic voices like Manning, Nouwen, and Lewis. For ongoing Focus work, Sjal also pulls from a curated library of Christian clinicians and formation voices — Dr. Curt Thompson, Dr. Henry Cloud, Dan Allender, Diane Langberg, David Benner, Timothy Keller, and more — matched to the area you're tending." },
     { tab:"session",    title:"Two kinds of sessions", body:"Every time you arrive, you choose: a Regular Session for whatever's on your heart today, or a Focus Session to keep walking with your ongoing Focus. Regular Sessions react to the moment. Focus Sessions are guiding — Sjal leads, remembers last time, follows up on your action step, and shifts posture as you go deeper." },
     { tab:"session",    title:"A Session in Action", body:"In a real session, you'd type what's on your heart. Sjal listens, names the distortion (gently), invites neuroscience, weaves in one of your chosen authors, then closes with a summary and a small action step. The sample session 'Anxiety before the meeting' from yesterday shows the arc." },
+    { tab:"session",    title:"⚡ Quick Session — reframe one thought, fast", body:"There's a third kind of session for when you catch a thought in real life and need to take it captive in two minutes. Type the thought; Sjal responds once with a focused CBT reframe — validate, name the distortion, offer a truer thought, give one small invitation. Afterward you can save it as a Pattern to track over time, or bank the truth so Sjal carries it into future sessions." },
     { tab:"focus",      title:"Your Focus — ongoing work", body:"Alex is tending one area over time: people-pleasing. You can see the thread of insights from four prior Focus Sessions — what was noticed, what they took away to practice. Sjal's posture shifts by session count: orient, then deepen, then integrate. Each Focus Session opens by bridging to the last and asking how the action step went." },
     { tab:"journal",    title:"Prayer Journal", body:"A private place for the prayers you carry. Alex has three: a prayer for mom's health, one for freedom from approval-seeking, and one answered prayer about guidance at work. Prayers can also be linked to your Focus — they show up in the Focus tab counts. Mark prayers answered as God moves." },
     { tab:"history",    title:"Past Sessions", body:"Every session is saved — title, summary, action step, and the full exchange. You'll see Alex's three recent sessions here: anxiety, a hard conversation, and coming back to prayer. Revisit anytime to see how the Spirit has been working." },
     { tab:"profile",    title:"Your Profile", body:"Alex has shared: who they are (bio), what they're walking through (anxiety, overthinking, people-pleasing), what they're seeking (inner peace, trusting God more), and whose voices they want to hear. Sjal uses all of this as background. The Focus card here is also where you start, edit, or graduate an ongoing Focus." },
+    { tab:"profile",    title:"Patterns you're catching", body:"Below the Focus card, Alex is logging two recurring thoughts — 'They're going to think I am not enough' and 'If I say no, they will be hurt' — each paired with a truer replacement. Every time the thought shows up in real life, one tap logs a catch. The ⚡ Reframe button on each pattern opens it in a Quick Session. Patterns are background-only to Sjal: known but never named unless you bring them up." },
+    { tab:"profile",    title:"Sjal's Memory Bank", body:"Below Patterns, three banked truths — 'My belovedness does not depend on their approval' and others. Sjal carries these into every future session and references them naturally when fitting. Tap 'Sjal, remember this' on any of Sjal's responses during a session to add to the bank, or add one yourself here." },
     { tab:"features",   title:"Also in Sjalavard", body:"This is the full-page list of everything else inside — daily check-ins, crisis support, installable PWA, private storage, cross-device sync, and more. Scroll the page to read them all, then click Next." },
     { tab:null,         title:"That's the Tour", body:"When you're ready, exit the tour and sign up — your sessions, check-ins, prayers, and Focus are private, encrypted, and sync across every device. Visit sjalavard.com to create your free account.", last:true }
   ];
