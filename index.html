@@ -19,7 +19,7 @@
    /version.txt in sync.
    ───────────────────────────────────────────────────────────────────────── */
 (function(){
-  var APP_VERSION = "sjalavard-2026-04-24-counselor-roots";
+  var APP_VERSION = "sjalavard-2026-04-24-adaptive-layout";
   var STORAGE_KEY = "sj_app_v";
   var LIVE_URL    = "https://sjalavard.netlify.app";
   var ADMIN_EMAILS = ["fosterhopefamily@gmail.com"];
@@ -2899,6 +2899,13 @@ function App({
   var [rootsReply, setRootsReply] = useState("");
   var [rootsLoading, setRootsLoading] = useState(false);
   var [rootsErr, setRootsErr] = useState(null);
+  // Universal adaptive layout — phone gets bottom tabs; tablet/desktop get a left sidebar.
+  var [vw, setVw] = useState(typeof window !== "undefined" ? window.innerWidth : 1024);
+  useEffect(function () {
+    function onResize() { setVw(window.innerWidth); }
+    window.addEventListener("resize", onResize);
+    return function () { window.removeEventListener("resize", onResize); };
+  }, []);
   var bottomRef = useRef(null);
   useEffect(function () {
     async function load() {
@@ -3644,11 +3651,20 @@ function App({
       if (p) setProfile(p);
     });
   }
+  // Adaptive layout values:
+  //   phone (<768px): bottom-fixed tab bar, full-width content with bottom padding
+  //   tablet (768-1023): 220px left sidebar, content shifted right
+  //   desktop (>=1024): 260px sidebar, max-width content centered in remaining space
+  var isPhone = vw < 768;
+  var isDesktop = vw >= 1024;
+  var sidebarW = isDesktop ? 260 : (vw >= 768 ? 220 : 0);
+  var bottomTabsH = isPhone ? 70 : 0;
   return /*#__PURE__*/React.createElement("div", {
     style: {
       minHeight: "100vh",
       background: C.bg,
-      color: C.white
+      color: C.white,
+      paddingLeft: sidebarW
     }
   }, showAbout && /*#__PURE__*/React.createElement(AboutModal, {
     onClose: function () {
@@ -3789,38 +3805,78 @@ function App({
       letterSpacing: 0.5
     }
   }, "OUT")))), /*#__PURE__*/React.createElement("div", {
-    style: {
+    style: isPhone ? {
+      position: "fixed",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: bottomTabsH,
+      background: "rgba(12,28,42,0.97)",
+      backdropFilter: "blur(8px)",
+      borderTop: "1px solid " + C.border,
+      zIndex: 95
+    } : {
+      position: "fixed",
+      top: 0,
+      left: 0,
+      bottom: 0,
+      width: sidebarW,
       background: C.surf,
-      borderBottom: "1px solid " + C.border
+      borderRight: "1px solid " + C.border,
+      zIndex: 95,
+      overflowY: "auto",
+      paddingTop: 64
     }
   }, /*#__PURE__*/React.createElement("div", {
-    style: {
+    style: isPhone ? {
       maxWidth: 700,
       margin: "0 auto",
-      padding: "0 20px",
+      padding: "0 8px",
       display: "flex",
-      overflowX: "auto"
+      overflowX: "auto",
+      height: "100%",
+      alignItems: "center"
+    } : {
+      display: "flex",
+      flexDirection: "column",
+      padding: "8px 12px",
+      gap: 2
     }
   }, (function () {
     var base = [["session", "Session"]];
     if (profile.focus || profile.focusHistory && profile.focusHistory.length) base.push(["focus", "Focus"]);
     return base.concat([["journal", "Prayer"], ["history", "Past Sessions"], ["profile", "Profile"], ["included", "Features"], ["legal", "Legal"]]);
   })().map(function (vl) {
+    var active = tab === vl[0];
     return /*#__PURE__*/React.createElement("button", {
       key: vl[0],
       onClick: function () {
         setTab(vl[0]);
       },
-      style: {
-        padding: "13px 16px",
+      style: isPhone ? {
+        padding: "10px 12px",
         background: "transparent",
         border: "none",
-        borderBottom: "2px solid " + (tab === vl[0] ? C.acc : "transparent"),
-        color: tab === vl[0] ? C.acc : C.muted,
-        fontSize: 15,
+        borderBottom: "2px solid " + (active ? C.acc : "transparent"),
+        color: active ? C.acc : C.muted,
+        fontSize: 13,
         cursor: "pointer",
-        fontWeight: tab === vl[0] ? 700 : 400,
-        whiteSpace: "nowrap"
+        fontWeight: active ? 700 : 500,
+        whiteSpace: "nowrap",
+        flex: 1
+      } : {
+        padding: "10px 14px",
+        background: active ? "rgba(61,197,232,0.15)" : "transparent",
+        border: "none",
+        borderLeft: "3px solid " + (active ? C.acc : "transparent"),
+        borderRadius: "0 8px 8px 0",
+        color: active ? C.acc : C.muted,
+        fontSize: 14,
+        cursor: "pointer",
+        fontWeight: active ? 700 : 500,
+        whiteSpace: "nowrap",
+        textAlign: "left",
+        width: "100%"
       }
     }, vl[1]);
   }))), logoutConfirm && /*#__PURE__*/React.createElement("div", {
@@ -3975,9 +4031,9 @@ function App({
     }
   }, "I understand - continue to Sjal"))), /*#__PURE__*/React.createElement("div", {
     style: {
-      maxWidth: 700,
+      maxWidth: isDesktop ? 800 : 700,
       margin: "0 auto",
-      padding: "24px 16px 120px"
+      padding: isPhone ? "20px 16px " + (bottomTabsH + 28) + "px" : "24px 24px 120px"
     }
   }, tab === "session" && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
