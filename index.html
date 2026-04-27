@@ -19,7 +19,7 @@
    /version.txt in sync.
    ───────────────────────────────────────────────────────────────────────── */
 (function(){
-  var APP_VERSION = "sjalavard-2026-04-24-tour-update";
+  var APP_VERSION = "sjalavard-2026-04-24-counselor-roots";
   var STORAGE_KEY = "sj_app_v";
   var LIVE_URL    = "https://sjalavard.netlify.app";
   var ADMIN_EMAILS = ["fosterhopefamily@gmail.com"];
@@ -836,6 +836,25 @@ async function dbSavePatterns(uid, email, patterns, patternsArchive) {
     return null;
   }
 }
+// Counselor — optional relationship Sjalavard supports (does not replace).
+// profile.data.counselor: { hasOne, name, type, cadence, startedAt, homework[], bringToNext[], history[] }
+async function dbSaveCounselor(uid, email, counselor) {
+  try {
+    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).single();
+    var data = r.data && r.data.data || {};
+    data.counselor = counselor || null;
+    await getSbWithAuth().from("profiles").upsert({
+      id: uid,
+      email: email,
+      data: data,
+      updated_at: new Date().toISOString()
+    });
+    return data;
+  } catch (e) {
+    console.error("dbSaveCounselor error:", e.message);
+    return null;
+  }
+}
 // Memory Bank — banked truths / key identity lines Sjal carries across sessions.
 // Stored as profile.data.memoryBank. Populated by user-initiated actions only.
 async function dbSaveMemoryBank(uid, email, memoryBank) {
@@ -1240,6 +1259,34 @@ function buildSys(p, sessions, mode) {
       });
     }
   }
+  // Counselor — if the user is working with a counselor/therapist/pastor, Sjalavard
+  // SUPPORTS that work; it never replaces it. Sjal honors the clinical frame, defers when
+  // appropriate, and gently surfaces things that may belong in clinical care.
+  var counselorBlock = "";
+  if (p.counselor && p.counselor.hasOne) {
+    var co = p.counselor;
+    counselorBlock = "\n\nCOUNSELOR CONTEXT — this person is working with a counselor. You are NOT a substitute for that work. Honor it.";
+    var who = co.type ? co.type.toLowerCase() : "counselor";
+    if (co.name) counselorBlock += "\nThey see " + co.name + " (" + who + ")";
+    else counselorBlock += "\nThey see a " + who;
+    if (co.cadence) counselorBlock += " on a " + co.cadence.toLowerCase() + " cadence";
+    counselorBlock += ".";
+    if (co.homework && co.homework.length) {
+      var activeHw = co.homework.filter(function (h) { return !h.completed; }).slice(0, 4);
+      if (activeHw.length) {
+        counselorBlock += "\nActive homework from their counselor (background only \u2014 do not push, but you may quietly notice if it relates to what they bring):";
+        activeHw.forEach(function (h) { counselorBlock += "\n- " + (h.text || ""); });
+      }
+    }
+    if (co.bringToNext && co.bringToNext.length) {
+      var pending = co.bringToNext.filter(function (b) { return !b.discussed; }).slice(0, 5);
+      if (pending.length) {
+        counselorBlock += "\nThings they want to bring to the next counseling session (background context only):";
+        pending.forEach(function (b) { counselorBlock += "\n- " + (b.text || ""); });
+      }
+    }
+    counselorBlock += "\n\nHOW TO HONOR THE COUNSELING WORK:\n- When something feels clinical \u2014 trauma, persistent distress, attachment dynamics that need a professional eye, processing of past harm \u2014 gently suggest bringing it to their counselor. Use phrases like \"this might be worth bringing to your next session\" or \"is this something you are exploring with your counselor?\"\n- Do not contradict or critique the counselor's frame, even if their approach differs from CBT or a Christian formation lens. You walk alongside, not over.\n- Surface this awareness ONLY when truly fitting. Do not ask about counseling in every session. Otherwise, stay silent about the counselor and do the work in front of you.";
+  }
   // Memory Bank — things the user has explicitly banked for Sjal to carry forward.
   // These are identity truths, key reframes, formative moments. Reference naturally when fitting.
   var memoryBlock = "";
@@ -1252,9 +1299,9 @@ function buildSys(p, sessions, mode) {
   // Quick Session — single-shot CBT reframe. No session arc, no gratitude, no summary.
   // User hands over one caught thought; Sjal gives ONE focused response.
   if (mode === "quick") {
-    return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care. This is a QUICK SESSION — a single one-shot CBT reframe on ONE thought the person has caught.\n\n" + (p.firstName ? "Name: " + p.firstName + ".\n" : "") + patternsBlock + memoryBlock + "\n\nRespond ONCE with exactly these four beats, in order, warm and direct:\n1. Validate the feeling underneath the thought in one short sentence. Meet them where they are.\n2. Gently name the cognitive distortion at work (the David Burns framework — use accessible language, e.g. \"mind reading,\" \"emotional reasoning,\" \"catastrophizing\"). One sentence.\n3. Offer a truer replacement thought in one or two sentences. Honest, grounded, Spirit-aware, not platitude. If the person already wrote their own truth in their message, build on it rather than override it.\n4. One small invitation they can carry into the next hour. One sentence. Something doable.\n\nRULES:\n- No questions. This is one-shot, not a conversation.\n- Keep the whole response under 6 sentences.\n- End with the invitation — do not wrap up with a blessing or flourish.\n- If the person expresses suicidal thoughts, stop the reframe, acknowledge their pain, provide 988 Lifeline, and encourage them to reach out now.\n- NEVER write prayers. You may invite them to pray in their own words.\nThis is holy ground. One truth, gently.";
+    return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care. This is a QUICK SESSION — a single one-shot CBT reframe on ONE thought the person has caught.\n\n" + (p.firstName ? "Name: " + p.firstName + ".\n" : "") + patternsBlock + memoryBlock + counselorBlock + "\n\nRespond ONCE with exactly these four beats, in order, warm and direct:\n1. Validate the feeling underneath the thought in one short sentence. Meet them where they are.\n2. Gently name the cognitive distortion at work (the David Burns framework — use accessible language, e.g. \"mind reading,\" \"emotional reasoning,\" \"catastrophizing\"). One sentence.\n3. Offer a truer replacement thought in one or two sentences. Honest, grounded, Spirit-aware, not platitude. If the person already wrote their own truth in their message, build on it rather than override it.\n4. One small invitation they can carry into the next hour. One sentence. Something doable.\n\nRULES:\n- No questions. This is one-shot, not a conversation.\n- Keep the whole response under 6 sentences.\n- End with the invitation — do not wrap up with a blessing or flourish.\n- If the person expresses suicidal thoughts, stop the reframe, acknowledge their pain, provide 988 Lifeline, and encourage them to reach out now.\n- NEVER write prayers. You may invite them to pray in their own words.\nThis is holy ground. One truth, gently.";
   }
-  return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care.\nYou combine CBT (David Burns), neuroscience, biblical truth, and Spirit-led pastoral care.\nSjalavard\'s mission: walk with people through the thoughts that weigh them down — helping them catch the lies their mind tells them, replace them with what is actually true, and find their way back to freedom. All grounded in biblical truth and practical principles that work." + authLine + "\nPrioritize grace, identity in Christ, Spirit transformation.\n" + (p.firstName ? "Name: " + p.firstName + ".\n" : "") + (p.bio ? "About this person: " + p.bio + "\n" : "") + "BACKGROUND CONTEXT (do not bring up directly - use only as quiet background awareness):\nPatterns this person has named: " + struggles + ".\nDirections they want to grow: " + goals + "\n\nNEVER reference these lists by name. Let the person lead. Your job is to follow them.\nNEVER write prayers. Invite the person to pray in their own words instead.\nIf someone expresses suicidal thoughts, acknowledge their pain, show care, provide 988 Lifeline. Do not proceed until safety is addressed." + patternsBlock + memoryBlock + focusBlock + "\n\nSession arc:\nResponse 1: Lead with CBT (David Burns). Validate their feelings. Gently identify the cognitive distortion at work. Ask one question.\nResponse 2: Bring in Dr. Caroline Leaf. Help them understand how this thought pattern affects the brain and how the mind can be rewired. Ask one question.\nResponse 3: Draw from the person\'s chosen author naturally and without forcing it. Offer spiritual grounding. Ask one question.\nResponse 4: Wrap up. Give a warm summary of the session. Offer 3 guided reflection questions for them to sit with. Invite them to bring what was discussed to God in their own prayer — do not write a prayer for them. Then transition to gratitude.\n\nKeep each response warm, direct, and focused. No flattery. This is holy ground." + mem;
+  return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care.\nYou combine CBT (David Burns), neuroscience, biblical truth, and Spirit-led pastoral care.\nSjalavard\'s mission: walk with people through the thoughts that weigh them down — helping them catch the lies their mind tells them, replace them with what is actually true, and find their way back to freedom. All grounded in biblical truth and practical principles that work." + authLine + "\nPrioritize grace, identity in Christ, Spirit transformation.\n" + (p.firstName ? "Name: " + p.firstName + ".\n" : "") + (p.bio ? "About this person: " + p.bio + "\n" : "") + "BACKGROUND CONTEXT (do not bring up directly - use only as quiet background awareness):\nPatterns this person has named: " + struggles + ".\nDirections they want to grow: " + goals + "\n\nNEVER reference these lists by name. Let the person lead. Your job is to follow them.\nNEVER write prayers. Invite the person to pray in their own words instead.\nIf someone expresses suicidal thoughts, acknowledge their pain, show care, provide 988 Lifeline. Do not proceed until safety is addressed." + patternsBlock + memoryBlock + counselorBlock + focusBlock + "\n\nSession arc:\nResponse 1: Lead with CBT (David Burns). Validate their feelings. Gently identify the cognitive distortion at work. Ask one question.\nResponse 2: Bring in Dr. Caroline Leaf. Help them understand how this thought pattern affects the brain and how the mind can be rewired. Ask one question.\nResponse 3: Draw from the person\'s chosen author naturally and without forcing it. Offer spiritual grounding. Ask one question.\nResponse 4: Wrap up. Give a warm summary of the session. Offer 3 guided reflection questions for them to sit with. Invite them to bring what was discussed to God in their own prayer — do not write a prayer for them. Then transition to gratitude.\n\nKeep each response warm, direct, and focused. No flattery. This is holy ground." + mem;
 }
 function autoBackup(uid, email, profile, sessions, prayers, checkins) {
   try {
@@ -2358,38 +2405,15 @@ function ProfileSetup({
       color: C.dim,
       marginBottom: 16
     }
-  }, "Signed in as ", email), /*#__PURE__*/React.createElement("label", {
+  }, "Signed in as ", email), /*#__PURE__*/React.createElement("p", {
     style: {
-      fontSize: 13,
-      color: C.muted,
-      letterSpacing: 1,
-      textTransform: "uppercase",
-      fontWeight: 600,
-      display: "block",
-      marginBottom: 7,
-      marginTop: 4
+      fontSize: 14,
+      color: C.dim,
+      lineHeight: 1.6,
+      marginBottom: 16,
+      marginTop: 14
     }
-  }, "Share a bit about yourself"), /*#__PURE__*/React.createElement("textarea", {
-    value: bio,
-    onChange: function (e) {
-      setBio(e.target.value);
-    },
-    placeholder: "Your life, your season, what you\'re carrying. The more you share, the better Sjal can walk with you.",
-    rows: 4,
-    style: {
-      width: "100%",
-      background: C.surf,
-      border: "1.5px solid " + C.border,
-      borderRadius: 10,
-      padding: "12px 14px",
-      color: C.white,
-      fontSize: 16,
-      lineHeight: 1.75,
-      resize: "vertical",
-      fontFamily: "'Playfair Display',Georgia,serif",
-      marginBottom: 16
-    }
-  }), /*#__PURE__*/React.createElement("button", {
+  }, "Sjal will get to know you over time \u2014 through your sessions, the patterns you catch, the truths you bank, and the focus you choose to tend."), /*#__PURE__*/React.createElement("button", {
     onClick: function () {
       if (name.trim()) setStep(2);
     },
@@ -2586,23 +2610,26 @@ function ProfileSetup({
         fontWeight: 700
       }
     }, on ? "v" : ""), g);
-  })), /*#__PURE__*/React.createElement("button", {
-    onClick: function () {
-      setStep(4);
-    },
-    disabled: goals.length === 0,
-    style: {
-      width: "100%",
-      padding: "14px",
-      background: goals.length >= 1 ? C.acc : C.border,
-      border: "none",
-      borderRadius: 12,
-      color: goals.length >= 1 ? C.bg : C.dim,
-      fontSize: 16,
-      cursor: goals.length >= 1 ? "pointer" : "default",
-      fontWeight: 700
-    }
-  }, "Continue (", goals.length, " of 2 selected)")), /*#__PURE__*/React.createElement("div", {
+  })), (function () {
+    var hasGoal = goals.length >= 1 || goalsOther.trim().length > 0;
+    return /*#__PURE__*/React.createElement("button", {
+      onClick: function () {
+        if (hasGoal) setStep(4);
+      },
+      disabled: !hasGoal,
+      style: {
+        width: "100%",
+        padding: "14px",
+        background: hasGoal ? C.acc : C.border,
+        border: "none",
+        borderRadius: 12,
+        color: hasGoal ? C.bg : C.dim,
+        fontSize: 16,
+        cursor: hasGoal ? "pointer" : "default",
+        fontWeight: 700
+      }
+    }, "Continue (", goals.length + (goalsOther.trim() ? 1 : 0), " of 2 selected)");
+  })()), /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 14
     }
@@ -2862,6 +2889,16 @@ function App({
   var [quickSaved, setQuickSaved] = useState(false);
   // Transient "banked" toast when user hits "Sjal, remember this" on a coach message.
   var [bankedAt, setBankedAt] = useState(-1);
+  // Counselor — relationship setup + homework + bring-to-next list. App layer only supports the work.
+  var [counselorEditing, setCounselorEditing] = useState(false);
+  var [counselorDraft, setCounselorDraft] = useState({ name: "", type: "Therapist", cadence: "Weekly" });
+  var [hwDraft, setHwDraft] = useState("");
+  var [bringDraft, setBringDraft] = useState("");
+  var [broughtAt, setBroughtAt] = useState(-1);
+  // Roots — fourth session mode: single-shot diagnostic of what could be causing a feeling/thought.
+  var [rootsReply, setRootsReply] = useState("");
+  var [rootsLoading, setRootsLoading] = useState(false);
+  var [rootsErr, setRootsErr] = useState(null);
   var bottomRef = useRef(null);
   useEffect(function () {
     async function load() {
@@ -3166,6 +3203,137 @@ function App({
     setQuickErr(null);
     setQuickSaved(false);
     setPhase("quickShare");
+  }
+  // Roots — single-shot diagnostic. The user shares a feeling or thought they cannot place;
+  // Sjal returns 3-4 possible underlying causes from different angles.
+  async function runRootsSession() {
+    if (!text.trim()) return;
+    if (hasCrisis(text)) setCrisis(true);
+    setRootsLoading(true);
+    setRootsErr(null);
+    setRootsReply("");
+    try {
+      var sysBase = buildSys(profile, sessions, "regular");
+      var rootsInstr = "\n\nROOTS MODE — the person is asking \"what could be causing this?\". Respond ONCE with exactly:\n1. One short line acknowledging what they shared.\n2. A list of 3-4 possible underlying causes, each one sentence, each from a DIFFERENT angle. Use these angles when fitting:\n   - Recent stressors / situational pressure\n   - A cognitive distortion or thought pattern (Burns)\n   - Relational or attachment dynamics\n   - Body / sleep / hunger / fatigue\n   - Formational, spiritual, or identity-level\n3. One gentle invitation: which of these resonates? They might journal it, pray it, bring it to a Focus Session, or take it to their counselor.\n\nKeep total under 9 sentences. No questions. End with the invitation. Format the causes as a bulleted list with a leading dash so they read as discrete options.";
+      var sys = sysBase + rootsInstr;
+      var res = await fetch("/api/gemini", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: sys }] },
+          contents: [{
+            role: "user",
+            parts: [{ text: "What could be causing this: " + text.trim() }]
+          }],
+          generationConfig: { maxOutputTokens: 800 }
+        })
+      });
+      if (!res.ok) {
+        var ed = await res.json().catch(function () { return {}; });
+        throw new Error(ed && ed.error && ed.error.message || "Error " + res.status);
+      }
+      var data = await res.json();
+      var reply = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text || "I am with you. Let us hold this together.";
+      setRootsReply(reply.trim());
+      setPhase("rootsResult");
+      try {
+        var rSession = {
+          type: "roots",
+          date: new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }),
+          time: new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
+          savedAt: Date.now(),
+          opening: text.trim(),
+          msgs: [
+            { role: "user", content: text.trim() },
+            { role: "coach", content: reply.trim() }
+          ],
+          summary: reply.trim(),
+          focusId: null
+        };
+        await dbAddSession(uid, rSession);
+        setSessions(function (prev) { return [rSession, ...prev]; });
+      } catch (se) { console.warn("roots session save failed", se); }
+    } catch (e) {
+      setRootsErr(e.message || "Connection interrupted. Please try again.");
+    }
+    setRootsLoading(false);
+  }
+  function resetRoots() {
+    setText("");
+    setRootsReply("");
+    setRootsErr(null);
+    setPhase("rootsShare");
+  }
+  // Counselor — save/clear, add homework, mark homework complete, add/discuss bring-to-next.
+  async function saveCounselor(updated) {
+    var co = updated || profile.counselor;
+    var saved = await dbSaveCounselor(uid, email, co);
+    if (saved) {
+      setProfile(function (prev) { return Object.assign({}, prev, { counselor: co }); });
+    }
+  }
+  async function addCounselorHomework(text) {
+    if (!profile.counselor || !profile.counselor.hasOne) return;
+    var entry = { id: "hw_" + Date.now(), text: text.trim(), assignedAt: new Date().toISOString(), completed: false };
+    var co = Object.assign({}, profile.counselor, { homework: (profile.counselor.homework || []).concat([entry]) });
+    await saveCounselor(co);
+  }
+  async function toggleCounselorHomework(id) {
+    if (!profile.counselor) return;
+    var co = Object.assign({}, profile.counselor, {
+      homework: (profile.counselor.homework || []).map(function (h) {
+        if (h.id !== id) return h;
+        return Object.assign({}, h, {
+          completed: !h.completed,
+          completedAt: !h.completed ? new Date().toISOString() : null
+        });
+      })
+    });
+    await saveCounselor(co);
+  }
+  async function deleteCounselorHomework(id) {
+    if (!profile.counselor) return;
+    var co = Object.assign({}, profile.counselor, {
+      homework: (profile.counselor.homework || []).filter(function (h) { return h.id !== id; })
+    });
+    await saveCounselor(co);
+  }
+  async function addBringToNext(text, source, idx) {
+    if (!profile.counselor || !profile.counselor.hasOne) return;
+    var clean = (text || "").trim();
+    if (!clean) return;
+    var existing = profile.counselor.bringToNext || [];
+    if (existing.some(function (b) { return b.text === clean; })) {
+      if (typeof idx === "number") {
+        setBroughtAt(idx);
+        setTimeout(function () { setBroughtAt(-1); }, 1800);
+      }
+      return;
+    }
+    var entry = { id: "br_" + Date.now(), text: clean.slice(0, 400), savedAt: new Date().toISOString(), source: source || "user", discussed: false };
+    var co = Object.assign({}, profile.counselor, { bringToNext: existing.concat([entry]) });
+    await saveCounselor(co);
+    if (typeof idx === "number") {
+      setBroughtAt(idx);
+      setTimeout(function () { setBroughtAt(-1); }, 1800);
+    }
+  }
+  async function markBringDiscussed(id) {
+    if (!profile.counselor) return;
+    var co = Object.assign({}, profile.counselor, {
+      bringToNext: (profile.counselor.bringToNext || []).map(function (b) {
+        if (b.id !== id) return b;
+        return Object.assign({}, b, { discussed: true, discussedAt: new Date().toISOString() });
+      })
+    });
+    await saveCounselor(co);
+  }
+  async function deleteBring(id) {
+    if (!profile.counselor) return;
+    var co = Object.assign({}, profile.counselor, {
+      bringToNext: (profile.counselor.bringToNext || []).filter(function (b) { return b.id !== id; })
+    });
+    await saveCounselor(co);
   }
   // "Sjal, remember this" — user-initiated bank from any coach message.
   async function bankCoachMessage(content, idx) {
@@ -4178,7 +4346,8 @@ function App({
     }
   }, greeting(firstName)), /*#__PURE__*/React.createElement("div", {
     style: {
-      display: "flex",
+      display: "grid",
+      gridTemplateColumns: "repeat(2, 1fr)",
       gap: 8,
       marginBottom: 18,
       marginTop: 6
@@ -4304,7 +4473,39 @@ function App({
       fontSize: 12,
       opacity: 0.85
     }
-  }, "Reframe one thought, fast"))), /*#__PURE__*/React.createElement("h2", {
+  }, "Reframe one thought, fast")), /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setSessionMode("roots");
+      setPhase("rootsShare");
+      setMoods([]);
+      setText("");
+      setRootsReply("");
+      setRootsErr(null);
+    },
+    style: {
+      padding: "12px 10px",
+      background: sessionMode === "roots" ? "rgba(180,140,210,0.18)" : C.surf,
+      border: "1.5px solid " + (sessionMode === "roots" ? "#b48cd2" : C.border),
+      borderRadius: 10,
+      color: sessionMode === "roots" ? "#b48cd2" : C.muted,
+      fontSize: 14,
+      cursor: "pointer",
+      fontWeight: sessionMode === "roots" ? 700 : 500,
+      textAlign: "center",
+      lineHeight: 1.3
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 700,
+      marginBottom: 2
+    }
+  }, "\uD83D\uDD0D Roots"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      opacity: 0.85
+    }
+  }, "What might be causing this?"))), /*#__PURE__*/React.createElement("h2", {
     style: {
       fontFamily: "'Playfair Display',serif",
       fontSize: 27,
@@ -4714,6 +4915,215 @@ function App({
       fontSize: 14,
       cursor: "pointer"
     }
+  }, "\u2190 Back to Session")), phase === "rootsShare" && /*#__PURE__*/React.createElement("div", {
+    className: "fi"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setPhase("mood");
+      setSessionMode("regular");
+    },
+    style: {
+      background: "transparent",
+      border: "none",
+      color: C.muted,
+      cursor: "pointer",
+      fontSize: 15,
+      marginBottom: 14,
+      padding: 0
+    }
+  }, "Back"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 6,
+      marginBottom: 10,
+      padding: "4px 12px",
+      background: "rgba(180,140,210,0.15)",
+      border: "1px solid rgba(180,140,210,0.4)",
+      borderRadius: 20,
+      fontSize: 11,
+      color: "#b48cd2",
+      fontWeight: 700,
+      letterSpacing: 0.5,
+      textTransform: "uppercase"
+    }
+  }, "\uD83D\uDD0D Roots"), /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontFamily: "'Playfair Display',serif",
+      fontSize: 27,
+      fontWeight: 600,
+      marginBottom: 6,
+      letterSpacing: -0.5
+    }
+  }, "What could be causing this?"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: C.muted,
+      fontSize: 16,
+      marginBottom: 16,
+      lineHeight: 1.7
+    }
+  }, "Name the feeling or thought you cannot place. Sjal will offer a few possible roots from different angles \u2014 not to diagnose, but to help you see."), /*#__PURE__*/React.createElement("textarea", {
+    value: text,
+    onChange: function (e) { setText(e.target.value); },
+    placeholder: "I am restless and cannot tell why...   I keep snapping at people I love...   I feel heavy and I do not know where it came from...",
+    rows: 4,
+    style: {
+      width: "100%",
+      background: C.card,
+      border: "1.5px solid " + C.border,
+      borderRadius: 12,
+      padding: "14px",
+      color: C.white,
+      fontSize: 16,
+      lineHeight: 1.75,
+      resize: "vertical",
+      fontFamily: "'Playfair Display',Georgia,serif"
+    }
+  }), rootsErr && /*#__PURE__*/React.createElement("p", {
+    style: { fontSize: 14, color: C.rose, marginTop: 10 }
+  }, rootsErr), /*#__PURE__*/React.createElement("button", {
+    onClick: runRootsSession,
+    disabled: rootsLoading || !text.trim(),
+    style: {
+      width: "100%",
+      marginTop: 14,
+      padding: "14px",
+      background: (rootsLoading || !text.trim()) ? C.border : "#b48cd2",
+      border: "none",
+      borderRadius: 12,
+      color: (rootsLoading || !text.trim()) ? C.dim : "#1e4e6d",
+      fontSize: 16,
+      cursor: (rootsLoading || !text.trim()) ? "default" : "pointer",
+      fontWeight: 700
+    }
+  }, rootsLoading ? "Sjal is reflecting..." : "Show me possible roots \u2192")), phase === "rootsResult" && /*#__PURE__*/React.createElement("div", {
+    className: "fi"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 6,
+      marginBottom: 14,
+      padding: "4px 12px",
+      background: "rgba(180,140,210,0.15)",
+      border: "1px solid rgba(180,140,210,0.4)",
+      borderRadius: 20,
+      fontSize: 11,
+      color: "#b48cd2",
+      fontWeight: 700,
+      letterSpacing: 0.5,
+      textTransform: "uppercase"
+    }
+  }, "\uD83D\uDD0D Roots"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "rgba(180,140,210,0.06)",
+      border: "1px solid rgba(180,140,210,0.25)",
+      borderRadius: 12,
+      padding: "14px 18px",
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: C.muted,
+      marginBottom: 6,
+      letterSpacing: 0.4,
+      textTransform: "uppercase",
+      fontWeight: 700
+    }
+  }, "What you brought"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 16,
+      color: C.white,
+      fontStyle: "italic",
+      lineHeight: 1.7,
+      fontFamily: "'Playfair Display',Georgia,serif"
+    }
+  }, "\"", text, "\"")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: "1.5px solid " + C.border,
+      borderRadius: 12,
+      padding: "18px 20px",
+      marginBottom: 16,
+      whiteSpace: "pre-wrap",
+      fontSize: 16,
+      lineHeight: 1.85,
+      color: C.white,
+      fontFamily: "'Playfair Display',Georgia,serif"
+    }
+  }, rootsReply), /*#__PURE__*/React.createElement("div", {
+    style: { display: "flex", gap: 8, flexWrap: "wrap" }
+  }, profile.counselor && profile.counselor.hasOne && /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      addBringToNext("\"" + text + "\" \u2014 explored possible roots in Sjalavard.", "rootsSession");
+    },
+    style: {
+      flex: "1 1 auto",
+      padding: "11px 14px",
+      background: "rgba(91,184,160,0.15)",
+      border: "1px solid " + C.success,
+      borderRadius: 9,
+      color: C.success,
+      fontSize: 14,
+      cursor: "pointer",
+      fontWeight: 600
+    }
+  }, "Bring to my counselor"), /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      var first = (rootsReply || "").split(/(?<=[.!?])\s/)[0] || rootsReply;
+      var entry = {
+        id: "mb_" + Date.now(),
+        text: first.trim().slice(0, 400),
+        savedAt: new Date().toISOString(),
+        source: "rootsSession"
+      };
+      var list = (profile.memoryBank || []).slice();
+      list.unshift(entry);
+      dbSaveMemoryBank(uid, email, list).then(function () {
+        setProfile(function (prev) { return Object.assign({}, prev, { memoryBank: list }); });
+      });
+    },
+    style: {
+      flex: "1 1 auto",
+      padding: "11px 14px",
+      background: "rgba(61,197,232,0.12)",
+      border: "1px solid " + C.acc,
+      borderRadius: 9,
+      color: C.acc,
+      fontSize: 14,
+      cursor: "pointer",
+      fontWeight: 600
+    }
+  }, "Bank a takeaway"), /*#__PURE__*/React.createElement("button", {
+    onClick: resetRoots,
+    style: {
+      flex: "1 1 auto",
+      padding: "11px 14px",
+      background: "transparent",
+      border: "1px solid " + C.border,
+      borderRadius: 9,
+      color: C.muted,
+      fontSize: 14,
+      cursor: "pointer",
+      fontWeight: 600
+    }
+  }, "Ask another")), /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setText("");
+      setRootsReply("");
+      setRootsErr(null);
+      setSessionMode("regular");
+      setPhase("mood");
+    },
+    style: {
+      marginTop: 18,
+      background: "transparent",
+      border: "none",
+      color: C.dim,
+      fontSize: 14,
+      cursor: "pointer"
+    }
   }, "\u2190 Back to Session")), phase === "coach" && /*#__PURE__*/React.createElement("div", {
     className: "fi"
   }, /*#__PURE__*/React.createElement("div", {
@@ -4827,11 +5237,27 @@ function App({
         paddingTop: 8,
         borderTop: "1px solid rgba(255,255,255,0.12)",
         display: "flex",
-        justifyContent: "flex-end"
+        justifyContent: "flex-end",
+        gap: 6,
+        flexWrap: "wrap"
       }
-    }, /*#__PURE__*/React.createElement("button", {
+    }, profile.counselor && profile.counselor.hasOne && /*#__PURE__*/React.createElement("button", {
+      onClick: function () { addBringToNext(m.content, "session", i); },
+      title: "Flag this to bring up at your next counseling session",
+      style: {
+        background: broughtAt === i ? "rgba(91,184,160,0.15)" : "transparent",
+        border: "1px solid " + (broughtAt === i ? C.success : C.border),
+        borderRadius: 16,
+        padding: "3px 10px",
+        color: broughtAt === i ? C.success : C.muted,
+        fontSize: 11,
+        cursor: "pointer",
+        fontWeight: 600,
+        letterSpacing: 0.3
+      }
+    }, broughtAt === i ? "\u2713 For next session" : "Bring to my counselor"), /*#__PURE__*/React.createElement("button", {
       onClick: function () { bankCoachMessage(m.content, i); },
-      title: "Add this to Sjal\u2019s memory bank so it carries into future sessions",
+      title: "Add this to the memory bank Sjal carries into future sessions",
       style: {
         background: bankedAt === i ? "rgba(91,184,160,0.15)" : "transparent",
         border: "1px solid " + (bankedAt === i ? C.success : C.border),
@@ -6135,15 +6561,7 @@ function App({
       color: C.white,
       marginBottom: 4
     }
-  }, profile.firstName || "Name not set"), profile.bio && /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: 15,
-      color: C.muted,
-      lineHeight: 1.7,
-      marginBottom: 4,
-      fontStyle: "italic"
-    }
-  }, profile.bio), /*#__PURE__*/React.createElement("p", {
+  }, profile.firstName || "Name not set"), /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 13,
       color: C.dim
@@ -7034,6 +7452,411 @@ function App({
       }
     }, "\u00D7"));
   }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: "1px solid " + ((profile.counselor && profile.counselor.hasOne) ? "rgba(91,184,160,0.4)" : C.border),
+      borderRadius: 13,
+      padding: "18px 20px",
+      marginBottom: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: (profile.counselor && profile.counselor.hasOne) ? C.success : C.acc,
+      letterSpacing: 1,
+      textTransform: "uppercase",
+      fontWeight: 700
+    }
+  }, "Working with a counselor"), !counselorEditing && /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setCounselorDraft(profile.counselor ? {
+        name: profile.counselor.name || "",
+        type: profile.counselor.type || "Therapist",
+        cadence: profile.counselor.cadence || "Weekly"
+      } : { name: "", type: "Therapist", cadence: "Weekly" });
+      setCounselorEditing(true);
+    },
+    style: {
+      background: "transparent",
+      border: "1px solid " + C.border,
+      borderRadius: 6,
+      padding: "3px 10px",
+      color: C.muted,
+      fontSize: 13,
+      cursor: "pointer"
+    }
+  }, (profile.counselor && profile.counselor.hasOne) ? "Edit" : "Set up")), !counselorEditing && (!profile.counselor || !profile.counselor.hasOne) && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 14,
+      color: C.dim,
+      lineHeight: 1.6,
+      margin: 0
+    }
+  }, "If you are working with a therapist, counselor, pastor, or coach, let Sjal know. Sjalavard supports the work \u2014 it does not replace it. Sjal will defer to your counselor when something feels clinical."), !counselorEditing && profile.counselor && profile.counselor.hasOne && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 16,
+      color: C.white,
+      fontWeight: 600,
+      marginBottom: 4
+    }
+  }, profile.counselor.name || (profile.counselor.type || "Counselor")), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: C.dim,
+      marginBottom: 14
+    }
+  }, profile.counselor.type, profile.counselor.cadence ? " \u00b7 " + profile.counselor.cadence : ""), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: C.acc,
+      letterSpacing: 0.5,
+      textTransform: "uppercase",
+      fontWeight: 700,
+      marginBottom: 6
+    }
+  }, "Bring to next session"), (profile.counselor.bringToNext || []).filter(function (b) { return !b.discussed; }).length === 0 && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: C.dim,
+      fontStyle: "italic",
+      marginBottom: 10
+    }
+  }, "Nothing flagged yet. Tap \u201cBring to my counselor\u201d on any of Sjal\u2019s responses during a session, or add one below."), (profile.counselor.bringToNext || []).filter(function (b) { return !b.discussed; }).map(function (b) {
+    return /*#__PURE__*/React.createElement("div", {
+      key: b.id,
+      style: {
+        background: C.surf,
+        border: "1px solid " + C.border,
+        borderRadius: 8,
+        padding: "8px 12px",
+        marginBottom: 6,
+        display: "flex",
+        gap: 6,
+        alignItems: "flex-start"
+      }
+    }, /*#__PURE__*/React.createElement("p", {
+      style: {
+        flex: 1,
+        fontSize: 13.5,
+        color: C.white,
+        lineHeight: 1.55,
+        margin: 0
+      }
+    }, b.text), /*#__PURE__*/React.createElement("button", {
+      onClick: function () { markBringDiscussed(b.id); },
+      title: "Mark as discussed with counselor",
+      style: {
+        background: "rgba(91,184,160,0.12)",
+        border: "1px solid rgba(91,184,160,0.4)",
+        borderRadius: 6,
+        padding: "2px 8px",
+        color: C.success,
+        fontSize: 11,
+        cursor: "pointer",
+        fontWeight: 600,
+        flexShrink: 0
+      }
+    }, "Discussed"), /*#__PURE__*/React.createElement("button", {
+      onClick: function () { deleteBring(b.id); },
+      title: "Remove",
+      style: {
+        background: "transparent",
+        border: "1px solid " + C.border,
+        borderRadius: 6,
+        padding: "2px 8px",
+        color: C.dim,
+        fontSize: 11,
+        cursor: "pointer",
+        flexShrink: 0
+      }
+    }, "\u00D7"));
+  }), /*#__PURE__*/React.createElement("div", {
+    style: { display: "flex", gap: 6, marginTop: 6, marginBottom: 14 }
+  }, /*#__PURE__*/React.createElement("input", {
+    value: bringDraft,
+    onChange: function (e) { setBringDraft(e.target.value); },
+    onKeyDown: function (e) {
+      if (e.key === "Enter" && bringDraft.trim()) {
+        addBringToNext(bringDraft.trim(), "user");
+        setBringDraft("");
+      }
+    },
+    placeholder: "Add something to bring to next session...",
+    style: {
+      flex: 1,
+      background: C.surf,
+      border: "1px solid " + C.border,
+      borderRadius: 8,
+      padding: "7px 11px",
+      color: C.white,
+      fontSize: 13
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      if (bringDraft.trim()) {
+        addBringToNext(bringDraft.trim(), "user");
+        setBringDraft("");
+      }
+    },
+    disabled: !bringDraft.trim(),
+    style: {
+      background: bringDraft.trim() ? C.acc : C.border,
+      color: bringDraft.trim() ? C.bg : C.dim,
+      border: "none",
+      borderRadius: 8,
+      padding: "7px 14px",
+      fontSize: 13,
+      fontWeight: 700,
+      cursor: bringDraft.trim() ? "pointer" : "default"
+    }
+  }, "+ Add")), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: C.acc,
+      letterSpacing: 0.5,
+      textTransform: "uppercase",
+      fontWeight: 700,
+      marginBottom: 6,
+      marginTop: 4
+    }
+  }, "Counselor homework"), (profile.counselor.homework || []).filter(function (h) { return !h.completed; }).length === 0 && (profile.counselor.homework || []).length === 0 && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: C.dim,
+      fontStyle: "italic",
+      marginBottom: 10
+    }
+  }, "No active assignments. Add one below if your counselor gave you something to practice this week."), (profile.counselor.homework || []).map(function (h) {
+    return /*#__PURE__*/React.createElement("div", {
+      key: h.id,
+      style: {
+        background: C.surf,
+        border: "1px solid " + C.border,
+        borderRadius: 8,
+        padding: "8px 12px",
+        marginBottom: 6,
+        display: "flex",
+        gap: 6,
+        alignItems: "flex-start",
+        opacity: h.completed ? 0.55 : 1
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: function () { toggleCounselorHomework(h.id); },
+      title: h.completed ? "Mark as not done" : "Mark as done",
+      style: {
+        background: h.completed ? C.success : "transparent",
+        border: "1.5px solid " + (h.completed ? C.success : C.border),
+        borderRadius: 5,
+        width: 18,
+        height: 18,
+        cursor: "pointer",
+        flexShrink: 0,
+        marginTop: 2,
+        color: "#fff",
+        fontSize: 11,
+        fontWeight: 700,
+        padding: 0,
+        lineHeight: 1
+      }
+    }, h.completed ? "\u2713" : ""), /*#__PURE__*/React.createElement("p", {
+      style: {
+        flex: 1,
+        fontSize: 13.5,
+        color: h.completed ? C.dim : C.white,
+        lineHeight: 1.55,
+        margin: 0,
+        textDecoration: h.completed ? "line-through" : "none"
+      }
+    }, h.text), /*#__PURE__*/React.createElement("button", {
+      onClick: function () { deleteCounselorHomework(h.id); },
+      title: "Remove",
+      style: {
+        background: "transparent",
+        border: "1px solid " + C.border,
+        borderRadius: 6,
+        padding: "2px 8px",
+        color: C.dim,
+        fontSize: 11,
+        cursor: "pointer",
+        flexShrink: 0
+      }
+    }, "\u00D7"));
+  }), /*#__PURE__*/React.createElement("div", {
+    style: { display: "flex", gap: 6, marginTop: 6 }
+  }, /*#__PURE__*/React.createElement("input", {
+    value: hwDraft,
+    onChange: function (e) { setHwDraft(e.target.value); },
+    onKeyDown: function (e) {
+      if (e.key === "Enter" && hwDraft.trim()) {
+        addCounselorHomework(hwDraft.trim());
+        setHwDraft("");
+      }
+    },
+    placeholder: "Add something your counselor asked you to work on...",
+    style: {
+      flex: 1,
+      background: C.surf,
+      border: "1px solid " + C.border,
+      borderRadius: 8,
+      padding: "7px 11px",
+      color: C.white,
+      fontSize: 13
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      if (hwDraft.trim()) {
+        addCounselorHomework(hwDraft.trim());
+        setHwDraft("");
+      }
+    },
+    disabled: !hwDraft.trim(),
+    style: {
+      background: hwDraft.trim() ? C.acc : C.border,
+      color: hwDraft.trim() ? C.bg : C.dim,
+      border: "none",
+      borderRadius: 8,
+      padding: "7px 14px",
+      fontSize: 13,
+      fontWeight: 700,
+      cursor: hwDraft.trim() ? "pointer" : "default"
+    }
+  }, "+ Add")), /*#__PURE__*/React.createElement("button", {
+    onClick: async function () {
+      var co = Object.assign({}, profile.counselor, { hasOne: false });
+      await saveCounselor(co);
+    },
+    style: {
+      marginTop: 14,
+      background: "transparent",
+      border: "1px solid " + C.border,
+      borderRadius: 7,
+      padding: "5px 12px",
+      color: C.dim,
+      fontSize: 12,
+      cursor: "pointer"
+    }
+  }, "Pause counselor support")), counselorEditing && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("input", {
+    value: counselorDraft.name,
+    onChange: function (e) {
+      setCounselorDraft(Object.assign({}, counselorDraft, { name: e.target.value }));
+    },
+    placeholder: "Their name (optional, e.g. Dr. Lee or my therapist)",
+    maxLength: 80,
+    style: {
+      width: "100%",
+      background: C.surf,
+      border: "1px solid " + C.border,
+      borderRadius: 8,
+      padding: "10px 13px",
+      color: C.white,
+      fontSize: 15,
+      marginBottom: 8
+    }
+  }), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: C.muted,
+      letterSpacing: 0.4,
+      textTransform: "uppercase",
+      fontWeight: 700,
+      marginBottom: 6,
+      marginTop: 4
+    }
+  }, "Type"), /*#__PURE__*/React.createElement("div", {
+    style: { display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }
+  }, ["Therapist", "Counselor", "Pastor", "Coach", "Other"].map(function (t) {
+    var on = counselorDraft.type === t;
+    return /*#__PURE__*/React.createElement("button", {
+      key: t,
+      onClick: function () {
+        setCounselorDraft(Object.assign({}, counselorDraft, { type: t }));
+      },
+      style: {
+        background: on ? "rgba(61,197,232,0.18)" : C.surf,
+        border: "1px solid " + (on ? C.acc : C.border),
+        borderRadius: 18,
+        padding: "5px 12px",
+        color: on ? C.acc : C.muted,
+        fontSize: 12,
+        cursor: "pointer",
+        fontWeight: on ? 700 : 500
+      }
+    }, t);
+  })), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: C.muted,
+      letterSpacing: 0.4,
+      textTransform: "uppercase",
+      fontWeight: 700,
+      marginBottom: 6
+    }
+  }, "Cadence"), /*#__PURE__*/React.createElement("div", {
+    style: { display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }
+  }, ["Weekly", "Bi-weekly", "Monthly", "As needed"].map(function (c) {
+    var on = counselorDraft.cadence === c;
+    return /*#__PURE__*/React.createElement("button", {
+      key: c,
+      onClick: function () {
+        setCounselorDraft(Object.assign({}, counselorDraft, { cadence: c }));
+      },
+      style: {
+        background: on ? "rgba(61,197,232,0.18)" : C.surf,
+        border: "1px solid " + (on ? C.acc : C.border),
+        borderRadius: 18,
+        padding: "5px 12px",
+        color: on ? C.acc : C.muted,
+        fontSize: 12,
+        cursor: "pointer",
+        fontWeight: on ? 700 : 500
+      }
+    }, c);
+  })), /*#__PURE__*/React.createElement("div", {
+    style: { display: "flex", gap: 8 }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: async function () {
+      var existing = profile.counselor || {};
+      var co = Object.assign({}, existing, {
+        hasOne: true,
+        name: counselorDraft.name.trim(),
+        type: counselorDraft.type,
+        cadence: counselorDraft.cadence,
+        startedAt: existing.startedAt || new Date().toISOString(),
+        homework: existing.homework || [],
+        bringToNext: existing.bringToNext || []
+      });
+      await saveCounselor(co);
+      setCounselorEditing(false);
+    },
+    style: {
+      padding: "9px 18px",
+      background: C.success,
+      border: "none",
+      borderRadius: 8,
+      color: "#fff",
+      fontSize: 14,
+      cursor: "pointer",
+      fontWeight: 700
+    }
+  }, "Save"), /*#__PURE__*/React.createElement("button", {
+    onClick: function () { setCounselorEditing(false); },
+    style: {
+      padding: "9px 16px",
+      background: "transparent",
+      border: "1px solid " + C.border,
+      borderRadius: 8,
+      color: C.muted,
+      fontSize: 14,
+      cursor: "pointer"
+    }
+  }, "Cancel")))), /*#__PURE__*/React.createElement("div", {
     style: {
       background: "rgba(224,128,144,0.08)",
       border: "1px solid rgba(224,128,144,0.25)",
