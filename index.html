@@ -19,7 +19,7 @@
    /version.txt in sync.
    ───────────────────────────────────────────────────────────────────────── */
 (function(){
-  var APP_VERSION = "sjalavard-2026-04-27-open-profile";
+  var APP_VERSION = "sjalavard-2026-04-29-rls-bridge";
   var STORAGE_KEY = "sj_app_v";
   var LIVE_URL    = "https://sjalavard.netlify.app";
   var ADMIN_EMAILS = ["fosterhopefamily@gmail.com"];
@@ -604,12 +604,86 @@ var {
 var SB_URL = "https://rlwdqrvosbbdwmnrohxd.supabase.co";
 var SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJsd2RxcnZvc2JiZHdtbnJvaHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MjA1NjQsImV4cCI6MjA4ODk5NjU2NH0.x1FzJ-qYL-27a-CMABhNzOGlpCH3nbeH42Nls7XkQX8";
 var _supabaseLib = typeof supabase !== "undefined" ? supabase : window.supabase;
-var sb = _supabaseLib.createClient(SB_URL, SB_KEY);
+// ── Netlify Identity → Supabase JWT bridge ────────────────────────────
+// On NI login we mint a Supabase-signed JWT (via /.netlify/functions/sb-token)
+// and use it as the Authorization header on every Supabase request. This
+// makes Supabase RLS policies of the form auth.uid() = user_id work.
+// Falls back gracefully to anon-key auth if the function or secret is missing.
+var sjToken = null;
+var sjTokenExpiresAt = 0;
+var sjTokenInflight = null;
+var sjTokenRefreshTimer = null;
+async function ensureSjToken(force) {
+  if (!force && sjToken && Date.now() < sjTokenExpiresAt - 60000) return sjToken;
+  if (sjTokenInflight) return sjTokenInflight;
+  sjTokenInflight = (async function () {
+    try {
+      var ni = window.netlifyIdentity;
+      var niUser = ni && ni.currentUser && ni.currentUser();
+      if (!niUser) return null;
+      var jwt = await niUser.jwt();
+      var res = await fetch("/.netlify/functions/sb-token", {
+        method: "POST",
+        headers: { "Authorization": "Bearer " + jwt }
+      });
+      if (!res.ok) {
+        console.warn("[sb-token] failed:", res.status);
+        return null;
+      }
+      var data = await res.json();
+      if (data && data.token && data.expiresAt) {
+        sjToken = data.token;
+        sjTokenExpiresAt = data.expiresAt;
+        return sjToken;
+      }
+      return null;
+    } catch (e) {
+      console.warn("[sb-token] error:", e && e.message);
+      return null;
+    } finally {
+      sjTokenInflight = null;
+    }
+  })();
+  return sjTokenInflight;
+}
+function clearSjToken() {
+  sjToken = null;
+  sjTokenExpiresAt = 0;
+  if (sjTokenRefreshTimer) { clearInterval(sjTokenRefreshTimer); sjTokenRefreshTimer = null; }
+}
+function startSjTokenRefresh() {
+  if (sjTokenRefreshTimer) return;
+  sjTokenRefreshTimer = setInterval(function () {
+    ensureSjToken(true).catch(function () {});
+  }, 50 * 60 * 1000); // 50 min
+}
+// Custom fetch that injects our minted JWT into outgoing Supabase requests.
+// Supabase JS sends an apikey header AND Authorization Bearer SB_KEY by
+// default. We keep the apikey (project identifier) and overwrite Authorization
+// when we have a valid user token. The anon key remains the fallback.
+function authedFetch(url, opts) {
+  opts = opts || {};
+  var hdrs = {};
+  if (opts.headers && typeof Headers !== "undefined" && opts.headers instanceof Headers) {
+    opts.headers.forEach(function (v, k) { hdrs[k] = v; });
+  } else if (opts.headers) {
+    hdrs = Object.assign({}, opts.headers);
+  }
+  if (sjToken && Date.now() < sjTokenExpiresAt) {
+    hdrs["Authorization"] = "Bearer " + sjToken;
+  }
+  opts.headers = hdrs;
+  return fetch(url, opts);
+}
+var sb = _supabaseLib.createClient(SB_URL, SB_KEY, {
+  auth: { persistSession: false, autoRefreshToken: false },
+  global: { fetch: authedFetch }
+});
 // Expose the shared client so the top-of-head cache-reset code can reuse it
 // for admin force-refresh polling (avoids creating a second Supabase client).
 try { window.__supa__ = sb; } catch(e){}
 function getSbWithAuth() {
-  return sb; // RLS disabled
+  return sb;
 }
 async function dbGetProfile(uid) {
   try {
@@ -9226,6 +9300,18 @@ function Root() {
       if (justLoggedInTimer.current) clearTimeout(justLoggedInTimer.current);
     };
   }, []);
+  // Fetch a Supabase-signed JWT whenever the NI user changes. Once we have
+  // it, all Supabase requests will carry the user's identity, enabling RLS.
+  // No-op (graceful) if SUPABASE_JWT_SECRET isn't configured server-side yet.
+  useEffect(function () {
+    if (!niUser || !niUser.id) {
+      clearSjToken();
+      return;
+    }
+    ensureSjToken(true).then(function (t) {
+      if (t) startSjTokenRefresh();
+    }).catch(function () {});
+  }, [niUser && niUser.id]);
   useEffect(function () {
     if (!niUser) return;
     // Netlify Identity user object: use .id (UUID), fall back to .sub
