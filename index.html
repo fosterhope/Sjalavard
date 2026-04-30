@@ -677,9 +677,10 @@ async function authedFetch(url, opts) {
   opts.headers = hdrs;
   return fetch(url, opts);
 }
+// RLS is disabled on profiles/sessions — anon key works for all reads/writes.
+// authedFetch is kept for future RLS enablement but not injected here.
 var sb = _supabaseLib.createClient(SB_URL, SB_KEY, {
-  auth: { persistSession: false, autoRefreshToken: false },
-  global: { fetch: authedFetch }
+  auth: { persistSession: false, autoRefreshToken: false }
 });
 try { window.__supa__ = sb; } catch(e){}
 function getSbWithAuth() {
@@ -688,8 +689,13 @@ function getSbWithAuth() {
 async function dbGetProfile(uid) {
   try {
     var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).single();
+    if (r.error) {
+      if (r.error.code !== "PGRST116") console.error("dbGetProfile error:", r.error.message);
+      return null;
+    }
     return r.data ? r.data.data : null;
   } catch (e) {
+    console.error("dbGetProfile exception:", e && e.message);
     return null;
   }
 }
@@ -708,12 +714,17 @@ async function dbGetSessions(uid) {
     var r = await getSbWithAuth().from("sessions").select("data,created_at,id").eq("user_id", uid).order("created_at", {
       ascending: false
     });
+    if (r.error) {
+      console.error("dbGetSessions error:", r.error.message);
+      return [];
+    }
     return r.data ? r.data.map(function (row) {
       var s = Object.assign({}, row.data);
       s._id = row.id;
       return s;
     }) : [];
   } catch (e) {
+    console.error("dbGetSessions exception:", e && e.message);
     return [];
   }
 }
@@ -2170,12 +2181,11 @@ function ProfileSetup({
       }
     }
     if (!saved) {
-      // Supabase failed both attempts - local cache is set so they won't see banner again
-      // But show a warning so they know to try editing profile later
+      // Supabase failed both attempts - local cache is set so the banner will not reappear
       console.warn("Profile saved locally only - will sync to Supabase next time");
     }
     setSaving(false);
-    onDone(); // Always proceed - local cache guarantees no banner on return
+    onDone(profile); // Pass profile so parent can update local state immediately
   }
   var devList = [["iphone", "iPhone"], ["android", "Android"], ["mac", "Mac"], ["windows", "Windows"]];
   return /*#__PURE__*/React.createElement("div", {
@@ -3716,14 +3726,17 @@ function App({
 
   // Don't block the whole app on ready - show loading within tabs instead
 
-  // Inline setup handler - saves profile and closes modal
-  function handleSetupDone() {
+  // Inline setup handler - saves profile and closes modal.
+  // Receives the profile object directly from finish() so local state
+  // updates immediately without waiting on a Supabase round-trip.
+  function handleSetupDone(savedProfile) {
     setShowSetup(false);
+    if (savedProfile) setProfile(savedProfile); // instant local update
     if (onDone) onDone();
-    // Reload profile from Supabase
+    // Background refresh from Supabase to confirm the save landed
     dbGetProfile(uid).then(function (p) {
       if (p) setProfile(p);
-    });
+    }).catch(function () {});
   }
   // Adaptive layout values:
   //   phone (<768px): bottom-fixed tab bar, full-width content with bottom padding
@@ -9196,13 +9209,13 @@ function Root() {
         } catch (e) {}
       }
 
-      // Auto-repair: localStorage says done but Supabase lost it
+      // Auto-repair: localStorage says done but Supabase lost/never had it.
+      // Merge profile_done:true into whatever fields Supabase returned so we
+      // don't lose any data. Update profileData so App sees the repaired state.
       if (lsDone && !sbDone) {
-        
-        var repair = Object.assign({}, profileData, {
-          profile_done: true
-        });
-        dbSetProfile(uid, email, repair).catch(function (e) {
+        profileData = Object.assign({}, profileData, { profile_done: true });
+        dbSetProfile(uid, email, profileData).catch(function (e) {
+          console.warn("Auto-repair write failed:", e && e.message);
         });
       }
       window._sjPreloadedData = {
@@ -9223,7 +9236,7 @@ function Root() {
       };
       if (!lsDone) setProfileDone(false);
     });
-  }, [niUser]);
+  }, [niUser && niUser.id]);
   if (!niReady) return /*#__PURE__*/React.createElement(Spin, {
     label: "Loading..."
   });
