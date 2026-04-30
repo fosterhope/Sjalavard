@@ -19,7 +19,7 @@
    /version.txt in sync.
    ───────────────────────────────────────────────────────────────────────── */
 (function(){
-  var APP_VERSION = "sjalavard-2026-04-29-rls-bridge";
+  var APP_VERSION = "sjalavard-2026-04-29-rls-bridge-fix";
   var STORAGE_KEY = "sj_app_v";
   var LIVE_URL    = "https://sjalavard.netlify.app";
   var ADMIN_EMAILS = ["fosterhopefamily@gmail.com"];
@@ -604,11 +604,9 @@ var {
 var SB_URL = "https://rlwdqrvosbbdwmnrohxd.supabase.co";
 var SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJsd2RxcnZvc2JiZHdtbnJvaHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MjA1NjQsImV4cCI6MjA4ODk5NjU2NH0.x1FzJ-qYL-27a-CMABhNzOGlpCH3nbeH42Nls7XkQX8";
 var _supabaseLib = typeof supabase !== "undefined" ? supabase : window.supabase;
-// ── Netlify Identity → Supabase JWT bridge ────────────────────────────
-// On NI login we mint a Supabase-signed JWT (via /.netlify/functions/sb-token)
-// and use it as the Authorization header on every Supabase request. This
-// makes Supabase RLS policies of the form auth.uid() = user_id work.
-// Falls back gracefully to anon-key auth if the function or secret is missing.
+// Netlify Identity to Supabase JWT bridge: mint a Supabase-signed JWT via the
+// /.netlify/functions/sb-token function on login and use it on every Supabase
+// request, enabling RLS policies of the form auth.uid() = user_id.
 var sjToken = null;
 var sjTokenExpiresAt = 0;
 var sjTokenInflight = null;
@@ -655,19 +653,23 @@ function startSjTokenRefresh() {
   if (sjTokenRefreshTimer) return;
   sjTokenRefreshTimer = setInterval(function () {
     ensureSjToken(true).catch(function () {});
-  }, 50 * 60 * 1000); // 50 min
+  }, 50 * 60 * 1000);
 }
-// Custom fetch that injects our minted JWT into outgoing Supabase requests.
-// Supabase JS sends an apikey header AND Authorization Bearer SB_KEY by
-// default. We keep the apikey (project identifier) and overwrite Authorization
-// when we have a valid user token. The anon key remains the fallback.
-function authedFetch(url, opts) {
+async function authedFetch(url, opts) {
   opts = opts || {};
   var hdrs = {};
   if (opts.headers && typeof Headers !== "undefined" && opts.headers instanceof Headers) {
     opts.headers.forEach(function (v, k) { hdrs[k] = v; });
   } else if (opts.headers) {
     hdrs = Object.assign({}, opts.headers);
+  }
+  // If we have an NI session but no minted token yet, mint it now so the
+  // first Supabase request after login is not racing the token fetch.
+  if ((!sjToken || Date.now() >= sjTokenExpiresAt) && typeof window !== "undefined") {
+    var ni = window.netlifyIdentity;
+    if (ni && ni.currentUser && ni.currentUser()) {
+      try { await ensureSjToken(); } catch (e) {}
+    }
   }
   if (sjToken && Date.now() < sjTokenExpiresAt) {
     hdrs["Authorization"] = "Bearer " + sjToken;
@@ -679,8 +681,6 @@ var sb = _supabaseLib.createClient(SB_URL, SB_KEY, {
   auth: { persistSession: false, autoRefreshToken: false },
   global: { fetch: authedFetch }
 });
-// Expose the shared client so the top-of-head cache-reset code can reuse it
-// for admin force-refresh polling (avoids creating a second Supabase client).
 try { window.__supa__ = sb; } catch(e){}
 function getSbWithAuth() {
   return sb;
@@ -2117,9 +2117,8 @@ function ProfileSetup({
   var [device, setDevice] = useState("iphone");
   var [name, setName] = useState("");
   var [struggles, setStruggles] = useState([]);
-  var [struggleInput, setStruggleInput] = useState(""); // free-text "add your own" struggle
-  var [goals, setGoals] = useState([]); // open-ended, up to 5 entered one at a time
-  var [goalInput, setGoalInput] = useState("");
+  var [goals, setGoals] = useState([]);
+  var [goalsOther, setGoalsOther] = useState("");
   var [bio, setBio] = useState("");
   var [authors, setAuthors] = useState([]);
   var [authorsOther, setAuthorsOther] = useState("");
@@ -2137,22 +2136,12 @@ function ProfileSetup({
     var extras = authorsOther.split(",").map(function (s) {
       return s.trim();
     }).filter(Boolean);
-    // Author cap raised to 10 (was 5)
-    var allA = authors.concat(extras).slice(0, 10);
-    // If a struggle/goal is half-typed in the input field, fold it in.
-    var allStruggles = struggles.slice();
-    if (struggleInput.trim() && allStruggles.indexOf(struggleInput.trim()) < 0) {
-      allStruggles.push(struggleInput.trim());
-    }
-    var allGoals = goals.slice();
-    if (goalInput.trim() && allGoals.length < 5 && allGoals.indexOf(goalInput.trim()) < 0) {
-      allGoals.push(goalInput.trim());
-    }
+    var allA = authors.concat(extras).slice(0, 5);
     var profile = {
       firstName: name.trim(),
       bio: bio.trim(),
-      struggles: allStruggles,
-      goals: allGoals.slice(0, 5),
+      struggles: struggles,
+      goals: goalsOther.trim() ? [...goals, goalsOther.trim()] : goals,
       authors: allA,
       profile_done: true
     };
@@ -2551,61 +2540,19 @@ function ProfileSetup({
       color: C.muted,
       fontSize: 16
     }
-  }, "Select from the list, or add your own.")), /*#__PURE__*/React.createElement("div", {
+  }, "Select your common patterns.")), /*#__PURE__*/React.createElement("div", {
     style: {
       background: C.card,
       border: "1px solid " + C.border,
       borderRadius: 20,
       padding: "28px 24px"
     }
-  }, struggles.length > 0 && /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      flexWrap: "wrap",
-      gap: 6,
-      marginBottom: 16,
-      paddingBottom: 14,
-      borderBottom: "1px solid " + C.border
-    }
-  }, struggles.map(function (s) {
-    var fromList = STRUGGLES.indexOf(s) > -1;
-    return /*#__PURE__*/React.createElement("button", {
-      key: s,
-      onClick: function () {
-        setStruggles(function (p) { return p.filter(function (x) { return x !== s; }); });
-      },
-      title: "Remove",
-      style: {
-        background: fromList ? "rgba(61,197,232,0.2)" : "rgba(91,184,160,0.18)",
-        border: "1.5px solid " + (fromList ? C.acc : C.success),
-        borderRadius: 20,
-        padding: "6px 10px 6px 12px",
-        color: fromList ? C.acc : C.success,
-        fontSize: 14,
-        cursor: "pointer",
-        fontWeight: 700,
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 6
-      }
-    }, s, /*#__PURE__*/React.createElement("span", {
-      style: { fontSize: 14, opacity: 0.7, lineHeight: 1 }
-    }, "\u00d7"));
-  })), /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: 12,
-      color: C.dim,
-      letterSpacing: 1,
-      textTransform: "uppercase",
-      fontWeight: 600,
-      marginBottom: 9
-    }
-  }, "Common patterns"), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       flexWrap: "wrap",
       gap: 7,
-      marginBottom: 18
+      marginBottom: 22
     }
   }, STRUGGLES.map(function (s) {
     var on = struggles.indexOf(s) > -1;
@@ -2629,81 +2576,23 @@ function ProfileSetup({
         fontWeight: on ? 700 : 400
       }
     }, s);
-  })), /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: 12,
-      color: C.dim,
-      letterSpacing: 1,
-      textTransform: "uppercase",
-      fontWeight: 600,
-      marginBottom: 9
-    }
-  }, "Add your own"), /*#__PURE__*/React.createElement("div", {
-    style: { display: "flex", gap: 8, marginBottom: 22 }
-  }, /*#__PURE__*/React.createElement("input", {
-    value: struggleInput,
-    onChange: function (e) { setStruggleInput(e.target.value); },
-    onKeyDown: function (e) {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        var v = struggleInput.trim();
-        if (!v) return;
-        if (struggles.indexOf(v) < 0) setStruggles(function (p) { return [...p, v]; });
-        setStruggleInput("");
-      }
-    },
-    placeholder: "e.g. Comparing myself to others",
-    style: {
-      flex: 1,
-      background: C.surf,
-      border: "1.5px solid " + C.border,
-      borderRadius: 10,
-      padding: "11px 14px",
-      color: C.white,
-      fontSize: 15
-    }
-  }), /*#__PURE__*/React.createElement("button", {
+  })), /*#__PURE__*/React.createElement("button", {
     onClick: function () {
-      var v = struggleInput.trim();
-      if (!v) return;
-      if (struggles.indexOf(v) < 0) setStruggles(function (p) { return [...p, v]; });
-      setStruggleInput("");
-    },
-    disabled: !struggleInput.trim(),
-    style: {
-      padding: "0 18px",
-      background: struggleInput.trim() ? C.acc : C.border,
-      border: "none",
-      borderRadius: 10,
-      color: struggleInput.trim() ? C.accText : C.dim,
-      fontSize: 14,
-      cursor: struggleInput.trim() ? "pointer" : "default",
-      fontWeight: 700,
-      whiteSpace: "nowrap"
-    }
-  }, "Add")), /*#__PURE__*/React.createElement("button", {
-    onClick: function () {
-      // Fold a half-typed entry in before continuing.
-      var v = struggleInput.trim();
-      if (v && struggles.indexOf(v) < 0) {
-        setStruggles(function (p) { return [...p, v]; });
-        setStruggleInput("");
-      }
       setStep(3);
     },
-    disabled: struggles.length === 0 && !struggleInput.trim(),
+    disabled: struggles.length === 0,
     style: {
       width: "100%",
       padding: "14px",
-      background: (struggles.length || struggleInput.trim()) ? C.acc : C.border,
+      background: struggles.length ? C.acc : C.border,
       border: "none",
       borderRadius: 12,
-      color: (struggles.length || struggleInput.trim()) ? C.bg : C.dim,
+      color: struggles.length ? C.bg : C.dim,
       fontSize: 16,
-      cursor: (struggles.length || struggleInput.trim()) ? "pointer" : "default",
+      cursor: struggles.length ? "pointer" : "default",
       fontWeight: 700
     }
-  }, "Continue (", struggles.length + (struggleInput.trim() ? 1 : 0), ")"))), step === 3 && /*#__PURE__*/React.createElement("div", {
+  }, "Continue (", struggles.length, " selected)"))), step === 3 && /*#__PURE__*/React.createElement("div", {
     className: "fi"
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -2738,151 +2627,68 @@ function ProfileSetup({
   }, "Your Growth Goals"), /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.muted,
-      fontSize: 16,
-      lineHeight: 1.6
+      fontSize: 16
     }
-  }, "In your own words. Add up to 5 \u2014 one at a time.")), /*#__PURE__*/React.createElement("div", {
+  }, "Choose up to 2 goals.")), /*#__PURE__*/React.createElement("div", {
     style: {
       background: C.card,
       border: "1px solid " + C.border,
       borderRadius: 20,
       padding: "28px 24px"
     }
-  }, goals.length > 0 && /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       flexDirection: "column",
-      gap: 8,
-      marginBottom: 18,
-      paddingBottom: 16,
-      borderBottom: "1px solid " + C.border
+      gap: 7,
+      marginBottom: 22
     }
-  }, goals.map(function (g, i) {
-    return /*#__PURE__*/React.createElement("div", {
-      key: i,
+  }, GOALS.map(function (g) {
+    var on = goals.indexOf(g) > -1;
+    return /*#__PURE__*/React.createElement("button", {
+      key: g,
+      onClick: function () {
+        setGoals(function (p) {
+          if (on) return p.filter(function (x) {
+            return x !== g;
+          });
+          if (p.length >= 2) return p; // max 2
+          return [...p, g];
+        });
+      },
       style: {
+        background: on ? "rgba(61,197,232,0.15)" : C.surf,
+        border: "1.5px solid " + (on ? C.acc : C.border),
+        borderRadius: 9,
+        padding: "11px 14px",
+        color: on ? C.white : C.muted,
+        fontSize: 15,
+        cursor: "pointer",
+        textAlign: "left",
         display: "flex",
         alignItems: "center",
-        gap: 10,
-        padding: "11px 14px",
-        background: "rgba(61,197,232,0.10)",
-        border: "1.5px solid " + C.acc,
-        borderRadius: 10
+        gap: 10
       }
     }, /*#__PURE__*/React.createElement("span", {
       style: {
-        width: 22,
-        height: 22,
-        borderRadius: 11,
-        background: C.acc,
-        color: C.accText,
+        width: 16,
+        height: 16,
+        borderRadius: 4,
+        background: on ? C.acc : C.border,
+        flexShrink: 0,
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
-        fontSize: 12,
-        fontWeight: 700,
-        flexShrink: 0
+        fontSize: 13,
+        color: "#fff",
+        fontWeight: 700
       }
-    }, i + 1), /*#__PURE__*/React.createElement("p", {
-      style: {
-        flex: 1,
-        fontSize: 15,
-        color: C.white,
-        lineHeight: 1.5,
-        margin: 0
-      }
-    }, g), /*#__PURE__*/React.createElement("button", {
-      onClick: function () {
-        setGoals(function (p) { return p.filter(function (_, idx) { return idx !== i; }); });
-      },
-      title: "Remove",
-      style: {
-        background: "transparent",
-        border: "none",
-        color: C.dim,
-        fontSize: 18,
-        cursor: "pointer",
-        padding: "0 4px",
-        lineHeight: 1
-      }
-    }, "\u00d7"));
-  })), goals.length < 5 && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: 12,
-      color: C.dim,
-      letterSpacing: 1,
-      textTransform: "uppercase",
-      fontWeight: 600,
-      marginBottom: 9
-    }
-  }, "Add a goal"), /*#__PURE__*/React.createElement("textarea", {
-    value: goalInput,
-    onChange: function (e) { setGoalInput(e.target.value); },
-    onKeyDown: function (e) {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        var v = goalInput.trim();
-        if (!v || goals.length >= 5) return;
-        if (goals.indexOf(v) < 0) setGoals(function (p) { return [...p, v]; });
-        setGoalInput("");
-      }
-    },
-    rows: 2,
-    placeholder: "e.g. Find peace in difficult relationships",
-    style: {
-      width: "100%",
-      background: C.surf,
-      border: "1.5px solid " + C.border,
-      borderRadius: 10,
-      padding: "11px 14px",
-      color: C.white,
-      fontSize: 15,
-      lineHeight: 1.5,
-      resize: "vertical",
-      fontFamily: "inherit",
-      marginBottom: 8
-    }
-  }), /*#__PURE__*/React.createElement("button", {
-    onClick: function () {
-      var v = goalInput.trim();
-      if (!v || goals.length >= 5) return;
-      if (goals.indexOf(v) < 0) setGoals(function (p) { return [...p, v]; });
-      setGoalInput("");
-    },
-    disabled: !goalInput.trim() || goals.length >= 5,
-    style: {
-      width: "100%",
-      padding: "10px",
-      background: (goalInput.trim() && goals.length < 5) ? "rgba(61,197,232,0.18)" : "transparent",
-      border: "1.5px dashed " + ((goalInput.trim() && goals.length < 5) ? C.acc : C.border),
-      borderRadius: 10,
-      color: (goalInput.trim() && goals.length < 5) ? C.acc : C.dim,
-      fontSize: 14,
-      cursor: (goalInput.trim() && goals.length < 5) ? "pointer" : "default",
-      fontWeight: 600,
-      marginBottom: 16
-    }
-  }, "+ Add goal")), goals.length >= 5 && /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: 13,
-      color: C.dim,
-      textAlign: "center",
-      marginBottom: 16,
-      fontStyle: "italic"
-    }
-  }, "5 of 5 added \u2014 remove one to add another."), (function () {
-    var totalGoals = goals.length + (goalInput.trim() ? 1 : 0);
-    var hasGoal = totalGoals >= 1;
+    }, on ? "v" : ""), g);
+  })), (function () {
+    var hasGoal = goals.length >= 1 || goalsOther.trim().length > 0;
     return /*#__PURE__*/React.createElement("button", {
       onClick: function () {
-        if (!hasGoal) return;
-        // Fold a half-typed entry in before continuing.
-        var v = goalInput.trim();
-        if (v && goals.length < 5 && goals.indexOf(v) < 0) {
-          setGoals(function (p) { return [...p, v]; });
-          setGoalInput("");
-        }
-        setStep(4);
+        if (hasGoal) setStep(4);
       },
       disabled: !hasGoal,
       style: {
@@ -2896,8 +2702,43 @@ function ProfileSetup({
         cursor: hasGoal ? "pointer" : "default",
         fontWeight: 700
       }
-    }, "Continue (", Math.min(totalGoals, 5), " of 5)");
-  })())), step === 4 && /*#__PURE__*/React.createElement("div", {
+    }, "Continue (", goals.length + (goalsOther.trim() ? 1 : 0), " of 2 selected)");
+  })()), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 14
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 13,
+      color: C.muted,
+      letterSpacing: 1,
+      textTransform: "uppercase",
+      fontWeight: 600,
+      display: "block",
+      marginBottom: 7
+    }
+  }, "Or describe your own goal"), /*#__PURE__*/React.createElement("input", {
+    value: goalsOther,
+    onChange: function (e) {
+      setGoalsOther(e.target.value);
+    },
+    placeholder: "e.g. Find peace in difficult relationships...",
+    style: {
+      width: "100%",
+      background: C.surf,
+      border: "1.5px solid " + C.border,
+      borderRadius: 10,
+      padding: "11px 14px",
+      color: C.white,
+      fontSize: 16,
+      marginBottom: 6
+    }
+  }), React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: C.dim
+    }
+  }, "This will be added alongside your selections.")))), step === 4 && /*#__PURE__*/React.createElement("div", {
     className: "fi"
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -2935,7 +2776,7 @@ function ProfileSetup({
       fontSize: 16,
       lineHeight: 1.6
     }
-  }, "Select up to 10. Sjal weaves their voice in when it fits.")), /*#__PURE__*/React.createElement("div", {
+  }, "Select up to 5. Sjal weaves their voice in when it fits.")), /*#__PURE__*/React.createElement("div", {
     style: {
       background: C.card,
       border: "1px solid " + C.border,
@@ -2951,7 +2792,7 @@ function ProfileSetup({
     }
   }, ALL_AUTHORS.map(function (a) {
     var on = authors.indexOf(a) > -1;
-    var maxed = authors.length >= 10 && !on;
+    var maxed = authors.length >= 5 && !on;
     return /*#__PURE__*/React.createElement("button", {
       key: a,
       onClick: function () {
@@ -3814,7 +3655,7 @@ function App({
     var extras = editAuthorsOther.split(",").map(function (s) {
       return s.trim();
     }).filter(Boolean);
-    var merged = editAuthorsList.concat(extras).slice(0, 10);
+    var merged = editAuthorsList.concat(extras).slice(0, 5);
     var updated = Object.assign({}, profile, {
       authors: merged
     });
@@ -6995,7 +6836,7 @@ function App({
     }
   }, ALL_AUTHORS.map(function (a) {
     var on = editAuthorsList.indexOf(a) > -1;
-    var maxed = editAuthorsList.length >= 10 && !on;
+    var maxed = editAuthorsList.length >= 5 && !on;
     return /*#__PURE__*/React.createElement("button", {
       key: a,
       onClick: function () {
@@ -9300,11 +9141,11 @@ function Root() {
       if (justLoggedInTimer.current) clearTimeout(justLoggedInTimer.current);
     };
   }, []);
-  // Fetch a Supabase-signed JWT whenever the NI user changes. Once we have
-  // it, all Supabase requests will carry the user's identity, enabling RLS.
-  // No-op (graceful) if SUPABASE_JWT_SECRET isn't configured server-side yet.
+  // Mint a Supabase JWT whenever the NI user changes, then keep it fresh.
+  // Falls back gracefully if SUPABASE_JWT_SECRET is not set on the server.
   useEffect(function () {
-    if (!niUser || !niUser.id) {
+    var uid = niUser && niUser.id;
+    if (!uid) {
       clearSjToken();
       return;
     }
