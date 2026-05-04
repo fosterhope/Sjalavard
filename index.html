@@ -688,7 +688,7 @@ function getSbWithAuth() {
 }
 async function dbGetProfile(uid) {
   try {
-    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).single();
+    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).maybeSingle();
     if (r.error) {
       if (r.error.code !== "PGRST116") console.error("dbGetProfile error:", r.error.message);
       return null;
@@ -749,7 +749,7 @@ async function dbProfileDone(uid) {
   // Supabase is the single source of truth for profile_done
   // No localStorage cache — prevents stale data issues across devices/incognito
   try {
-    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).single();
+    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).maybeSingle();
     if (r.error) {
       if (r.error.code === "PGRST116") return false; // no row = new user
       console.warn("dbProfileDone error:", r.error.code, r.error.message);
@@ -788,7 +788,7 @@ async function dbAdminGetAllSessions() {
 // Prayer Supabase functions
 async function dbGetPrayers(uid) {
   try {
-    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).single();
+    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).maybeSingle();
     return r.data && r.data.data && r.data.data.prayers || [];
   } catch (e) {
     return [];
@@ -796,7 +796,7 @@ async function dbGetPrayers(uid) {
 }
 async function dbSavePrayers(uid, prayers) {
   try {
-    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).single();
+    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).maybeSingle();
     var data = r.data && r.data.data || {};
     data.prayers = prayers;
     await getSbWithAuth().from("profiles").upsert({
@@ -813,7 +813,7 @@ async function dbSavePrayers(uid, prayers) {
 async function dbSaveCheckIn(uid, date, entry) {
   try {
     // Read current profile data, merge check-in, write back
-    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).single();
+    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).maybeSingle();
     var data = r.data && r.data.data || {};
     if (!data.checkins) data.checkins = {};
     data.checkins[date] = entry;
@@ -828,7 +828,7 @@ async function dbSaveCheckIn(uid, date, entry) {
 }
 async function dbGetCheckIns(uid) {
   try {
-    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).single();
+    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).maybeSingle();
     return r.data && r.data.data && r.data.data.checkins || {};
   } catch (e) {
     return {};
@@ -839,7 +839,7 @@ async function dbGetCheckIns(uid) {
 // Read-merge-write pattern against profiles.data (same shape as check-ins/prayers).
 async function dbSetFocus(uid, email, focusObj) {
   try {
-    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).single();
+    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).maybeSingle();
     var data = r.data && r.data.data || {};
     data.focus = focusObj;
     await getSbWithAuth().from("profiles").upsert({
@@ -856,7 +856,7 @@ async function dbSetFocus(uid, email, focusObj) {
 }
 async function dbAppendFocusThread(uid, email, entry) {
   try {
-    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).single();
+    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).maybeSingle();
     var data = r.data && r.data.data || {};
     if (!data.focus) return null;
     if (!data.focus.thread) data.focus.thread = [];
@@ -877,7 +877,7 @@ async function dbAppendFocusThread(uid, email, entry) {
 }
 async function dbClearFocus(uid, email) {
   try {
-    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).single();
+    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).maybeSingle();
     var data = r.data && r.data.data || {};
     if (data.focus) {
       if (!data.focusHistory) data.focusHistory = [];
@@ -905,7 +905,7 @@ async function dbClearFocus(uid, email) {
 // Uses the same read-merge-write shape as prayers/checkins.
 async function dbSavePatterns(uid, email, patterns, patternsArchive) {
   try {
-    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).single();
+    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).maybeSingle();
     var data = r.data && r.data.data || {};
     data.patterns = patterns || [];
     if (patternsArchive !== undefined) data.patternsArchive = patternsArchive;
@@ -925,7 +925,7 @@ async function dbSavePatterns(uid, email, patterns, patternsArchive) {
 // profile.data.counselor: { hasOne, name, type, cadence, startedAt, homework[], bringToNext[], history[] }
 async function dbSaveCounselor(uid, email, counselor) {
   try {
-    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).single();
+    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).maybeSingle();
     var data = r.data && r.data.data || {};
     data.counselor = counselor || null;
     await getSbWithAuth().from("profiles").upsert({
@@ -944,7 +944,7 @@ async function dbSaveCounselor(uid, email, counselor) {
 // Stored as profile.data.memoryBank. Populated by user-initiated actions only.
 async function dbSaveMemoryBank(uid, email, memoryBank) {
   try {
-    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).single();
+    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).maybeSingle();
     var data = r.data && r.data.data || {};
     data.memoryBank = memoryBank || [];
     await getSbWithAuth().from("profiles").upsert({
@@ -9422,6 +9422,61 @@ try {
     setTimeout(function(){ waitForApp(n+1); }, 200);
   }
   setTimeout(waitForApp, 500);
+})();
+</script>
+
+<script>
+/* Foster Hope — Sync health dot + Bug report */
+(function(){
+  var _errs=[];
+  window.addEventListener('error',function(e){_cap(e.message,e.filename,e.lineno,e.error);});
+  window.addEventListener('unhandledrejection',function(e){var r=e.reason;_cap((r instanceof Error)?r.message:String(r||''),'',0,(r instanceof Error)?r:null);});
+  function _cap(msg,src,line,err){
+    _errs.unshift({ts:new Date().toISOString(),msg:String(msg||'').slice(0,400),src:String(src||'').replace(/^.*\//,'').slice(0,80),line:line||0,stack:err&&err.stack?String(err.stack).slice(0,500):null});
+    if(_errs.length>20)_errs.length=20;
+    try{localStorage.setItem('fh-error-log',JSON.stringify(_errs.slice(0,20)));}catch(e){}
+  }
+  try{var _sv=localStorage.getItem('fh-error-log');if(_sv){var _pv=JSON.parse(_sv);if(Array.isArray(_pv))_errs=_pv.slice(0,20);}}catch(e){}
+  function detectSB(){var all=document.querySelectorAll('script');for(var i=0;i<all.length;i++){var m=(all[i].textContent||'').match(/["'`](https:\/\/[a-z0-9]+\.supabase\.co)["'`]/);if(m)return m[1];}return null;}
+  var _dot=null,_sbUrl=null;
+  function setDot(color,tip){if(_dot){_dot.style.background=color;_dot.title=tip;}}
+  function checkSync(){if(!navigator.onLine){setDot('#e53e3e','Offline — not connected to internet');return;}fetch(_sbUrl+'/rest/v1/',{method:'HEAD'}).then(function(){setDot('#48bb78','Synced — cloud reachable');}).catch(function(){setDot('#f5c842','Online but cloud unreachable');});}
+  window.addEventListener('online',function(){if(_sbUrl)checkSync();else if(_dot)setDot('#48bb78','Online');});
+  window.addEventListener('offline',function(){setDot('#e53e3e','Offline');});
+  setInterval(function(){if(_dot&&_sbUrl)checkSync();},60000);
+  function fmtReport(note){var lines=['Bug Report','Date: '+new Date().toLocaleString(),'URL: '+location.href,'Note: '+(note||'(none)'),''];var r=_errs.slice(0,5);if(!r.length){lines.push('No JS errors captured.');}else{lines.push('Errors:');r.forEach(function(e,i){lines.push('  ['+(i+1)+'] '+e.ts+'\n      '+e.msg+(e.src?' ('+e.src+' L'+e.line+')':''));});}return lines.join('\n');}
+  function saveReport(note){var rec={ts:new Date().toISOString(),url:location.href,note:note,errors:_errs.slice(0,5)};try{var ex=[];try{var s=localStorage.getItem('fh-bug-reports');if(s)ex=JSON.parse(s);}catch(e){}ex.unshift(rec);if(ex.length>50)ex.length=50;localStorage.setItem('fh-bug-reports',JSON.stringify(ex));}catch(e){}}
+  function openBugModal(){
+    if(document.getElementById('__bug-modal'))return;
+    var ov=document.createElement('div');ov.id='__bug-modal';
+    ov.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;';
+    var r=_errs.slice(0,3);
+    var errHtml=r.length?'<div style="background:#fff8f0;border:1px solid #f0b96b;border-radius:8px;padding:9px;margin-bottom:10px;max-height:110px;overflow-y:auto;font-size:.68rem;font-family:monospace;color:#5a3200;white-space:pre-wrap">'+r.map(function(e){return'['+e.ts.slice(11,19)+'] '+e.msg;}).join('\n')+'</div>':'<p style="font-size:.75rem;color:#6b7280;margin:0 0 10px">No JS errors recorded — good!</p>';
+    ov.innerHTML='<div style="background:#fff;border-radius:14px;padding:22px 24px;width:min(440px,90vw);box-shadow:0 12px 40px rgba(0,0,0,.25);">'
+      +'<div style="display:flex;justify-content:space-between;margin-bottom:12px;"><div><b style="font-size:.95rem;">Report a Bug</b><div style="font-size:.72rem;color:#6b7280;margin-top:2px;">Page info &amp; errors are captured automatically.</div></div>'
+      +'<button id="__bug-x" style="all:unset;cursor:pointer;font-size:1.3rem;color:#9ca3af;">&times;</button></div>'
+      +'<label style="font-size:.73rem;font-weight:600;color:#374151;display:block;margin-bottom:3px;">What happened? <span style="font-weight:400;color:#9ca3af">(optional)</span></label>'
+      +'<textarea id="__bug-note" placeholder="e.g. I clicked Save and got a blank screen" style="width:100%;box-sizing:border-box;border:1.5px solid #d1d5db;border-radius:8px;padding:8px;font-size:.8rem;font-family:inherit;resize:vertical;height:60px;outline:none;margin-bottom:10px;"></textarea>'
+      +'<div style="font-size:.73rem;font-weight:600;color:#374151;margin-bottom:5px;">Auto-captured errors:</div>'+errHtml
+      +'<div style="display:flex;gap:8px;justify-content:flex-end;">'
+      +'<button id="__bug-copy" style="all:unset;cursor:pointer;padding:7px 14px;border-radius:8px;font-size:.75rem;font-weight:600;border:1.5px solid #333;color:#333;">Copy report</button>'
+      +'<button id="__bug-save" style="all:unset;cursor:pointer;padding:7px 16px;border-radius:8px;font-size:.75rem;font-weight:700;background:#1a3028;color:#fff;">Save &amp; Close</button>'
+      +'</div></div>';
+    document.body.appendChild(ov);
+    ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
+    document.getElementById('__bug-x').onclick=function(){ov.remove();};
+    document.getElementById('__bug-copy').onclick=function(){var note=(document.getElementById('__bug-note')||{}).value||'';var btn=document.getElementById('__bug-copy');if(navigator.clipboard){navigator.clipboard.writeText(fmtReport(note)).then(function(){if(btn){btn.textContent='Copied!';setTimeout(function(){btn.textContent='Copy report';},2200);}}).catch(function(){prompt('Copy:',fmtReport(note));});}else{prompt('Copy:',fmtReport(note));}};
+    document.getElementById('__bug-save').onclick=function(){saveReport((document.getElementById('__bug-note')||{}).value||'');ov.remove();var t=document.createElement('div');t.style.cssText='position:fixed;bottom:60px;right:14px;z-index:99999;background:#1a3028;color:#fff;padding:10px 16px;border-radius:10px;font-size:.78rem;font-weight:600;font-family:inherit;box-shadow:0 4px 16px rgba(0,0,0,.2);pointer-events:none;';t.textContent='Bug report saved!';document.body.appendChild(t);setTimeout(function(){t.remove();},3000);};
+    setTimeout(function(){var n=document.getElementById('__bug-note');if(n)n.focus();},80);
+  }
+  function inject(){
+    _sbUrl=detectSB();
+    if(_sbUrl&&!document.getElementById('__sync-dot')){var d=document.createElement('div');d.id='__sync-dot';d.style.cssText='position:fixed;top:10px;right:10px;z-index:99990;width:10px;height:10px;border-radius:50%;background:#f5c842;box-shadow:0 1px 4px rgba(0,0,0,.3);cursor:pointer;transition:background .3s;';d.onclick=function(){alert(d.title);};document.body.appendChild(d);_dot=d;checkSync();}
+    if(!document.getElementById('__bug-btn')){var btn=document.createElement('button');btn.id='__bug-btn';btn.title='Report a bug';btn.style.cssText='position:fixed;bottom:14px;right:14px;z-index:99990;background:#1a3028;color:#fff;border:none;border-radius:20px;padding:7px 13px;font-size:.7rem;font-weight:700;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.25);';btn.innerHTML='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Bug?';btn.onclick=openBugModal;document.body.appendChild(btn);}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',inject);
+  else inject();
+  setTimeout(inject,900);
 })();
 </script>
 </body>
