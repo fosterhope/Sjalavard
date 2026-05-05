@@ -9440,7 +9440,7 @@ try {
   function detectSB(){var all=document.querySelectorAll('script');for(var i=0;i<all.length;i++){var m=(all[i].textContent||'').match(/["'`](https:\/\/[a-z0-9]+\.supabase\.co)["'`]/);if(m)return m[1];}return null;}
   var _dot=null,_sbUrl=null;
   function setDot(color,tip){if(_dot){_dot.style.background=color;_dot.title=tip;}}
-  function checkSync(){if(!navigator.onLine){setDot('#e53e3e','Offline — not connected to internet');return;}var _k=typeof SB_KEY!=='undefined'?SB_KEY:'';fetch(_sbUrl+'/rest/v1/',{method:'HEAD',headers:{'apikey':_k,'Authorization':'Bearer '+_k}}).then(function(){setDot('#48bb78','Synced — cloud reachable');}).catch(function(){setDot('#f5c842','Online but cloud unreachable');});}
+  function checkSync(){if(!navigator.onLine){setDot('#e53e3e','Offline — not connected to internet');return;}fetch(_sbUrl+'/health').then(function(r){if(r.ok)setDot('#48bb78','Synced — cloud reachable');else setDot('#f5c842','Online but cloud unreachable');}).catch(function(){setDot('#f5c842','Online but cloud unreachable');});}
   window.addEventListener('online',function(){if(_sbUrl)checkSync();else if(_dot)setDot('#48bb78','Online');});
   window.addEventListener('offline',function(){setDot('#e53e3e','Offline');});
   setInterval(function(){if(_dot&&_sbUrl)checkSync();},60000);
