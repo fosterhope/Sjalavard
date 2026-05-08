@@ -1260,9 +1260,7 @@ function lsDel(k, uid) {
   } catch (e) {}
 }
 function buildSys(p, sessions, mode) {
-  var goals = p.goals && p.goals.length ? p.goals.map(function (g, i) {
-    return i + 1 + ". " + g;
-  }).join("\n") : "Not specified.";
+  var goals = p.focus && p.focus.title ? p.focus.title : p.goals && p.goals.length ? p.goals[0] : "Not specified.";
   var struggles = p.struggles && p.struggles.length ? p.struggles.join(", ") : "Not specified.";
   var authLine = p.authors && p.authors.length ? "\nFavorite authors: " + p.authors.join(", ") + ". Weave their voice in naturally when it fits." : "\nDraw from Brennan Manning, Dallas Willard, Richard Foster, CS Lewis, Dr. Caroline Leaf naturally.";
   var mem = "";
@@ -1386,7 +1384,7 @@ function buildSys(p, sessions, mode) {
   if (mode === "quick") {
     return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care. This is a QUICK SESSION — a single one-shot CBT reframe on ONE thought the person has caught.\n\n" + (p.firstName ? "Name: " + p.firstName + ".\n" : "") + patternsBlock + memoryBlock + counselorBlock + "\n\nRespond ONCE with exactly these four beats, in order, warm and direct:\n1. Validate the feeling underneath the thought in one short sentence. Meet them where they are.\n2. Gently name the cognitive distortion at work (the David Burns framework — use accessible language, e.g. \"mind reading,\" \"emotional reasoning,\" \"catastrophizing\"). One sentence.\n3. Offer a truer replacement thought in one or two sentences. Honest, grounded, Spirit-aware, not platitude. If the person already wrote their own truth in their message, build on it rather than override it.\n4. One small invitation they can carry into the next hour. One sentence. Something doable.\n\nRULES:\n- No questions. This is one-shot, not a conversation.\n- Keep the whole response under 6 sentences.\n- End with the invitation — do not wrap up with a blessing or flourish.\n- If the person expresses suicidal thoughts, stop the reframe, acknowledge their pain, provide 988 Lifeline, and encourage them to reach out now.\n- NEVER write prayers. You may invite them to pray in their own words.\nThis is holy ground. One truth, gently.";
   }
-  return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care.\nYou combine CBT (David Burns), neuroscience, biblical truth, and Spirit-led pastoral care.\nSjalavard\'s mission: walk with people through the thoughts that weigh them down — helping them catch the lies their mind tells them, replace them with what is actually true, and find their way back to freedom. All grounded in biblical truth and practical principles that work." + authLine + "\nPrioritize grace, identity in Christ, Spirit transformation.\n" + (p.firstName ? "Name: " + p.firstName + ".\n" : "") + (p.bio ? "About this person: " + p.bio + "\n" : "") + "BACKGROUND CONTEXT (do not bring up directly - use only as quiet background awareness):\nPatterns this person has named: " + struggles + ".\nDirections they want to grow: " + goals + "\n\nNEVER reference these lists by name. Let the person lead. Your job is to follow them.\nNEVER write prayers. Invite the person to pray in their own words instead.\nIf someone expresses suicidal thoughts, acknowledge their pain, show care, provide 988 Lifeline. Do not proceed until safety is addressed." + patternsBlock + memoryBlock + counselorBlock + focusBlock + "\n\nSession arc:\nResponse 1: Lead with CBT (David Burns). Validate their feelings. Gently identify the cognitive distortion at work. Ask one question.\nResponse 2: Bring in Dr. Caroline Leaf. Help them understand how this thought pattern affects the brain and how the mind can be rewired. Ask one question.\nResponse 3: Draw from the person\'s chosen author naturally and without forcing it. Offer spiritual grounding. Ask one question.\nResponse 4: Wrap up. Give a warm summary of the session. Offer 3 guided reflection questions for them to sit with. Invite them to bring what was discussed to God in their own prayer — do not write a prayer for them. Then transition to gratitude.\n\nKeep each response warm, direct, and focused. No flattery. This is holy ground." + mem;
+  return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care.\nYou combine CBT (David Burns), neuroscience, biblical truth, and Spirit-led pastoral care.\nSjalavard\'s mission: walk with people through the thoughts that weigh them down — helping them catch the lies their mind tells them, replace them with what is actually true, and find their way back to freedom. All grounded in biblical truth and practical principles that work." + authLine + "\nPrioritize grace, identity in Christ, Spirit transformation.\n" + (p.firstName ? "Name: " + p.firstName + ".\n" : "") + (p.bio ? "About this person: " + p.bio + "\n" : "") + "BACKGROUND CONTEXT (do not bring up directly - use only as quiet background awareness):\nPatterns this person has named: " + struggles + ".\nTheir Focused Goal: " + goals + "\n\nNEVER reference this directly by name. Let the person lead. Your job is to follow them.\nNEVER write prayers. Invite the person to pray in their own words instead.\nIf someone expresses suicidal thoughts, acknowledge their pain, show care, provide 988 Lifeline. Do not proceed until safety is addressed." + patternsBlock + memoryBlock + counselorBlock + focusBlock + "\n\nSession arc:\nResponse 1: Lead with CBT (David Burns). Validate their feelings. Gently identify the cognitive distortion at work. Ask one question.\nResponse 2: Bring in Dr. Caroline Leaf. Help them understand how this thought pattern affects the brain and how the mind can be rewired. Ask one question.\nResponse 3: Draw from the person\'s chosen author naturally and without forcing it. Offer spiritual grounding. Ask one question.\nResponse 4: Wrap up. Give a warm summary of the session. Offer 3 guided reflection questions for them to sit with. Invite them to bring what was discussed to God in their own prayer — do not write a prayer for them. Then transition to gratitude.\n\nKeep each response warm, direct, and focused. No flattery. This is holy ground." + mem;
 }
 function autoBackup(uid, email, profile, sessions, prayers, checkins) {
   try {
@@ -1848,7 +1846,7 @@ function AboutModal({
       lineHeight: 1.8,
       marginBottom: 12
     }
-  }, "At the top of the Session tab each day is a quick check-in. Choose one of six mood words - Peaceful, Hopeful, Okay, Tired, Anxious, or Struggling - and optionally add a short note. Takes about 10 seconds."), /*#__PURE__*/React.createElement("p", {
+  }, "At the top of the Session tab each day is a quick check-in. Choose one of ten mood words - Joyful, Peaceful, Grateful, Hopeful, Okay, Tired, Sad, Overwhelmed, Anxious, or Struggling - and optionally add a short note. Takes about 10 seconds."), /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 16,
       color: C.muted,
@@ -2152,7 +2150,7 @@ function ProfileSetup({
       firstName: name.trim(),
       bio: bio.trim(),
       struggles: struggles,
-      goals: goalsOther.trim() ? [...goals, goalsOther.trim()] : goals,
+      goals: goalsOther.trim() ? [goalsOther.trim()] : [],
       authors: allA,
       profile_done: true
     };
@@ -2634,68 +2632,43 @@ function ProfileSetup({
       fontWeight: 600,
       marginBottom: 6
     }
-  }, "Your Growth Goals"), /*#__PURE__*/React.createElement("p", {
+  }, "Your Focused Goal"), /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.muted,
       fontSize: 16
     }
-  }, "Choose up to 2 goals.")), /*#__PURE__*/React.createElement("div", {
+  }, "One thing you want to grow in or achieve.")), /*#__PURE__*/React.createElement("div", {
     style: {
       background: C.card,
       border: "1px solid " + C.border,
       borderRadius: 20,
       padding: "28px 24px"
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("p", {
     style: {
-      display: "flex",
-      flexDirection: "column",
-      gap: 7,
-      marginBottom: 22
+      fontSize: 14,
+      color: C.muted,
+      lineHeight: 1.6,
+      marginBottom: 14
     }
-  }, GOALS.map(function (g) {
-    var on = goals.indexOf(g) > -1;
-    return /*#__PURE__*/React.createElement("button", {
-      key: g,
-      onClick: function () {
-        setGoals(function (p) {
-          if (on) return p.filter(function (x) {
-            return x !== g;
-          });
-          if (p.length >= 2) return p; // max 2
-          return [...p, g];
-        });
-      },
-      style: {
-        background: on ? "rgba(61,197,232,0.15)" : C.surf,
-        border: "1.5px solid " + (on ? C.acc : C.border),
-        borderRadius: 9,
-        padding: "11px 14px",
-        color: on ? C.white : C.muted,
-        fontSize: 15,
-        cursor: "pointer",
-        textAlign: "left",
-        display: "flex",
-        alignItems: "center",
-        gap: 10
-      }
-    }, /*#__PURE__*/React.createElement("span", {
-      style: {
-        width: 16,
-        height: 16,
-        borderRadius: 4,
-        background: on ? C.acc : C.border,
-        flexShrink: 0,
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontSize: 13,
-        color: "#fff",
-        fontWeight: 700
-      }
-    }, on ? "v" : ""), g);
-  })), (function () {
-    var hasGoal = goals.length >= 1 || goalsOther.trim().length > 0;
+  }, "Write your one goal. Sjal will walk with you on it session by session until you feel ready to set a new one."), /*#__PURE__*/React.createElement("input", {
+    value: goalsOther,
+    onChange: function (e) {
+      setGoalsOther(e.target.value);
+    },
+    placeholder: "e.g. Overcome anxiety, trust God more, heal from past wounds...",
+    style: {
+      width: "100%",
+      background: C.surf,
+      border: "1.5px solid " + C.border,
+      borderRadius: 10,
+      padding: "11px 14px",
+      color: C.white,
+      fontSize: 16,
+      marginBottom: 18
+    }
+  }), (function () {
+    var hasGoal = goalsOther.trim().length > 0;
     return /*#__PURE__*/React.createElement("button", {
       onClick: function () {
         if (hasGoal) setStep(4);
@@ -2712,7 +2685,7 @@ function ProfileSetup({
         cursor: hasGoal ? "pointer" : "default",
         fontWeight: 700
       }
-    }, "Continue (", goals.length + (goalsOther.trim() ? 1 : 0), " of 2 selected)");
+    }, "Continue");
   })()), /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 14
@@ -2727,23 +2700,7 @@ function ProfileSetup({
       display: "block",
       marginBottom: 7
     }
-  }, "Or describe your own goal"), /*#__PURE__*/React.createElement("input", {
-    value: goalsOther,
-    onChange: function (e) {
-      setGoalsOther(e.target.value);
-    },
-    placeholder: "e.g. Find peace in difficult relationships...",
-    style: {
-      width: "100%",
-      background: C.surf,
-      border: "1.5px solid " + C.border,
-      borderRadius: 10,
-      padding: "11px 14px",
-      color: C.white,
-      fontSize: 16,
-      marginBottom: 6
-    }
-  }), React.createElement("p", {
+  }, "You can change or complete this goal anytime in your profile."), React.createElement("p", {
     style: {
       fontSize: 13,
       color: C.dim
@@ -3675,6 +3632,14 @@ function App({
   }
   function getTrends() {
     var scores = {
+      "Joyful": 5,
+      "Peaceful": 5,
+      "Grateful": 5,
+      "Hopeful": 4,
+      "Okay": 3,
+      "Tired": 3,
+      "Sad": 2,
+      "Struggling": 1,
       "Hopeless": 1,
       "Ashamed": 2,
       "Anxious": 2,
@@ -3931,7 +3896,7 @@ function App({
     }
   }, (function () {
     var base = [["session", "Session"]];
-    if (profile.focus || profile.focusHistory && profile.focusHistory.length) base.push(["focus", "Focus"]);
+    if (profile.focus || profile.focusHistory && profile.focusHistory.length) base.push(["focus", "Goal"]);
     return base.concat([["journal", "Prayer"], ["history", "Past Sessions"], ["profile", "Profile"], ["included", "Features"], ["legal", "Legal"]]);
   })().map(function (vl) {
     var active = tab === vl[0];
@@ -4248,7 +4213,7 @@ function App({
       gap: 6,
       marginBottom: 12
     }
-  }, ["Peaceful", "Hopeful", "Okay", "Tired", "Anxious", "Struggling"].map(function (m) {
+  }, ["Joyful", "Peaceful", "Grateful", "Hopeful", "Okay", "Tired", "Sad", "Overwhelmed", "Anxious", "Struggling"].map(function (m) {
     return /*#__PURE__*/React.createElement("button", {
       key: m,
       onClick: function () {
@@ -4295,12 +4260,12 @@ function App({
       color: C.muted,
       marginBottom: 8
     }
-  }, "Did ", /*#__PURE__*/React.createElement("span", {
+  }, "Did you make progress on your Focused Goal today? — ", /*#__PURE__*/React.createElement("span", {
     style: {
       color: C.success,
       fontWeight: 600
     }
-  }, profile.focus.title), " show up today?"), /*#__PURE__*/React.createElement("div", {
+  }, profile.focus.title)), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       gap: 6
@@ -4546,7 +4511,7 @@ function App({
       fontWeight: 700,
       marginBottom: 2
     }
-  }, "Work on your Focus"), /*#__PURE__*/React.createElement("div", {
+  }, "Work on your Focused Goal"), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12,
       opacity: 0.85,
@@ -4577,12 +4542,12 @@ function App({
       fontWeight: 600,
       marginBottom: 2
     }
-  }, "Set a Focus \u2192"), /*#__PURE__*/React.createElement("div", {
+  }, "Set a Focused Goal \u2192"), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12,
       opacity: 0.8
     }
-  }, "One area to tend over time")), /*#__PURE__*/React.createElement("button", {
+  }, "One goal to work toward")), /*#__PURE__*/React.createElement("button", {
     onClick: function () {
       setSessionMode("quick");
       setPhase("quickShare");
@@ -5994,13 +5959,13 @@ function App({
       fontWeight: 600,
       marginBottom: 4
     }
-  }, "Your Focus"), /*#__PURE__*/React.createElement("p", {
+  }, "Your Focused Goal"), /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.muted,
       fontSize: 15,
       marginBottom: 22
     }
-  }, "One area you are tending over time."), !profile.focus ? /*#__PURE__*/React.createElement("div", {
+  }, "One goal you are working toward."), !profile.focus ? /*#__PURE__*/React.createElement("div", {
     style: {
       background: C.card,
       border: "1px dashed " + C.border,
@@ -6015,7 +5980,7 @@ function App({
       lineHeight: 1.7,
       marginBottom: 16
     }
-  }, "You haven\'t set a Focus yet. Pick one area you want to grow or heal in \u2014 Sjal will walk with you through it, session by session."), /*#__PURE__*/React.createElement("button", {
+  }, "You haven\'t set a Focused Goal yet. Write the one thing you want to achieve or grow in \u2014 Sjal will walk with you through it, session by session."), /*#__PURE__*/React.createElement("button", {
     onClick: function () {
       setTab("profile");
     },
@@ -6029,7 +5994,7 @@ function App({
       cursor: "pointer",
       fontWeight: 700
     }
-  }, "Set a Focus in Profile")) : /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+  }, "Set a Focused Goal in Profile")) : /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
       background: C.card,
       border: "1px solid rgba(91,184,160,0.35)",
@@ -6046,7 +6011,7 @@ function App({
       fontWeight: 700,
       marginBottom: 6
     }
-  }, "Current Focus"), /*#__PURE__*/React.createElement("p", {
+  }, "Current Goal"), /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 22,
       color: C.white,
@@ -6070,7 +6035,7 @@ function App({
       fontSize: 13,
       color: C.dim
     }
-  }, /*#__PURE__*/React.createElement("span", null, (profile.focus.sessionCount || 0) + " Focus session" + ((profile.focus.sessionCount || 0) === 1 ? "" : "s")), (function () {
+  }, /*#__PURE__*/React.createElement("span", null, (profile.focus.sessionCount || 0) + " session" + ((profile.focus.sessionCount || 0) === 1 ? "" : "s") + " on this goal"), (function () {
     var count = 0;
     Object.keys(allCheckIns || {}).forEach(function (k) {
       if (allCheckIns[k] && allCheckIns[k].focusShowedUp === true && allCheckIns[k].focusId === profile.focus.id) count++;
@@ -6131,7 +6096,7 @@ function App({
       fontSize: 14,
       lineHeight: 1.6
     }
-  }, "No Focus sessions yet. Start one from the Session tab to build your thread.")), profile.focusHistory && profile.focusHistory.length > 0 && /*#__PURE__*/React.createElement("div", {
+  }, "No sessions yet on this goal. Start one from the Session tab to build your thread.")), profile.focusHistory && profile.focusHistory.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 28,
       paddingTop: 18,
@@ -6146,7 +6111,7 @@ function App({
       fontWeight: 700,
       marginBottom: 10
     }
-  }, "Graduated"), profile.focusHistory.map(function (fh, i) {
+  }, "Completed Goals"), profile.focusHistory.map(function (fh, i) {
     return /*#__PURE__*/React.createElement("div", {
       key: (fh.id || i) + "_" + i,
       style: {
@@ -6755,38 +6720,6 @@ function App({
       border: "1px solid " + C.border,
       borderRadius: 13,
       padding: "18px 20px",
-      marginBottom: 12
-    }
-  }, /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: 13,
-      color: C.acc,
-      letterSpacing: 1,
-      textTransform: "uppercase",
-      fontWeight: 700,
-      marginBottom: 10
-    }
-  }, "Your Goals"), profile.goals && profile.goals.length ? profile.goals.map(function (g, i) {
-    return /*#__PURE__*/React.createElement("p", {
-      key: i,
-      style: {
-        fontSize: 15,
-        color: C.muted,
-        marginBottom: 5,
-        lineHeight: 1.5
-      }
-    }, "- ", g);
-  }) : /*#__PURE__*/React.createElement("p", {
-    style: {
-      color: C.dim,
-      fontSize: 15
-    }
-  }, "None set")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: C.card,
-      border: "1px solid " + C.border,
-      borderRadius: 13,
-      padding: "18px 20px",
       marginBottom: 20
     }
   }, /*#__PURE__*/React.createElement("div", {
@@ -6923,7 +6856,7 @@ function App({
       textTransform: "uppercase",
       fontWeight: 700
     }
-  }, "Your Focus"), !focusEditing && /*#__PURE__*/React.createElement("button", {
+  }, "Your Focused Goal"), !focusEditing && /*#__PURE__*/React.createElement("button", {
     onClick: function () {
       setFocusTitle(profile.focus && profile.focus.title || "");
       setFocusDesc(profile.focus && profile.focus.description || "");
@@ -6938,14 +6871,14 @@ function App({
       fontSize: 13,
       cursor: "pointer"
     }
-  }, profile.focus ? "Edit" : "Set a Focus")), !focusEditing && !profile.focus && /*#__PURE__*/React.createElement("p", {
+  }, profile.focus ? "Edit" : "Set Goal")), !focusEditing && !profile.focus && /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.dim,
       fontSize: 15,
       lineHeight: 1.6,
       margin: 0
     }
-  }, "Choose one area you want to tend over time \u2014 something to grow in or heal around (for example, \"social anxiety\", \"anger with my kids\", \"fear of rejection\"). Each Focus Session builds on the last."), !focusEditing && profile.focus && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+  }, "Write the one thing you want to achieve or grow in. Sjal will walk with you session by session until you feel ready to set a new one."), !focusEditing && profile.focus && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 17,
       color: C.white,
@@ -6992,7 +6925,7 @@ function App({
       cursor: "pointer",
       fontWeight: 600
     }
-  }, "View Journey"), /*#__PURE__*/React.createElement("button", {
+  }, "View Progress"), /*#__PURE__*/React.createElement("button", {
     onClick: function () {
       setFocusGradConfirm(true);
     },
@@ -7005,12 +6938,12 @@ function App({
       fontSize: 13,
       cursor: "pointer"
     }
-  }, "Graduate this Focus"))), focusEditing && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("input", {
+  }, "Goal Achieved — Start New"))), focusEditing && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("input", {
     value: focusTitle,
     onChange: function (e) {
       setFocusTitle(e.target.value);
     },
-    placeholder: "Your focus (e.g. Social anxiety)",
+    placeholder: "What is your goal? (e.g. Overcome anxiety, trust God more...)",
     maxLength: 60,
     style: {
       width: "100%",
@@ -7080,7 +7013,7 @@ function App({
       cursor: focusTitle.trim() ? "pointer" : "default",
       fontWeight: 700
     }
-  }, profile.focus ? "Save" : "Start my Focus"), /*#__PURE__*/React.createElement("button", {
+  }, profile.focus ? "Save" : "Set My Goal"), /*#__PURE__*/React.createElement("button", {
     onClick: function () {
       setFocusEditing(false);
       setFocusTitle("");
@@ -7110,7 +7043,7 @@ function App({
       marginBottom: 10,
       lineHeight: 1.5
     }
-  }, "Graduate this Focus? It will be archived and you can start a new one."), /*#__PURE__*/React.createElement("div", {
+  }, "Mark this goal as complete? It will be archived and you can set a new one."), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       gap: 8
@@ -7138,7 +7071,7 @@ function App({
       cursor: "pointer",
       fontWeight: 700
     }
-  }, "Yes, graduate"), /*#__PURE__*/React.createElement("button", {
+  }, "Yes, mark complete"), /*#__PURE__*/React.createElement("button", {
     onClick: function () {
       setFocusGradConfirm(false);
     },
