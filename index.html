@@ -1384,7 +1384,7 @@ function buildSys(p, sessions, mode) {
   if (mode === "quick") {
     return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care. This is a QUICK SESSION — a single one-shot CBT reframe on ONE thought the person has caught.\n\n" + (p.firstName ? "Name: " + p.firstName + ".\n" : "") + patternsBlock + memoryBlock + counselorBlock + "\n\nRespond ONCE with exactly these four beats, in order, warm and direct:\n1. Validate the feeling underneath the thought in one short sentence. Meet them where they are.\n2. Gently name the cognitive distortion at work (the David Burns framework — use accessible language, e.g. \"mind reading,\" \"emotional reasoning,\" \"catastrophizing\"). One sentence.\n3. Offer a truer replacement thought in one or two sentences. Honest, grounded, Spirit-aware, not platitude. If the person already wrote their own truth in their message, build on it rather than override it.\n4. One small invitation they can carry into the next hour. One sentence. Something doable.\n\nRULES:\n- No questions. This is one-shot, not a conversation.\n- Keep the whole response under 6 sentences.\n- End with the invitation — do not wrap up with a blessing or flourish.\n- If the person expresses suicidal thoughts, stop the reframe, acknowledge their pain, provide 988 Lifeline, and encourage them to reach out now.\n- NEVER write prayers. You may invite them to pray in their own words.\nThis is holy ground. One truth, gently.";
   }
-  return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care.\nYou combine CBT (David Burns), neuroscience, biblical truth, and Spirit-led pastoral care.\nSjalavard\'s mission: walk with people through the thoughts that weigh them down — helping them catch the lies their mind tells them, replace them with what is actually true, and find their way back to freedom. All grounded in biblical truth and practical principles that work." + authLine + "\nPrioritize grace, identity in Christ, Spirit transformation.\n" + (p.firstName ? "Name: " + p.firstName + ".\n" : "") + (p.bio ? "About this person: " + p.bio + "\n" : "") + "BACKGROUND CONTEXT (do not bring up directly - use only as quiet background awareness):\nPatterns this person has named: " + struggles + ".\nTheir Focused Goal: " + goals + "\n\nNEVER reference this directly by name. Let the person lead. Your job is to follow them.\nNEVER write prayers. Invite the person to pray in their own words instead.\nIf someone expresses suicidal thoughts, acknowledge their pain, show care, provide 988 Lifeline. Do not proceed until safety is addressed." + patternsBlock + memoryBlock + counselorBlock + focusBlock + "\n\nSession arc:\nResponse 1: Lead with CBT (David Burns). Validate their feelings. Gently identify the cognitive distortion at work. Ask one question.\nResponse 2: Bring in Dr. Caroline Leaf. Help them understand how this thought pattern affects the brain and how the mind can be rewired. Ask one question.\nResponse 3: Draw from the person\'s chosen author naturally and without forcing it. Offer spiritual grounding. Ask one question.\nResponse 4: Wrap up. Give a warm summary of the session. Offer 3 guided reflection questions for them to sit with. Invite them to bring what was discussed to God in their own prayer — do not write a prayer for them. Then transition to gratitude.\n\nKeep each response warm, direct, and focused. No flattery. This is holy ground." + mem;
+  return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care.\nYou combine CBT (David Burns), neuroscience, biblical truth, and Spirit-led pastoral care.\nSjalavard\'s mission: walk with people through the thoughts that weigh them down — helping them catch the lies their mind tells them, replace them with what is actually true, and find their way back to freedom. All grounded in biblical truth and practical principles that work." + authLine + "\nPrioritize grace, identity in Christ, Spirit transformation.\n" + (p.firstName ? "Name: " + p.firstName + ".\n" : "") + (p.bio ? "About this person: " + p.bio + "\n" : "") + "BACKGROUND CONTEXT (do not bring up directly - use only as quiet background awareness):\nWhat they are working through: " + struggles + ".\nTheir Focused Goal: " + goals + "\n\nNEVER reference this directly by name. Let the person lead. Your job is to follow them.\nNEVER write prayers. Invite the person to pray in their own words instead.\nIf someone expresses suicidal thoughts, acknowledge their pain, show care, provide 988 Lifeline. Do not proceed until safety is addressed." + patternsBlock + memoryBlock + counselorBlock + focusBlock + "\n\nSession arc:\nResponse 1: Lead with CBT (David Burns). Validate their feelings. Gently identify the cognitive distortion at work. Ask one question.\nResponse 2: Bring in Dr. Caroline Leaf. Help them understand how this thought pattern affects the brain and how the mind can be rewired. Ask one question.\nResponse 3: Draw from the person\'s chosen author naturally and without forcing it. Offer spiritual grounding. Ask one question.\nResponse 4: Wrap up. Give a warm summary of the session. Offer 3 guided reflection questions for them to sit with. Invite them to bring what was discussed to God in their own prayer — do not write a prayer for them. Then transition to gratitude.\n\nKeep each response warm, direct, and focused. No flattery. This is holy ground." + mem;
 }
 function autoBackup(uid, email, profile, sessions, prayers, checkins) {
   try {
@@ -2126,6 +2126,7 @@ function ProfileSetup({
   var [device, setDevice] = useState("iphone");
   var [name, setName] = useState("");
   var [struggles, setStruggles] = useState([]);
+  var [strugglesText, setStrugglesText] = useState("");
   var [goals, setGoals] = useState([]);
   var [goalsOther, setGoalsOther] = useState("");
   var [bio, setBio] = useState("");
@@ -2149,7 +2150,7 @@ function ProfileSetup({
     var profile = {
       firstName: name.trim(),
       bio: bio.trim(),
-      struggles: struggles,
+      struggles: strugglesText.trim() ? [strugglesText.trim()] : [],
       goals: goalsOther.trim() ? [goalsOther.trim()] : [],
       authors: allA,
       profile_done: true
@@ -2548,59 +2549,53 @@ function ProfileSetup({
       color: C.muted,
       fontSize: 16
     }
-  }, "Select your common patterns.")), /*#__PURE__*/React.createElement("div", {
+  }, "One thing you want to work through.")), /*#__PURE__*/React.createElement("div", {
     style: {
       background: C.card,
       border: "1px solid " + C.border,
       borderRadius: 20,
       padding: "28px 24px"
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("p", {
     style: {
-      display: "flex",
-      flexWrap: "wrap",
-      gap: 7,
-      marginBottom: 22
+      fontSize: 14,
+      color: C.muted,
+      lineHeight: 1.6,
+      marginBottom: 14
     }
-  }, STRUGGLES.map(function (s) {
-    var on = struggles.indexOf(s) > -1;
-    return /*#__PURE__*/React.createElement("button", {
-      key: s,
-      onClick: function () {
-        setStruggles(function (p) {
-          return on ? p.filter(function (x) {
-            return x !== s;
-          }) : [...p, s];
-        });
-      },
-      style: {
-        background: on ? "rgba(61,197,232,0.2)" : C.surf,
-        border: "1.5px solid " + (on ? C.acc : C.border),
-        borderRadius: 20,
-        padding: "6px 12px",
-        color: on ? C.acc : C.muted,
-        fontSize: 14,
-        cursor: "pointer",
-        fontWeight: on ? 700 : 400
-      }
-    }, s);
-  })), /*#__PURE__*/React.createElement("button", {
-    onClick: function () {
-      setStep(3);
+  }, "Describe what you’re dealing with in your own words. Sjal will use this as quiet background — never bringing it up directly, just listening with it in mind."), /*#__PURE__*/React.createElement("input", {
+    value: strugglesText,
+    onChange: function (e) {
+      setStrugglesText(e.target.value);
     },
-    disabled: struggles.length === 0,
+    placeholder: "e.g. Anxiety and overthinking, anger with my family, feeling stuck...",
+    style: {
+      width: "100%",
+      background: C.surf,
+      border: "1.5px solid " + C.border,
+      borderRadius: 10,
+      padding: "11px 14px",
+      color: C.white,
+      fontSize: 16,
+      marginBottom: 18
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      if (strugglesText.trim()) setStep(3);
+    },
+    disabled: !strugglesText.trim(),
     style: {
       width: "100%",
       padding: "14px",
-      background: struggles.length ? C.acc : C.border,
+      background: strugglesText.trim() ? C.acc : C.border,
       border: "none",
       borderRadius: 12,
-      color: struggles.length ? C.bg : C.dim,
+      color: strugglesText.trim() ? C.bg : C.dim,
       fontSize: 16,
-      cursor: struggles.length ? "pointer" : "default",
+      cursor: strugglesText.trim() ? "pointer" : "default",
       fontWeight: 700
     }
-  }, "Continue (", struggles.length, " selected)"))), step === 3 && /*#__PURE__*/React.createElement("div", {
+  }, "Continue"))), step === 3 && /*#__PURE__*/React.createElement("div", {
     className: "fi"
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -2864,6 +2859,852 @@ function ProfileSetup({
     }
   }, "Back to App"))));
 }
+// ── System prompt helpers ────────────────────────────────────────────────────
+
+function sjFindSimilarVoicesSystem(name) {
+  return "You are a Christian soul care librarian. Given the author/clinician \"" + name + "\", suggest 3-4 other authors whose work would resonate with someone who values this person's approach to soul care, spiritual formation, or Christian psychology. Return ONLY a JSON array with objects: {name, why, tradition, keyWork}. No other text.";
+}
+function sjAuthorWritingsSystem(name, topic) {
+  return "You are a Christian soul care librarian deeply familiar with the work of " + name + ". The user wants to explore what " + name + " has written or said about: \"" + topic + "\". Provide a brief framing of their approach to this topic, then 2-3 representative quotes or paraphrases. Return ONLY JSON: {summary: string, quotes: [{text: string, source: string, freely_available: boolean}]}. No other text.";
+}
+function sjAuthorProfileSystem(name) {
+  return "You are a Christian soul care librarian. Provide a brief profile of \"" + name + "\" as a Christian author or clinician relevant to soul care, spiritual formation, or Christian psychology. Return ONLY JSON: {tradition: string, era: string, posture: string, specialties: [string], frame: string, core_works: [string]}. No other text.";
+}
+
+// ── Explore Voices screen ────────────────────────────────────────────────────
+
+function SjExploreVoicesScreen({
+  profile,
+  onAuthorsChange,
+  onBack,
+  uid
+}) {
+  var SJ_C = {
+    bg: "#0f2d42",
+    surf: "#1a3d54",
+    card: "#1e4560",
+    border: "#2d6b8a",
+    acc: "#5bb8d4",
+    white: "#fff",
+    muted: "#8ab8cc",
+    dim: "#4a7a94"
+  };
+  var SJ_PRESET = ["C.S. Lewis", "Timothy Keller", "N.T. Wright", "Dallas Willard", "Eugene Peterson", "Richard Foster", "Brennan Manning", "Henri Nouwen", "John Mark Comer", "Dr. Caroline Leaf"];
+  var [myVoices, setMyVoices] = React.useState(profile.authors || []);
+  var [selected, setSelected] = React.useState(null);
+  var [search, setSearch] = React.useState("");
+  var [toast, setToast] = React.useState("");
+
+  // Find Similar
+  var [simLoad, setSimLoad] = React.useState(false);
+  var [simRes, setSimRes] = React.useState(null);
+  var [simErr, setSimErr] = React.useState("");
+
+  // Explore Writings
+  var [qtopic, setQtopic] = React.useState("");
+  var [qload, setQload] = React.useState(false);
+  var [qres, setQres] = React.useState(null);
+  var [qerr, setQerr] = React.useState("");
+
+  // AI-generated profile for non-FOCUS_VOICES authors
+  var [aiProf, setAiProf] = React.useState(null);
+  var [aiProfLoad, setAiProfLoad] = React.useState(false);
+  var [aiProfErr, setAiProfErr] = React.useState("");
+  React.useEffect(function () {
+    setMyVoices(profile.authors || []);
+  }, [profile.authors]);
+  function showToast(msg) {
+    setToast(msg);
+    setTimeout(function () {
+      setToast("");
+    }, 2200);
+  }
+  function addVoice(name) {
+    if (myVoices.indexOf(name) >= 0) return;
+    if (myVoices.length >= 5) {
+      showToast("Max 5 voices — remove one first");
+      return;
+    }
+    var next = myVoices.concat([name]);
+    setMyVoices(next);
+    onAuthorsChange(next);
+    showToast(name + " added to My Voices");
+  }
+  function removeVoice(name) {
+    var next = myVoices.filter(function (x) {
+      return x !== name;
+    });
+    setMyVoices(next);
+    onAuthorsChange(next);
+  }
+  function openDetail(name) {
+    setSelected(name);
+    setSimRes(null);
+    setSimErr("");
+    setQtopic("");
+    setQres(null);
+    setQerr("");
+    setAiProf(null);
+    setAiProfErr("");
+    // Auto-generate profile if not in FOCUS_VOICES
+    var hasProfile = typeof FOCUS_VOICES !== "undefined" && FOCUS_VOICES.find(function (v) {
+      return v.name === name;
+    });
+    if (!hasProfile) loadAiProfile(name);
+  }
+  async function loadAiProfile(name) {
+    setAiProfLoad(true);
+    setAiProfErr("");
+    try {
+      var res = await fetch("/api/gemini", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [{
+              text: sjAuthorProfileSystem(name)
+            }]
+          },
+          contents: [{
+            role: "user",
+            parts: [{
+              text: "Generate profile."
+            }]
+          }],
+          generationConfig: {
+            maxOutputTokens: 600,
+            responseMimeType: "application/json",
+            temperature: 0.3
+          }
+        })
+      });
+      var d = await res.json();
+      var raw = d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts && d.candidates[0].content.parts[0] && d.candidates[0].content.parts[0].text || "";
+      var _bt = String.fromCharCode(96); var cleaned = raw.split(_bt+_bt+_bt+"json\n").join("").split(_bt+_bt+_bt+"json").join("").split(_bt+_bt+_bt).join("").trim();
+      setAiProf(JSON.parse(cleaned));
+    } catch (e) {
+      setAiProfErr("Could not load profile — try again.");
+    }
+    setAiProfLoad(false);
+  }
+  async function findSimilar(name) {
+    setSimLoad(true);
+    setSimRes(null);
+    setSimErr("");
+    try {
+      var res = await fetch("/api/gemini", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [{
+              text: sjFindSimilarVoicesSystem(name)
+            }]
+          },
+          contents: [{
+            role: "user",
+            parts: [{
+              text: "Suggest similar voices."
+            }]
+          }],
+          generationConfig: {
+            maxOutputTokens: 700,
+            responseMimeType: "application/json",
+            temperature: 0.4
+          }
+        })
+      });
+      var d = await res.json();
+      var raw = d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts && d.candidates[0].content.parts[0] && d.candidates[0].content.parts[0].text || "";
+      var _bt = String.fromCharCode(96); var cleaned = raw.split(_bt+_bt+_bt+"json\n").join("").split(_bt+_bt+_bt+"json").join("").split(_bt+_bt+_bt).join("").trim();
+      setSimRes(JSON.parse(cleaned));
+    } catch (e) {
+      setSimErr("Could not load suggestions — try again.");
+    }
+    setSimLoad(false);
+  }
+  async function lookUpWritings(name, topic) {
+    if (!topic.trim()) return;
+    setQload(true);
+    setQres(null);
+    setQerr("");
+    try {
+      var res = await fetch("/api/gemini", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [{
+              text: sjAuthorWritingsSystem(name, topic.trim())
+            }]
+          },
+          contents: [{
+            role: "user",
+            parts: [{
+              text: "Look up writings on this topic."
+            }]
+          }],
+          generationConfig: {
+            maxOutputTokens: 800,
+            responseMimeType: "application/json",
+            temperature: 0.4
+          }
+        })
+      });
+      var d = await res.json();
+      var raw = d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts && d.candidates[0].content.parts[0] && d.candidates[0].content.parts[0].text || "";
+      var _bt = String.fromCharCode(96); var cleaned = raw.split(_bt+_bt+_bt+"json\n").join("").split(_bt+_bt+_bt+"json").join("").split(_bt+_bt+_bt).join("").trim();
+      setQres(JSON.parse(cleaned));
+    } catch (e) {
+      setQerr("Could not load — try again.");
+    }
+    setQload(false);
+  }
+
+  // ── Detail view ──────────────────────────────────────────────────────────
+  if (selected) {
+    var focusVoice = typeof FOCUS_VOICES !== "undefined" ? FOCUS_VOICES.find(function (v) {
+      return v.name === selected;
+    }) : null;
+    var profile_data = focusVoice || aiProf;
+    var inMyVoices = myVoices.indexOf(selected) >= 0;
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: "0 0 40px 0"
+      }
+    }, toast && /*#__PURE__*/React.createElement("div", {
+      style: {
+        position: "fixed",
+        top: 18,
+        left: "50%",
+        transform: "translateX(-50%)",
+        background: SJ_C.acc,
+        color: SJ_C.bg,
+        padding: "8px 18px",
+        borderRadius: 20,
+        fontSize: 14,
+        fontWeight: 600,
+        zIndex: 999
+      }
+    }, toast), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        marginBottom: 20
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: function () {
+        setSelected(null);
+      },
+      style: {
+        background: "none",
+        border: "none",
+        color: SJ_C.acc,
+        fontSize: 15,
+        cursor: "pointer",
+        padding: 0
+      }
+    }, "\u2190 Back")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: SJ_C.card,
+        border: "1px solid " + SJ_C.border,
+        borderRadius: 13,
+        padding: "20px",
+        marginBottom: 14
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+        marginBottom: 10
+      }
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+      style: {
+        margin: 0,
+        fontSize: 20,
+        color: SJ_C.white,
+        fontFamily: "'Playfair Display',serif"
+      }
+    }, selected), profile_data && /*#__PURE__*/React.createElement("p", {
+      style: {
+        margin: "4px 0 0",
+        fontSize: 13,
+        color: SJ_C.acc,
+        letterSpacing: 0.5
+      }
+    }, profile_data.tradition, " \xB7 ", profile_data.era)), /*#__PURE__*/React.createElement("button", {
+      onClick: function () {
+        inMyVoices ? removeVoice(selected) : addVoice(selected);
+      },
+      style: {
+        background: inMyVoices ? "rgba(91,184,212,0.15)" : SJ_C.acc,
+        border: "1.5px solid " + SJ_C.acc,
+        borderRadius: 8,
+        padding: "6px 14px",
+        color: inMyVoices ? SJ_C.acc : SJ_C.bg,
+        fontSize: 13,
+        cursor: "pointer",
+        fontWeight: 600,
+        flexShrink: 0
+      }
+    }, inMyVoices ? "✓ In My Voices" : "+ Add to My Voices")), aiProfLoad && /*#__PURE__*/React.createElement("p", {
+      style: {
+        color: SJ_C.dim,
+        fontSize: 14
+      }
+    }, "Loading profile..."), aiProfErr && /*#__PURE__*/React.createElement("p", {
+      style: {
+        color: "#e08090",
+        fontSize: 14
+      }
+    }, aiProfErr), profile_data && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 15,
+        color: SJ_C.muted,
+        lineHeight: 1.65,
+        marginBottom: 12
+      }
+    }, profile_data.frame || profile_data.posture), (profile_data.specialties || profile_data.emphases || []).length > 0 && /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginBottom: 10
+      }
+    }, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 12,
+        color: SJ_C.dim,
+        textTransform: "uppercase",
+        letterSpacing: 0.8,
+        marginBottom: 6
+      }
+    }, "Themes"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 5
+      }
+    }, (profile_data.specialties || profile_data.emphases || []).map(function (s) {
+      return /*#__PURE__*/React.createElement("span", {
+        key: s,
+        style: {
+          background: "rgba(91,184,212,0.12)",
+          border: "1px solid rgba(91,184,212,0.25)",
+          borderRadius: 20,
+          padding: "3px 9px",
+          fontSize: 12,
+          color: SJ_C.muted
+        }
+      }, s);
+    }))), (profile_data.core_works || []).length > 0 && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 12,
+        color: SJ_C.dim,
+        textTransform: "uppercase",
+        letterSpacing: 0.8,
+        marginBottom: 6
+      }
+    }, "Key Works"), profile_data.core_works.map(function (w) {
+      return /*#__PURE__*/React.createElement("p", {
+        key: w,
+        style: {
+          fontSize: 13,
+          color: SJ_C.muted,
+          margin: "2px 0"
+        }
+      }, "\xB7 ", w);
+    })))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: SJ_C.card,
+        border: "1px solid " + SJ_C.border,
+        borderRadius: 13,
+        padding: "18px 20px",
+        marginBottom: 14
+      }
+    }, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 13,
+        color: SJ_C.acc,
+        textTransform: "uppercase",
+        letterSpacing: 0.8,
+        fontWeight: 700,
+        marginBottom: 10
+      }
+    }, "Find Similar Voices"), !simRes && !simLoad && /*#__PURE__*/React.createElement("button", {
+      onClick: function () {
+        findSimilar(selected);
+      },
+      style: {
+        background: "rgba(91,184,212,0.12)",
+        border: "1px solid " + SJ_C.border,
+        borderRadius: 8,
+        padding: "9px 16px",
+        color: SJ_C.acc,
+        fontSize: 14,
+        cursor: "pointer",
+        fontWeight: 600
+      }
+    }, "Find Voices Like ", selected.split(" ").slice(-1)[0]), simLoad && /*#__PURE__*/React.createElement("p", {
+      style: {
+        color: SJ_C.dim,
+        fontSize: 14
+      }
+    }, "Finding similar voices..."), simErr && /*#__PURE__*/React.createElement("p", {
+      style: {
+        color: "#e08090",
+        fontSize: 14
+      }
+    }, simErr), simRes && /*#__PURE__*/React.createElement("div", null, simRes.map(function (s) {
+      var alreadyIn = myVoices.indexOf(s.name) >= 0;
+      return /*#__PURE__*/React.createElement("div", {
+        key: s.name,
+        style: {
+          background: SJ_C.surf,
+          borderRadius: 10,
+          padding: "12px 14px",
+          marginBottom: 8
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          marginBottom: 4
+        }
+      }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("button", {
+        onClick: function () {
+          openDetail(s.name);
+        },
+        style: {
+          background: "none",
+          border: "none",
+          color: SJ_C.white,
+          fontSize: 15,
+          fontWeight: 600,
+          cursor: "pointer",
+          padding: 0,
+          textAlign: "left"
+        }
+      }, s.name), s.keyWork && /*#__PURE__*/React.createElement("p", {
+        style: {
+          fontSize: 12,
+          color: SJ_C.dim,
+          margin: "2px 0 0"
+        }
+      }, s.keyWork)), /*#__PURE__*/React.createElement("button", {
+        onClick: function () {
+          alreadyIn ? removeVoice(s.name) : addVoice(s.name);
+        },
+        style: {
+          background: alreadyIn ? "rgba(91,184,212,0.15)" : SJ_C.acc,
+          border: "1.5px solid " + SJ_C.acc,
+          borderRadius: 6,
+          padding: "4px 10px",
+          color: alreadyIn ? SJ_C.acc : SJ_C.bg,
+          fontSize: 12,
+          cursor: "pointer",
+          fontWeight: 600,
+          flexShrink: 0
+        }
+      }, alreadyIn ? "✓ Added" : "+ Add")), /*#__PURE__*/React.createElement("p", {
+        style: {
+          fontSize: 13,
+          color: SJ_C.muted,
+          margin: 0,
+          lineHeight: 1.5
+        }
+      }, s.why));
+    }))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: SJ_C.card,
+        border: "1px solid " + SJ_C.border,
+        borderRadius: 13,
+        padding: "18px 20px",
+        marginBottom: 14
+      }
+    }, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 13,
+        color: SJ_C.acc,
+        textTransform: "uppercase",
+        letterSpacing: 0.8,
+        fontWeight: 700,
+        marginBottom: 6
+      }
+    }, "Explore Writings"), /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 13,
+        color: SJ_C.dim,
+        marginBottom: 10
+      }
+    }, "What has ", selected, " written about..."), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 8,
+        marginBottom: 10
+      }
+    }, /*#__PURE__*/React.createElement("input", {
+      value: qtopic,
+      onChange: function (e) {
+        setQtopic(e.target.value);
+      },
+      onKeyDown: function (e) {
+        if (e.key === "Enter") lookUpWritings(selected, qtopic);
+      },
+      placeholder: "e.g. shame, prayer, grief, identity...",
+      style: {
+        flex: 1,
+        background: SJ_C.surf,
+        border: "1px solid " + SJ_C.border,
+        borderRadius: 8,
+        padding: "9px 13px",
+        color: SJ_C.white,
+        fontSize: 14
+      }
+    }), /*#__PURE__*/React.createElement("button", {
+      onClick: function () {
+        lookUpWritings(selected, qtopic);
+      },
+      disabled: qload || !qtopic.trim(),
+      style: {
+        background: SJ_C.acc,
+        border: "none",
+        borderRadius: 8,
+        padding: "9px 16px",
+        color: SJ_C.bg,
+        fontSize: 14,
+        cursor: "pointer",
+        fontWeight: 700,
+        opacity: !qtopic.trim() || qload ? 0.5 : 1
+      }
+    }, qload ? "..." : "Search")), qerr && /*#__PURE__*/React.createElement("p", {
+      style: {
+        color: "#e08090",
+        fontSize: 14
+      }
+    }, qerr), qres && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 14,
+        color: SJ_C.muted,
+        lineHeight: 1.6,
+        marginBottom: 12,
+        fontStyle: "italic"
+      }
+    }, qres.summary), (qres.quotes || []).map(function (q, i) {
+      return /*#__PURE__*/React.createElement("div", {
+        key: i,
+        style: {
+          background: SJ_C.surf,
+          borderRadius: 10,
+          padding: "12px 14px",
+          marginBottom: 8
+        }
+      }, /*#__PURE__*/React.createElement("p", {
+        style: {
+          fontSize: 14,
+          color: SJ_C.white,
+          lineHeight: 1.65,
+          margin: "0 0 6px",
+          fontStyle: "italic"
+        }
+      }, "\"", q.text, "\""), /*#__PURE__*/React.createElement("div", {
+        style: {
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center"
+        }
+      }, /*#__PURE__*/React.createElement("p", {
+        style: {
+          fontSize: 12,
+          color: SJ_C.dim,
+          margin: 0
+        }
+      }, q.source), q.freely_available && /*#__PURE__*/React.createElement("a", {
+        href: "https://www.google.com/search?q=" + encodeURIComponent(selected + " " + (q.source || "")),
+        target: "_blank",
+        rel: "noopener noreferrer",
+        style: {
+          fontSize: 12,
+          color: SJ_C.acc
+        }
+      }, "Find online \u2192")));
+    }))));
+  }
+
+  // ── List view ─────────────────────────────────────────────────────────────
+  var filteredPreset = SJ_PRESET.filter(function (a) {
+    return myVoices.indexOf(a) < 0;
+  });
+  var searchResult = search.trim().length > 1 ? search.trim() : null;
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "0 0 40px 0"
+    }
+  }, toast && /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "fixed",
+      top: 18,
+      left: "50%",
+      transform: "translateX(-50%)",
+      background: SJ_C.acc,
+      color: SJ_C.bg,
+      padding: "8px 18px",
+      borderRadius: 20,
+      fontSize: 14,
+      fontWeight: 600,
+      zIndex: 999
+    }
+  }, toast), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      marginBottom: 4
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: onBack,
+    style: {
+      background: "none",
+      border: "none",
+      color: SJ_C.acc,
+      fontSize: 15,
+      cursor: "pointer",
+      padding: 0
+    }
+  }, "\u2190 Back")), /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontFamily: "'Playfair Display',serif",
+      fontSize: 24,
+      marginBottom: 4,
+      color: SJ_C.white
+    }
+  }, "Explore Voices"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: SJ_C.dim,
+      fontSize: 14,
+      marginBottom: 20
+    }
+  }, "Discover authors who shape how Sjal walks with you."), myVoices.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: SJ_C.card,
+      border: "1px solid " + SJ_C.border,
+      borderRadius: 13,
+      padding: "18px 20px",
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: SJ_C.acc,
+      textTransform: "uppercase",
+      letterSpacing: 0.8,
+      fontWeight: 700,
+      marginBottom: 12
+    }
+  }, "My Voices (", myVoices.length, "/5)"), myVoices.map(function (a) {
+    return /*#__PURE__*/React.createElement("div", {
+      key: a,
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: "9px 0",
+        borderBottom: "1px solid rgba(45,107,138,0.4)"
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: function () {
+        openDetail(a);
+      },
+      style: {
+        background: "none",
+        border: "none",
+        color: SJ_C.white,
+        fontSize: 15,
+        cursor: "pointer",
+        padding: 0,
+        textAlign: "left",
+        fontWeight: 500
+      }
+    }, a), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 8
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: function () {
+        openDetail(a);
+      },
+      style: {
+        background: "none",
+        border: "1px solid " + SJ_C.border,
+        borderRadius: 6,
+        padding: "4px 10px",
+        color: SJ_C.acc,
+        fontSize: 12,
+        cursor: "pointer"
+      }
+    }, "Explore \u2192"), /*#__PURE__*/React.createElement("button", {
+      onClick: function () {
+        removeVoice(a);
+      },
+      style: {
+        background: "none",
+        border: "none",
+        color: SJ_C.dim,
+        fontSize: 18,
+        cursor: "pointer",
+        lineHeight: 1,
+        padding: "0 4px"
+      }
+    }, "\xD7")));
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: SJ_C.card,
+      border: "1px solid " + SJ_C.border,
+      borderRadius: 13,
+      padding: "18px 20px",
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: SJ_C.acc,
+      textTransform: "uppercase",
+      letterSpacing: 0.8,
+      fontWeight: 700,
+      marginBottom: 12
+    }
+  }, "Discover"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    value: search,
+    onChange: function (e) {
+      setSearch(e.target.value);
+    },
+    placeholder: "Search any author...",
+    style: {
+      flex: 1,
+      background: SJ_C.surf,
+      border: "1px solid " + SJ_C.border,
+      borderRadius: 8,
+      padding: "9px 13px",
+      color: SJ_C.white,
+      fontSize: 14
+    }
+  }), searchResult && /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      addVoice(searchResult);
+    },
+    style: {
+      background: SJ_C.acc,
+      border: "none",
+      borderRadius: 8,
+      padding: "9px 14px",
+      color: SJ_C.bg,
+      fontSize: 13,
+      cursor: "pointer",
+      fontWeight: 700,
+      flexShrink: 0
+    }
+  }, "+ Add")), searchResult && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      background: SJ_C.surf,
+      borderRadius: 10,
+      padding: "10px 14px",
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      openDetail(searchResult);
+    },
+    style: {
+      background: "none",
+      border: "none",
+      color: SJ_C.white,
+      fontSize: 15,
+      cursor: "pointer",
+      padding: 0,
+      fontWeight: 500
+    }
+  }, searchResult), /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      openDetail(searchResult);
+    },
+    style: {
+      background: "none",
+      border: "1px solid " + SJ_C.border,
+      borderRadius: 6,
+      padding: "4px 10px",
+      color: SJ_C.acc,
+      fontSize: 12,
+      cursor: "pointer"
+    }
+  }, "Explore \u2192")), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: SJ_C.dim,
+      marginBottom: 8,
+      textTransform: "uppercase",
+      letterSpacing: 0.5
+    }
+  }, "Featured"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 7
+    }
+  }, filteredPreset.map(function (a) {
+    return /*#__PURE__*/React.createElement("div", {
+      key: a,
+      style: {
+        display: "flex",
+        gap: 4
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: function () {
+        openDetail(a);
+      },
+      style: {
+        background: SJ_C.surf,
+        border: "1px solid " + SJ_C.border,
+        borderRadius: 20,
+        padding: "5px 11px",
+        color: SJ_C.muted,
+        fontSize: 13,
+        cursor: "pointer"
+      }
+    }, a), /*#__PURE__*/React.createElement("button", {
+      onClick: function () {
+        addVoice(a);
+      },
+      title: "Add to My Voices",
+      style: {
+        background: "rgba(91,184,212,0.12)",
+        border: "1px solid " + SJ_C.border,
+        borderRadius: 20,
+        padding: "5px 9px",
+        color: SJ_C.acc,
+        fontSize: 13,
+        cursor: "pointer",
+        fontWeight: 700
+      }
+    }, "+"));
+  }))));
+}
+
 function App({
   uid,
   email,
@@ -2908,6 +3749,7 @@ function App({
   var [allCheckIns, setAllCheckIns] = useState({});
   var [editAuthorsList, setEditAuthorsList] = useState([]);
   var [editAuthorsOther, setEditAuthorsOther] = useState("");
+  var [showExploreVoices, setShowExploreVoices] = useState(false);
   // Focus feature: one ongoing area a user tends over time.
   // sessionMode: "regular" (open-ended) or "focus" (loads Focus context into buildSys and writes a thread insight on completion).
   var [sessionMode, setSessionMode] = useState("regular");
@@ -3629,6 +4471,11 @@ function App({
     setProfile(updated);
     await dbSetProfile(uid, email, updated);
     setEditAuthors(false);
+  }
+  async function saveAuthorsFromExplore(newAuthors) {
+    var updated = Object.assign({}, profile, { authors: newAuthors });
+    setProfile(updated);
+    await dbSetProfile(uid, email, updated);
   }
   function getTrends() {
     var scores = {
@@ -6691,30 +7538,19 @@ function App({
       fontWeight: 700,
       marginBottom: 10
     }
-  }, "Your Struggles"), /*#__PURE__*/React.createElement("div", {
+  }, "What You\'re Working Through"), profile.struggles && profile.struggles.length ? /*#__PURE__*/React.createElement("p", {
     style: {
-      display: "flex",
-      flexWrap: "wrap",
-      gap: 6
+      fontSize: 15,
+      color: C.muted,
+      lineHeight: 1.6,
+      margin: 0
     }
-  }, profile.struggles && profile.struggles.length ? profile.struggles.map(function (s) {
-    return /*#__PURE__*/React.createElement("span", {
-      key: s,
-      style: {
-        background: "rgba(61,197,232,0.12)",
-        border: "1px solid rgba(61,197,232,0.25)",
-        borderRadius: 20,
-        padding: "3px 10px",
-        fontSize: 13,
-        color: C.muted
-      }
-    }, s);
-  }) : /*#__PURE__*/React.createElement("p", {
+  }, profile.struggles[0]) : /*#__PURE__*/React.createElement("p", {
     style: {
       color: C.dim,
       fontSize: 15
     }
-  }, "None set"))), /*#__PURE__*/React.createElement("div", {
+  }, "None set")), /*#__PURE__*/React.createElement("div", {
     style: {
       background: C.card,
       border: "1px solid " + C.border,
@@ -6737,20 +7573,21 @@ function App({
       textTransform: "uppercase",
       fontWeight: 700
     }
-  }, "Favorite Authors"), /*#__PURE__*/React.createElement("button", {
+  }, "My Voices"), /*#__PURE__*/React.createElement("button", {
     onClick: function () {
-      setEditAuthors(!editAuthors);
+      setTab("voices");
     },
     style: {
       background: "transparent",
       border: "1px solid " + C.border,
       borderRadius: 6,
       padding: "3px 10px",
-      color: C.muted,
+      color: C.acc,
       fontSize: 13,
-      cursor: "pointer"
+      cursor: "pointer",
+      fontWeight: 600
     }
-  }, editAuthors ? "Cancel" : "Edit")), !editAuthors ? profile.authors && profile.authors.length ? /*#__PURE__*/React.createElement("div", {
+  }, "Explore →")), profile.authors && profile.authors.length ? /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       flexWrap: "wrap",
@@ -6773,67 +7610,7 @@ function App({
       color: C.dim,
       fontSize: 15
     }
-  }, "None selected - Sjal will draw from classic voices.") : /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      flexWrap: "wrap",
-      gap: 7,
-      marginBottom: 12
-    }
-  }, ALL_AUTHORS.map(function (a) {
-    var on = editAuthorsList.indexOf(a) > -1;
-    var maxed = editAuthorsList.length >= 5 && !on;
-    return /*#__PURE__*/React.createElement("button", {
-      key: a,
-      onClick: function () {
-        if (!maxed) {
-          setEditAuthorsList(function (p) {
-            return on ? p.filter(function (x) {
-              return x !== a;
-            }) : [...p, a];
-          });
-        }
-      },
-      style: {
-        background: on ? "rgba(61,197,232,0.2)" : C.surf,
-        border: "1.5px solid " + (on ? C.acc : C.border),
-        borderRadius: 20,
-        padding: "5px 11px",
-        color: on ? C.acc : maxed ? C.dim : C.muted,
-        fontSize: 13,
-        cursor: maxed ? "default" : "pointer",
-        opacity: maxed ? 0.5 : 1
-      }
-    }, a);
-  })), /*#__PURE__*/React.createElement("input", {
-    value: editAuthorsOther,
-    onChange: function (e) {
-      setEditAuthorsOther(e.target.value);
-    },
-    placeholder: "Others not listed (comma-separated)",
-    style: {
-      width: "100%",
-      background: C.surf,
-      border: "1px solid " + C.border,
-      borderRadius: 8,
-      padding: "10px 13px",
-      color: C.white,
-      fontSize: 15,
-      marginBottom: 10
-    }
-  }), /*#__PURE__*/React.createElement("button", {
-    onClick: saveAuthors,
-    style: {
-      padding: "9px 18px",
-      background: C.acc,
-      border: "none",
-      borderRadius: 8,
-      color: C.accText,
-      fontSize: 14,
-      cursor: "pointer",
-      fontWeight: 700
-    }
-  }, "Save Authors"))), /*#__PURE__*/React.createElement("div", {
+  }, "None selected - Sjal will draw from classic voices."), /*#__PURE__*/React.createElement("div", {
     style: {
       background: C.card,
       border: "1px solid " + (profile.focus ? "rgba(91,184,160,0.4)" : C.border),
@@ -8074,7 +8851,15 @@ function App({
     React.createElement("div", { style:{ textAlign:"center", marginTop:20 } },
       React.createElement("button", { onClick:function(){ setTab("session"); }, style:{ background:C.acc, color:C.accText, border:"none", borderRadius:12, padding:"12px 28px", fontSize:15, fontWeight:700, cursor:"pointer", letterSpacing:0.3 } }, "Back to Session")
     )
-  ), tab === "legal" && /*#__PURE__*/React.createElement("div", {
+  ), tab === "voices" && /*#__PURE__*/React.createElement("div", {
+    className: "fi"
+  }, /*#__PURE__*/React.createElement(SjExploreVoicesScreen, {
+    profile: profile,
+    onAuthorsChange: saveAuthorsFromExplore,
+    onBack: function() { setTab("profile"); },
+    uid: uid
+  })),
+  tab === "legal" && /*#__PURE__*/React.createElement("div", {
     className: "fi"
   }, /*#__PURE__*/React.createElement("h2", {
     style: {
