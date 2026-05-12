@@ -4744,7 +4744,7 @@ function App({
   }, (function () {
     var base = [["session", "Session"]];
     if (profile.focus || profile.focusHistory && profile.focusHistory.length) base.push(["focus", "Goal"]);
-    return base.concat([["journal", "Prayer"], ["history", "Past Sessions"], ["profile", "Profile"], ["included", "Features"], ["legal", "Legal"]]);
+    return base.concat([["journal", "Prayer"], ["history", "Past Sessions"], ["profile", "Profile"], ["voices", "Voices"], ["included", "Features"], ["legal", "Legal"]]);
   })().map(function (vl) {
     var active = tab === vl[0];
     return /*#__PURE__*/React.createElement("button", {
