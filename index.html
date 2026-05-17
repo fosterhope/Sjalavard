@@ -1,6 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+/* Foster Hope Analytics */
+(function(){
+  var APP='Sjalavard',PROJ='sjalavard-soul-care',HUB='https://command.fosterhopefamily.com/api/analytics';
+  var sid=sessionStorage.getItem('_fhsid');
+  if(!sid){sid=(Math.random()*1e9|0).toString(36)+(Date.now()).toString(36);sessionStorage.setItem('_fhsid',sid);}
+  var ua=navigator.userAgent;
+  var dev=/Mobi|Android/i.test(ua)?'mobile':/Tablet|iPad/i.test(ua)?'tablet':'desktop';
+  var br=/Edg\//.test(ua)?'Edge':/OPR\/|Opera/.test(ua)?'Opera':/Chrome\//.test(ua)?'Chrome':/Firefox\//.test(ua)?'Firefox':/Safari\//.test(ua)?'Safari':'Other';
+  function send(evt,label){if(navigator.sendBeacon)navigator.sendBeacon(HUB,JSON.stringify({app:APP,project:PROJ,event_type:evt,event_label:label||'',page_url:location.pathname,referrer:document.referrer,session_id:sid,device:dev,browser:br}));}
+  window.send=send;
+  send('pageview','');
+  var t0=Date.now();
+  window.addEventListener('pagehide',function(){send('time_on_page',Math.round((Date.now()-t0)/1000)+'');});
+  document.addEventListener('click',function(e){
+    var el=e.target.closest?e.target.closest('a,button,[data-track]'):null;
+    if(!el)return;
+    var label=(el.dataset&&el.dataset.track)||el.innerText.trim().slice(0,80)||el.getAttribute('href')||'';
+    var type=el.dataset&&el.dataset.track?'conversion':el.tagName==='A'?'link_click':'button_click';
+    send(type,label);
+  },true);
+})();
+</script>
+<script>
+(function(){
+  var APP='Sjalavard';
+  var HUB='https://command.fosterhopefamily.com/api/errors';
+  var _last={};
+  function send(msg,stack,url){
+    var key=msg+url;
+    if(_last[key]&&Date.now()-_last[key]<30000)return;
+    _last[key]=Date.now();
+    fetch(HUB,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({app_name:APP,message:msg,stack:stack||'',page_url:url||location.href,user_agent:navigator.userAgent})
+    }).catch(function(){});
+  }
+  window.onerror=function(m,s,l,c,e){send(m,e&&e.stack,location.href);};
+  window.addEventListener('unhandledrejection',function(e){
+    var msg=(e.reason&&e.reason.message)||String(e.reason)||'Unhandled Promise rejection';
+    send(msg,e.reason&&e.reason.stack,location.href);
+  });
+})();
+</script>
+
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="theme-color" content="#1e4e6d"/>
@@ -19,9 +63,9 @@
    /version.txt in sync.
    ───────────────────────────────────────────────────────────────────────── */
 (function(){
-  var APP_VERSION = "sjalavard-2026-04-29-rls-bridge-fix";
+  var APP_VERSION = "sjalavard-2026-05-15-final-cleanup";
   var STORAGE_KEY = "sj_app_v";
-  var LIVE_URL    = "https://sjalavard.netlify.app";
+  var LIVE_URL    = "https://sjalavard.com";
   var ADMIN_EMAILS = ["fosterhopefamily@gmail.com"];
   window.__APP_VERSION__ = APP_VERSION;
 
@@ -72,18 +116,7 @@
     setTimeout(function(){ window.location.reload(); }, 400);
   };
 
-  function _sjGetClient(){
-    if (window.__supa__ && window.__supa__.from) return window.__supa__;
-    try {
-      if (window.supabase && window.supabase.createClient) {
-        return window.supabase.createClient(
-          "https://rlwdqrvosbbdwmnrohxd.supabase.co",
-          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJsd2RxcnZvc2JiZHdtbnJvaHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MjA1NjQsImV4cCI6MjA4ODk5NjU2NH0.x1FzJ-qYL-27a-CMABhNzOGlpCH3nbeH42Nls7XkQX8"
-        );
-      }
-    } catch(e){}
-    return null;
-  }
+  // Supabase client removed — all storage now on PocketBase (see PB_URL below)
 
   function _sjIsAdmin(){
     try {
@@ -96,40 +129,34 @@
   window._sjAdminForceCacheBust = async function(){
     try {
       if (!_sjIsAdmin()) { alert("Admin only."); return; }
-      var client = _sjGetClient();
-      if (!client) { alert("Supabase not ready yet."); return; }
+      // Write cache-bust token to PocketBase off_user_data
       var bust = String(Date.now());
-      var res = await client.from("app_config").upsert({ key: "cache_bust_version", value: bust }, { onConflict: "key" });
-      if (res.error) {
-        if ((res.error.message || "").toLowerCase().indexOf("does not exist") >= 0 ||
-            res.error.code === "42P01" || res.error.code === "PGRST205") {
-          _sjShowAdminCacheSetup();
-          return;
-        }
-        alert("Force refresh failed: " + res.error.message);
-        return;
-      }
+      var KEY = "sj_app_config";
+      // Find existing record
+      var listR = await fetch(PB_URL + "/api/collections/off_user_data/records?filter=(user_id='" + KEY + "')&perPage=1");
+      var listD = await listR.json();
+      var existingId = (listD.items && listD.items[0]) ? listD.items[0].id : null;
+      var payload = JSON.stringify({ user_id: KEY, data: { cache_bust_version: bust } });
+      var method = existingId ? "PATCH" : "POST";
+      var url = PB_URL + "/api/collections/off_user_data/records" + (existingId ? "/" + existingId : "");
+      var r = await fetch(url, { method: method, headers: { "Content-Type": "application/json" }, body: payload });
+      if (!r.ok) { var t = await r.text(); throw new Error(t); }
       alert("✓ Cache refresh queued for all users.");
     } catch(e){ alert("Force refresh failed: " + (e && e.message || e)); }
   };
 
   window._sjCheckAdminCacheBust = async function(){
     try {
-      if (localStorage.getItem("sj_app_config_missing") === "1") return;
-      var client = _sjGetClient();
-      if (!client) return;
-      var res = await client.from("app_config").select("value").eq("key", "cache_bust_version").maybeSingle();
-      if (res.error) {
-        if ((res.error.message || "").toLowerCase().indexOf("does not exist") >= 0 ||
-            res.error.code === "42P01" || res.error.code === "PGRST205") {
-          localStorage.setItem("sj_app_config_missing", "1");
-        }
-        return;
-      }
-      if (!res.data) return;
-      var remoteV = res.data.value;
-      var localV  = localStorage.getItem("sj_admin_cache_bust_v") || "";
-      if (remoteV && remoteV !== localV) {
+      var KEY = "sj_app_config";
+      var r = await fetch(PB_URL + "/api/collections/off_user_data/records?filter=(user_id='" + KEY + "')&perPage=1");
+      var d = await r.json();
+      if (!d.items || !d.items[0]) return;
+      var blob = d.items[0].data;
+      if (typeof blob === "string") { try { blob = JSON.parse(blob); } catch(e){ return; } }
+      var remoteV = blob && blob.cache_bust_version;
+      if (!remoteV) return;
+      var localV = localStorage.getItem("sj_admin_cache_bust_v") || "";
+      if (remoteV !== localV) {
         localStorage.setItem("sj_admin_cache_bust_v", remoteV);
         await window._sjClearAppCache();
       }
@@ -174,21 +201,6 @@
     if (_sjWireIdentity() || ++_sjWait > 50) clearInterval(_sjTimer);
   }, 200);
 
-  function _sjShowAdminCacheSetup(){
-    var m = document.createElement("div");
-    m.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;font-family:inherit";
-    m.innerHTML =
-      '<div style="background:#fff;border-radius:14px;padding:24px;max-width:540px;width:100%;max-height:90vh;overflow:auto">' +
-        '<div style="font-weight:700;font-size:15px;margin-bottom:8px">One-time Supabase setup for Sjalavard</div>' +
-        '<div style="font-size:13px;color:#555;margin-bottom:12px">Run this once in the Sjalavard Supabase SQL editor (rlwdqrvosbbdwmnrohxd), then click Force refresh again:</div>' +
-        '<pre style="background:#f5f7fa;border:1px solid #dde5ec;border-radius:8px;padding:12px;font-size:11px;overflow:auto;white-space:pre-wrap;margin:0 0 12px">CREATE TABLE IF NOT EXISTS app_config (\n  key TEXT PRIMARY KEY,\n  value TEXT,\n  updated_at TIMESTAMPTZ DEFAULT now()\n);\nALTER TABLE app_config ENABLE ROW LEVEL SECURITY;\nCREATE POLICY "app_config_read_all" ON app_config FOR SELECT USING (true);\nCREATE POLICY "app_config_write_auth" ON app_config FOR ALL USING (auth.role() = \'authenticated\') WITH CHECK (auth.role() = \'authenticated\');</pre>' +
-        '<button id="sj-setup-close" style="background:#1e4e6d;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer">Close</button>' +
-      '</div>';
-    document.body.appendChild(m);
-    var c = document.getElementById("sj-setup-close");
-    if (c) c.addEventListener("click", function(){ m.remove(); try { localStorage.removeItem("sj_app_config_missing"); } catch(e){} });
-  }
-
   try {
     var origin = (window.location && window.location.origin) || "";
     var isLocalCopy = origin === "null" || /^file:/.test(origin);
@@ -229,8 +241,7 @@
   }
 })();
 </script>
-<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<!-- PocketBase auth + backend (replaces Netlify Identity and Supabase CDNs) -->
 <!-- ── SJALAVARD TAKE A TOUR — bootstrap ─────────────────────── -->
 <script>
 (function(){
@@ -474,6 +485,114 @@
 })();
 </script>
 <!-- ── END TOUR BOOTSTRAP ── -->
+<script>
+// ── PocketBase auth widget — replaces Netlify Identity ─────────────────
+// In tour mode (window._sjTour), the tour bootstrap already set window.netlifyIdentity.
+// In real mode, this provides PocketBase email/password auth with the same NI interface.
+(function(){
+  if (window._sjTour) return;
+  var PB = "https://foster-hope-pb.fly.dev";
+  var _h = {};
+  var _tok = null;
+  var _user = null;
+  var _modal = null;
+  window._pbCurrentEmail = function(){ return _user && _user.email; };
+  function _on(ev,fn){ if(!_h[ev])_h[ev]=[]; _h[ev].push(fn); }
+  function _fire(ev,a){ (_h[ev]||[]).forEach(function(fn){ try{fn(a);}catch(e){} }); }
+  function _restore(){
+    try{
+      var s=JSON.parse(localStorage.getItem("sj_pb_auth")||"null");
+      if(s&&s.token&&s.user&&s.exp>Date.now()){ _tok=s.token; _user=s.user; return true; }
+    }catch(e){}
+    return false;
+  }
+  function _save(t,u){
+    _tok=t; _user=u;
+    try{ localStorage.setItem("sj_pb_auth",JSON.stringify({token:t,user:u,exp:Date.now()+14*24*3600*1000})); }catch(e){}
+  }
+  function _clear(){ _tok=null; _user=null; try{localStorage.removeItem("sj_pb_auth");}catch(e){} }
+  async function _auth(email,password){
+    var r=await fetch(PB+"/api/collections/users/auth-with-password",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({identity:email,password:password})});
+    var d=await r.json();
+    if(!r.ok) throw new Error((d&&d.message)||"Login failed. Check your email and password.");
+    return {token:d.token,user:{id:d.record.id,email:d.record.email,user_metadata:{}}};
+  }
+  async function _register(email,password){
+    var r=await fetch(PB+"/api/collections/users/records",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:email,password:password,passwordConfirm:password})});
+    if(!r.ok){
+      var e=await r.json();
+      if(r.status===400) throw new Error("An account with this email already exists. Please sign in instead.");
+      throw new Error((e&&e.message)||"Registration failed.");
+    }
+    return _auth(email,password);
+  }
+  function _close(){ if(_modal){_modal.remove();_modal=null;} }
+  function _open(){
+    if(_modal) return;
+    _modal=document.createElement("div");
+    _modal.style.cssText="position:fixed;inset:0;z-index:99999;background:rgba(8,24,38,.9);display:flex;align-items:center;justify-content:center;padding:20px;font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;";
+    _modal.innerHTML='<div style="background:#1e4560;border:1px solid #2d6b8a;border-radius:20px;padding:36px 32px;width:100%;max-width:380px;box-shadow:0 24px 64px rgba(0,0,0,.5);">'
+      +'<div style="text-align:center;margin-bottom:22px;">'
+        +'<svg width="48" height="48" viewBox="0 0 100 100" style="margin-bottom:8px;"><circle cx="50" cy="50" r="48" fill="#153a52" stroke="#5bb8d4" stroke-width="2"/><text x="50" y="66" text-anchor="middle" font-size="44" fill="#5bb8d4" font-family="Georgia,serif">&#9788;</text></svg>'
+        +'<h2 style="color:#fff;font-family:\'Playfair Display\',Georgia,serif;font-size:21px;margin:0 0 5px;font-weight:600;">Sjalavard Soul Care</h2>'
+        +'<p style="color:#8ab8cc;font-size:13px;margin:0;">Sign in or create a free account</p>'
+      +'</div>'
+      +'<div id="pb-err" style="display:none;background:rgba(224,128,144,.15);border:1px solid #e08090;border-radius:8px;padding:10px 14px;color:#e08090;font-size:13px;margin-bottom:14px;line-height:1.5;"></div>'
+      +'<input id="pb-email" type="email" placeholder="Email address" autocomplete="email" style="width:100%;box-sizing:border-box;padding:12px 14px;background:#0f2d42;border:1.5px solid #2d6b8a;border-radius:10px;color:#fff;font-size:15px;margin-bottom:10px;outline:none;">'
+      +'<input id="pb-pass" type="password" placeholder="Password (8+ characters)" autocomplete="current-password" style="width:100%;box-sizing:border-box;padding:12px 14px;background:#0f2d42;border:1.5px solid #2d6b8a;border-radius:10px;color:#fff;font-size:15px;margin-bottom:16px;outline:none;">'
+      +'<button id="pb-signin" style="width:100%;padding:13px;background:#5bb8d4;border:none;border-radius:10px;color:#1e4560;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px;">Sign In</button>'
+      +'<button id="pb-register" style="width:100%;padding:12px;background:transparent;border:1.5px solid #2d6b8a;border-radius:10px;color:#8ab8cc;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:8px;">Create New Account</button>'
+      +'<button id="pb-reset" style="width:100%;padding:9px;background:transparent;border:none;color:#4a7a94;font-size:13px;cursor:pointer;margin-bottom:4px;">Forgot password?</button>'
+      +'<button id="pb-cancel" style="width:100%;padding:9px;background:transparent;border:none;color:#4a7a94;font-size:13px;cursor:pointer;">Cancel</button>'
+      +'</div>';
+    document.body.appendChild(_modal);
+    var eEl=document.getElementById("pb-email"),pEl=document.getElementById("pb-pass"),errEl=document.getElementById("pb-err");
+    function showErr(m){errEl.textContent=m;errEl.style.display="block";}
+    function clearErr(){errEl.style.display="none";}
+    function setBusy(b){["pb-signin","pb-register","pb-cancel"].forEach(function(id){var el=document.getElementById(id);if(el){el.disabled=b;el.style.opacity=b?"0.5":"1";}});}
+    document.getElementById("pb-signin").onclick=async function(){
+      clearErr();
+      var em=eEl.value.trim(),pw=pEl.value;
+      if(!em||!pw){showErr("Please enter your email and password.");return;}
+      setBusy(true);
+      try{var res=await _auth(em,pw);_save(res.token,res.user);_close();_fire("login",res.user);}
+      catch(e){showErr(e.message||"Sign in failed.");setBusy(false);}
+    };
+    document.getElementById("pb-register").onclick=async function(){
+      clearErr();
+      var em=eEl.value.trim(),pw=pEl.value;
+      if(!em){showErr("Please enter your email address.");return;}
+      if(!pw||pw.length<8){showErr("Password must be at least 8 characters.");return;}
+      setBusy(true);
+      try{var res=await _register(em,pw);_save(res.token,res.user);_close();_fire("login",res.user);}
+      catch(e){showErr(e.message||"Registration failed.");setBusy(false);}
+    };
+    document.getElementById("pb-reset").onclick=async function(){
+      clearErr();
+      var em=eEl.value.trim();
+      if(!em){showErr("Enter your email address first, then click Forgot password.");return;}
+      setBusy(true);
+      try{
+        var rr=await fetch(PB+"/api/collections/users/request-password-reset",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:em})});
+        showErr("Password reset email sent to "+em+". Check your inbox, then sign in with your new password.");
+      }catch(e){showErr("Reset request failed. Please try again.");}
+      setBusy(false);
+    };
+    document.getElementById("pb-cancel").onclick=_close;
+    pEl.onkeydown=function(e){if(e.key==="Enter")document.getElementById("pb-signin").click();};
+    setTimeout(function(){try{eEl.focus();}catch(e){}},100);
+  }
+  window.netlifyIdentity={
+    on:_on,
+    off:function(ev,fn){if(_h[ev])_h[ev]=_h[ev].filter(function(f){return f!==fn;});},
+    currentUser:function(){return _user;},
+    open:_open,
+    close:_close,
+    logout:function(){_clear();_fire("logout");},
+    init:function(){var ok=_restore();setTimeout(function(){_fire("init",ok?_user:null);},50);}
+  };
+})();
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 :root{
@@ -502,9 +621,6 @@ body{background:var(--sj-bg);font-family:'Inter',sans-serif;color:var(--sj-text)
 input,textarea,button{font-family:'Inter',sans-serif;touch-action:manipulation;}
 button{cursor:pointer;-webkit-tap-highlight-color:transparent;}
 input:focus,textarea:focus,button:focus{outline:none;}
-/* Prevent NI widget iframe from blocking clicks when not active */
-#netlify-identity-widget{pointer-events:none !important;}
-#netlify-identity-widget[style*="display: block"]{pointer-events:all !important;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .fi{animation:fadeIn 0.25s ease;}
 ::-webkit-scrollbar{width:4px;}
@@ -577,20 +693,7 @@ if(IS_PWA && window.navigator.standalone === true){
 <!-- Service worker not used: single-file deploy, blob SW blocked by browser security -->
 </head>
 <body>
-<form name="sjalavard-weekly-report" data-netlify="true" hidden>
-<input type="hidden" name="form-name" value="sjalavard-weekly-report"/>
-<input type="hidden" name="week"/>
-<input type="hidden" name="sessions_this_week"/>
-<input type="hidden" name="top_topics"/>
-</form>
-<form name="sjalavard-backup-notification" data-netlify="true" hidden>
-<input type="hidden" name="form-name" value="sjalavard-backup-notification"/>
-<input type="hidden" name="user_email"/>
-<input type="hidden" name="backup_date"/>
-<input type="hidden" name="sessions_count"/>
-<input type="hidden" name="prayers_count"/>
-<input type="hidden" name="backup_size_kb"/>
-</form>
+<!-- Netlify form stubs removed — site now on Cloudflare Pages -->
 <div id="root"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
@@ -601,365 +704,185 @@ var {
   useEffect,
   useRef
 } = React;
-var SB_URL = "https://rlwdqrvosbbdwmnrohxd.supabase.co";
-var SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJsd2RxcnZvc2JiZHdtbnJvaHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MjA1NjQsImV4cCI6MjA4ODk5NjU2NH0.x1FzJ-qYL-27a-CMABhNzOGlpCH3nbeH42Nls7XkQX8";
-var _supabaseLib = typeof supabase !== "undefined" ? supabase : window.supabase;
-// Netlify Identity to Supabase JWT bridge: mint a Supabase-signed JWT via the
-// /.netlify/functions/sb-token function on login and use it on every Supabase
-// request, enabling RLS policies of the form auth.uid() = user_id.
-var sjToken = null;
-var sjTokenExpiresAt = 0;
-var sjTokenInflight = null;
-var sjTokenRefreshTimer = null;
-async function ensureSjToken(force) {
-  if (!force && sjToken && Date.now() < sjTokenExpiresAt - 60000) return sjToken;
-  if (sjTokenInflight) return sjTokenInflight;
-  sjTokenInflight = (async function () {
-    try {
-      var ni = window.netlifyIdentity;
-      var niUser = ni && ni.currentUser && ni.currentUser();
-      if (!niUser) return null;
-      var jwt = await niUser.jwt();
-      var res = await fetch("/.netlify/functions/sb-token", {
-        method: "POST",
-        headers: { "Authorization": "Bearer " + jwt }
-      });
-      if (!res.ok) {
-        console.warn("[sb-token] failed:", res.status);
-        return null;
-      }
-      var data = await res.json();
-      if (data && data.token && data.expiresAt) {
-        sjToken = data.token;
-        sjTokenExpiresAt = data.expiresAt;
-        return sjToken;
-      }
-      return null;
-    } catch (e) {
-      console.warn("[sb-token] error:", e && e.message);
-      return null;
-    } finally {
-      sjTokenInflight = null;
-    }
-  })();
-  return sjTokenInflight;
-}
-function clearSjToken() {
-  sjToken = null;
-  sjTokenExpiresAt = 0;
-  if (sjTokenRefreshTimer) { clearInterval(sjTokenRefreshTimer); sjTokenRefreshTimer = null; }
-}
-function startSjTokenRefresh() {
-  if (sjTokenRefreshTimer) return;
-  sjTokenRefreshTimer = setInterval(function () {
-    ensureSjToken(true).catch(function () {});
-  }, 50 * 60 * 1000);
-}
-async function authedFetch(url, opts) {
-  opts = opts || {};
-  var hdrs = {};
-  if (opts.headers && typeof Headers !== "undefined" && opts.headers instanceof Headers) {
-    opts.headers.forEach(function (v, k) { hdrs[k] = v; });
-  } else if (opts.headers) {
-    hdrs = Object.assign({}, opts.headers);
-  }
-  // If we have an NI session but no minted token yet, mint it now so the
-  // first Supabase request after login is not racing the token fetch.
-  if ((!sjToken || Date.now() >= sjTokenExpiresAt) && typeof window !== "undefined") {
-    var ni = window.netlifyIdentity;
-    if (ni && ni.currentUser && ni.currentUser()) {
-      try { await ensureSjToken(); } catch (e) {}
-    }
-  }
-  if (sjToken && Date.now() < sjTokenExpiresAt) {
-    hdrs["Authorization"] = "Bearer " + sjToken;
-  }
-  opts.headers = hdrs;
-  return fetch(url, opts);
-}
-// RLS is disabled on profiles/sessions — anon key works for all reads/writes.
-// authedFetch is kept for future RLS enablement but not injected here.
-var sb = _supabaseLib.createClient(SB_URL, SB_KEY, {
-  auth: { persistSession: false, autoRefreshToken: false }
-});
-try { window.__supa__ = sb; } catch(e){}
-function getSbWithAuth() {
-  return sb;
-}
-async function dbGetProfile(uid) {
+// ══════════════════════════════════════════════════════════════
+// POCKETBASE BACKEND — replaces Supabase + Netlify Identity
+// ══════════════════════════════════════════════════════════════
+var PB_URL = "https://foster-hope-pb.fly.dev";
+var PB_PROFILES = PB_URL + "/api/collections/sja_user_data/records";
+var PB_SESSIONS = PB_URL + "/api/collections/sja_sessions/records";
+var _pbProfileCache = {}; // uid → {pbId, data}
+var _sjOldUIDs = []; // old Netlify Identity UIDs found during email-fallback migration
+// ── Profile helpers ─────────────────────────────────────────────────────────
+async function _pbReadProfile(uid) {
+  if (_pbProfileCache[uid]) return _pbProfileCache[uid];
   try {
-    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).maybeSingle();
-    if (r.error) {
-      if (r.error.code !== "PGRST116") console.error("dbGetProfile error:", r.error.message);
-      return null;
+    var r = await fetch(PB_PROFILES + "?filter=(netlify_user_id='" + encodeURIComponent(uid) + "')&perPage=1");
+    var d = await r.json();
+    var items = (d && d.items) ? d.items : [];
+    if (items.length > 0) {
+      _pbProfileCache[uid] = {pbId: items[0].id, data: items[0].data || {}};
+      return _pbProfileCache[uid];
     }
-    return r.data ? r.data.data : null;
-  } catch (e) {
-    console.error("dbGetProfile exception:", e && e.message);
-    return null;
-  }
+    // Fallback: look up ALL profiles by email, sorted most-recent first.
+    // Handles first login after migration from Netlify Identity (where users may
+    // have accumulated multiple profile records under different Netlify UIDs).
+    var email = window._pbCurrentEmail ? window._pbCurrentEmail() : null;
+    if (email) {
+      var r2 = await fetch(PB_PROFILES + "?filter=(email='" + encodeURIComponent(email) + "')&perPage=20&sort=-updated_at");
+      var d2 = await r2.json();
+      var items2 = (d2 && d2.items) ? d2.items : [];
+      if (items2.length > 0) {
+        // Collect all old UIDs so dbGetSessions can recover sessions
+        _sjOldUIDs = items2.map(function(i){ return i.netlify_user_id; }).filter(function(u){ return u && u !== uid; });
+        // Re-key ALL found records to the new PocketBase user ID (background)
+        items2.forEach(function(rec) {
+          fetch(PB_PROFILES + "/" + rec.id, {method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({netlify_user_id:uid})});
+        });
+        // Use the most-recent record as canonical data source
+        _pbProfileCache[uid] = {pbId: items2[0].id, data: items2[0].data || {}};
+        return _pbProfileCache[uid];
+      }
+    }
+    return {pbId: null, data: {}};
+  } catch(e) { return {pbId: null, data: {}}; }
+}
+async function _pbWriteProfile(uid, email, data) {
+  var cached = await _pbReadProfile(uid);
+  var payload = {netlify_user_id: uid, email: (email || ""), data: data, updated_at: new Date().toISOString()};
+  try {
+    if (cached.pbId) {
+      var r = await fetch(PB_PROFILES + "/" + cached.pbId, {method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+      if (r.ok) { _pbProfileCache[uid] = {pbId: cached.pbId, data: data}; return true; }
+    } else {
+      var r2 = await fetch(PB_PROFILES, {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+      if (r2.ok) { var d2=await r2.json(); _pbProfileCache[uid]={pbId:d2.id,data:data}; return true; }
+    }
+  } catch(e) { console.error("_pbWriteProfile:",e.message); }
+  return false;
+}
+// ── Database functions (same signatures as original Supabase versions) ────────
+async function dbGetProfile(uid) {
+  try { var c = await _pbReadProfile(uid); return (c.data && Object.keys(c.data).length > 0) ? c.data : null; }
+  catch(e) { return null; }
 }
 async function dbSetProfile(uid, email, p) {
-  var r = await getSbWithAuth().from("profiles").upsert({
-    id: uid,
-    email: email,
-    data: p,
-    updated_at: new Date().toISOString()
-  });
-  if (r.error) throw new Error(r.error.message || "Profile save failed");
-  return true;
+  await _pbWriteProfile(uid, email, p); return true;
 }
 async function dbGetSessions(uid) {
   try {
-    var r = await getSbWithAuth().from("sessions").select("data,created_at,id").eq("user_id", uid).order("created_at", {
-      ascending: false
-    });
-    if (r.error) {
-      console.error("dbGetSessions error:", r.error.message);
-      return [];
+    var r = await fetch(PB_SESSIONS + "?filter=(user_id='" + encodeURIComponent(uid) + "')&sort=-created_at&perPage=200&fields=id,user_id,session_data,created_at");
+    var d = await r.json();
+    var items = (d && d.items) ? d.items : [];
+    // If no sessions found but we have old UIDs from profile migration, recover sessions.
+    // This runs once on first login after migrating from Netlify Identity.
+    if (items.length === 0 && _sjOldUIDs.length > 0) {
+      for (var oi = 0; oi < _sjOldUIDs.length; oi++) {
+        var oldUID = _sjOldUIDs[oi];
+        try {
+          var ro = await fetch(PB_SESSIONS + "?filter=(user_id='" + encodeURIComponent(oldUID) + "')&sort=-created_at&perPage=200&fields=id,user_id,session_data,created_at");
+          var do_ = await ro.json();
+          var moreItems = (do_ && do_.items) ? do_.items : [];
+          // Migrate sessions to new UID in background
+          moreItems.forEach(function(s) {
+            fetch(PB_SESSIONS + "/" + s.id, {method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({user_id:uid})});
+          });
+          items = items.concat(moreItems);
+        } catch(e2) {}
+      }
     }
-    return r.data ? r.data.map(function (row) {
-      var s = Object.assign({}, row.data);
+    return items.map(function(row) {
+      var s = Object.assign({}, row.session_data);
       s._id = row.id;
       return s;
-    }) : [];
-  } catch (e) {
-    console.error("dbGetSessions exception:", e && e.message);
-    return [];
-  }
+    });
+  } catch(e) { return []; }
 }
 async function dbAddSession(uid, s) {
   try {
-    await getSbWithAuth().from("sessions").insert({
-      user_id: uid,
-      data: s
-    });
-  } catch (e) {
-    console.error("dbAddSession", e);
-  }
+    var email = window._pbCurrentEmail ? window._pbCurrentEmail() : "";
+    await fetch(PB_SESSIONS, {method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({user_id:uid,email:email,session_data:s,created_at:new Date().toISOString()})});
+  } catch(e) { console.error("dbAddSession",e); }
 }
 async function dbDeleteSession(id) {
-  try {
-    await getSbWithAuth().from("sessions").delete().eq("id", id);
-  } catch (e) {
-    console.error("dbDeleteSession", e);
-  }
+  try { await fetch(PB_SESSIONS+"/"+id, {method:"DELETE"}); }
+  catch(e) { console.error("dbDeleteSession",e); }
 }
 async function dbProfileDone(uid) {
-  // Supabase is the single source of truth for profile_done
-  // No localStorage cache — prevents stale data issues across devices/incognito
-  try {
-    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).maybeSingle();
-    if (r.error) {
-      if (r.error.code === "PGRST116") return false; // no row = new user
-      console.warn("dbProfileDone error:", r.error.code, r.error.message);
-      return false;
-    }
-    return !!(r.data && r.data.data && r.data.data.profile_done);
-  } catch (e) {
-    console.error("dbProfileDone error:", e.message);
-    return false;
-  }
+  var p = await dbGetProfile(uid); return !!(p && p.profile_done);
 }
 
-// Admin Supabase functions
+// Admin functions
 var ADMIN_CODE = "0603";
 async function dbAdminGetAllProfiles() {
   try {
-    var r = await getSbWithAuth().from("profiles").select("id,email,data,updated_at").order("updated_at", {
-      ascending: false
-    });
-    return r.data || [];
-  } catch (e) {
-    return [];
-  }
+    var r = await fetch(PB_PROFILES+"?perPage=200&sort=-updated_at&fields=id,netlify_user_id,email,data,updated_at");
+    var d = await r.json();
+    return (d&&d.items?d.items:[]).map(function(row){return {id:row.netlify_user_id,email:row.email,data:row.data,updated_at:row.updated_at};});
+  } catch(e) { return []; }
 }
 async function dbAdminGetAllSessions() {
   try {
-    var r = await getSbWithAuth().from("sessions").select("user_id,data,created_at").order("created_at", {
-      ascending: false
-    });
-    return r.data || [];
-  } catch (e) {
-    return [];
-  }
+    var r = await fetch(PB_SESSIONS+"?perPage=200&sort=-created_at&fields=id,user_id,session_data,created_at");
+    var d = await r.json();
+    return (d&&d.items?d.items:[]).map(function(row){return {user_id:row.user_id,data:row.session_data,created_at:row.created_at};});
+  } catch(e) { return []; }
 }
 
 // Prayer Supabase functions
 async function dbGetPrayers(uid) {
-  try {
-    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).maybeSingle();
-    return r.data && r.data.data && r.data.data.prayers || [];
-  } catch (e) {
-    return [];
-  }
+  var p = await dbGetProfile(uid); return (p && p.prayers) || [];
 }
 async function dbSavePrayers(uid, prayers) {
   try {
-    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).maybeSingle();
-    var data = r.data && r.data.data || {};
-    data.prayers = prayers;
-    await getSbWithAuth().from("profiles").upsert({
-      id: uid,
-      data: data,
-      updated_at: new Date().toISOString()
-    });
-  } catch (e) {
-    console.error("dbSavePrayers error:", e.message);
-  }
+    var c = await _pbReadProfile(uid); var d = Object.assign({}, c.data); d.prayers = prayers;
+    await _pbWriteProfile(uid, window._pbCurrentEmail ? window._pbCurrentEmail() : "", d);
+  } catch(e) { console.error("dbSavePrayers error:", e.message); }
 }
 
-// Check-in Supabase functions
+// Check-in / Focus / Pattern / Counselor / MemoryBank — all use read-merge-write via _pbWriteProfile
 async function dbSaveCheckIn(uid, date, entry) {
-  try {
-    // Read current profile data, merge check-in, write back
-    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).maybeSingle();
-    var data = r.data && r.data.data || {};
-    if (!data.checkins) data.checkins = {};
-    data.checkins[date] = entry;
-    await getSbWithAuth().from("profiles").upsert({
-      id: uid,
-      data: data,
-      updated_at: new Date().toISOString()
-    });
-  } catch (e) {
-    console.error("dbSaveCheckIn error:", e.message);
-  }
+  try { var c=await _pbReadProfile(uid); var d=Object.assign({},c.data); if(!d.checkins)d.checkins={}; d.checkins[date]=entry; await _pbWriteProfile(uid,window._pbCurrentEmail?window._pbCurrentEmail():"",d); }
+  catch(e) { console.error("dbSaveCheckIn error:",e.message); }
 }
 async function dbGetCheckIns(uid) {
-  try {
-    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).maybeSingle();
-    return r.data && r.data.data && r.data.data.checkins || {};
-  } catch (e) {
-    return {};
-  }
+  var p = await dbGetProfile(uid); return (p && p.checkins) || {};
 }
-
-// Focus Supabase functions — one ongoing area a user tends over time.
-// Read-merge-write pattern against profiles.data (same shape as check-ins/prayers).
 async function dbSetFocus(uid, email, focusObj) {
-  try {
-    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).maybeSingle();
-    var data = r.data && r.data.data || {};
-    data.focus = focusObj;
-    await getSbWithAuth().from("profiles").upsert({
-      id: uid,
-      email: email,
-      data: data,
-      updated_at: new Date().toISOString()
-    });
-    return data;
-  } catch (e) {
-    console.error("dbSetFocus error:", e.message);
-    return null;
-  }
+  try { var c=await _pbReadProfile(uid); var d=Object.assign({},c.data); d.focus=focusObj; await _pbWriteProfile(uid,email,d); return d; }
+  catch(e) { console.error("dbSetFocus error:",e.message); return null; }
 }
 async function dbAppendFocusThread(uid, email, entry) {
   try {
-    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).maybeSingle();
-    var data = r.data && r.data.data || {};
-    if (!data.focus) return null;
-    if (!data.focus.thread) data.focus.thread = [];
-    data.focus.thread.unshift(entry);
-    data.focus.sessionCount = (data.focus.sessionCount || 0) + 1;
-    data.focus.lastWorkedAt = new Date().toISOString();
-    await getSbWithAuth().from("profiles").upsert({
-      id: uid,
-      email: email,
-      data: data,
-      updated_at: new Date().toISOString()
-    });
-    return data.focus;
-  } catch (e) {
-    console.error("dbAppendFocusThread error:", e.message);
-    return null;
-  }
+    var c=await _pbReadProfile(uid); var d=Object.assign({},c.data);
+    if(!d.focus) return null;
+    if(!d.focus.thread) d.focus.thread=[];
+    d.focus.thread.unshift(entry);
+    d.focus.sessionCount=(d.focus.sessionCount||0)+1;
+    d.focus.lastWorkedAt=new Date().toISOString();
+    await _pbWriteProfile(uid,email,d); return d.focus;
+  } catch(e) { console.error("dbAppendFocusThread error:",e.message); return null; }
 }
 async function dbClearFocus(uid, email) {
   try {
-    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).maybeSingle();
-    var data = r.data && r.data.data || {};
-    if (data.focus) {
-      if (!data.focusHistory) data.focusHistory = [];
-      var graduated = Object.assign({}, data.focus, {
-        status: "graduated",
-        graduatedAt: new Date().toISOString()
-      });
-      data.focusHistory.unshift(graduated);
-    }
-    data.focus = null;
-    await getSbWithAuth().from("profiles").upsert({
-      id: uid,
-      email: email,
-      data: data,
-      updated_at: new Date().toISOString()
-    });
-    return data;
-  } catch (e) {
-    console.error("dbClearFocus error:", e.message);
-    return null;
-  }
+    var c=await _pbReadProfile(uid); var d=Object.assign({},c.data);
+    if(d.focus){ if(!d.focusHistory)d.focusHistory=[]; d.focusHistory.unshift(Object.assign({},d.focus,{status:"graduated",graduatedAt:new Date().toISOString()})); }
+    d.focus=null; await _pbWriteProfile(uid,email,d); return d;
+  } catch(e) { console.error("dbClearFocus error:",e.message); return null; }
 }
-// Patterns — recurring thoughts the user names and tracks. Stored as
-// profile.data.patterns (active) and profile.data.patternsArchive (retired).
-// Uses the same read-merge-write shape as prayers/checkins.
 async function dbSavePatterns(uid, email, patterns, patternsArchive) {
-  try {
-    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).maybeSingle();
-    var data = r.data && r.data.data || {};
-    data.patterns = patterns || [];
-    if (patternsArchive !== undefined) data.patternsArchive = patternsArchive;
-    await getSbWithAuth().from("profiles").upsert({
-      id: uid,
-      email: email,
-      data: data,
-      updated_at: new Date().toISOString()
-    });
-    return data;
-  } catch (e) {
-    console.error("dbSavePatterns error:", e.message);
-    return null;
-  }
+  try { var c=await _pbReadProfile(uid); var d=Object.assign({},c.data); d.patterns=patterns||[]; if(patternsArchive!==undefined)d.patternsArchive=patternsArchive; await _pbWriteProfile(uid,email,d); return d; }
+  catch(e) { console.error("dbSavePatterns error:",e.message); return null; }
 }
-// Counselor — optional relationship Sjalavard supports (does not replace).
-// profile.data.counselor: { hasOne, name, type, cadence, startedAt, homework[], bringToNext[], history[] }
 async function dbSaveCounselor(uid, email, counselor) {
-  try {
-    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).maybeSingle();
-    var data = r.data && r.data.data || {};
-    data.counselor = counselor || null;
-    await getSbWithAuth().from("profiles").upsert({
-      id: uid,
-      email: email,
-      data: data,
-      updated_at: new Date().toISOString()
-    });
-    return data;
-  } catch (e) {
-    console.error("dbSaveCounselor error:", e.message);
-    return null;
-  }
+  try { var c=await _pbReadProfile(uid); var d=Object.assign({},c.data); d.counselor=counselor||null; await _pbWriteProfile(uid,email,d); return d; }
+  catch(e) { console.error("dbSaveCounselor error:",e.message); return null; }
 }
-// Memory Bank — banked truths / key identity lines Sjal carries across sessions.
-// Stored as profile.data.memoryBank. Populated by user-initiated actions only.
 async function dbSaveMemoryBank(uid, email, memoryBank) {
-  try {
-    var r = await getSbWithAuth().from("profiles").select("data").eq("id", uid).maybeSingle();
-    var data = r.data && r.data.data || {};
-    data.memoryBank = memoryBank || [];
-    await getSbWithAuth().from("profiles").upsert({
-      id: uid,
-      email: email,
-      data: data,
-      updated_at: new Date().toISOString()
-    });
-    return data;
-  } catch (e) {
-    console.error("dbSaveMemoryBank error:", e.message);
-    return null;
-  }
+  try { var c=await _pbReadProfile(uid); var d=Object.assign({},c.data); d.memoryBank=memoryBank||[]; await _pbWriteProfile(uid,email,d); return d; }
+  catch(e) { console.error("dbSaveMemoryBank error:",e.message); return null; }
 }
-var FH_URL = "https://fosterhopewebsite.netlify.app";
+var FH_URL = "https://fosterhopefamily.com";
 // Mirrors the CSS :root variables — keep in sync
 var C = {
   bg: "#1e4e6d",       // --sj-bg
@@ -1734,7 +1657,7 @@ function AboutModal({
       marginBottom: 16,
       letterSpacing: 0.5
     }
-  }, "EVERYTHING SJALAVARD INCLUDES"), [["✦", "AI Soul Care Sessions", "Talk with Sjal - your personal Christian life coach. Powered by Gemini AI, grounded in CBT, scripture, and Spirit-led care. Sessions run 4-6 exchanges and close with a summary, action step, and gratitude."], ["🙏", "Prayer Journal", "A private, AI-free space to write and keep your prayers. Mark them answered over time. Stored securely in your account and synced across all your devices."], ["💙", "Daily Check-in", "A 10-second mood pulse at the top of every day. Pick a word, add an optional note. Syncs across all your devices. No full session required."], ["📖", "Daily Verse", "A rotating scripture verse greets you each day at the top of the Session tab."], ["📊", "Mood Trend Chart", "See your last 14 days of check-ins and session moods visualized as a bar chart in Past Sessions."], ["🔍", "Cognitive Distortion Identifier", "During a session, tap + Pattern to name the thinking trap fueling your feelings - drawn from David Burns CBT framework."], ["⚡", "Action Steps", "Every session ends with one concrete, spiritually grounded action step from Sjal to carry into your week."], ["🗂", "Session History", "All completed sessions saved to your account, accessible on any device. Expand any session to see moods, opening words, summary, action step, and gratitude entries."], ["🚨", "Crisis Support", "If your words suggest you may be in crisis, Sjalavard automatically surfaces the 988 Lifeline before continuing."], ["⚙️", "Personalized Profile", "Set up once - your name, struggles, goals, and favorite authors shape how Sjal coaches you without ever referencing them by name."], ["🔒", "Cross-Device Sync", "Your sessions, profile, prayers, and check-ins all sync securely across all your devices via Supabase. Pick up right where you left off on any device."], ["📋", "Legal & Privacy", "Full terms of use, privacy policy, and copyright information available in the Legal tab."]].map(function (f, i) {
+  }, "EVERYTHING SJALAVARD INCLUDES"), [["✦", "AI Soul Care Sessions", "Talk with Sjal - your personal Christian life coach. Powered by Gemini AI, grounded in CBT, scripture, and Spirit-led care. Sessions run 4-6 exchanges and close with a summary, action step, and gratitude."], ["🙏", "Prayer Journal", "A private, AI-free space to write and keep your prayers. Mark them answered over time. Stored securely in your account and synced across all your devices."], ["💙", "Daily Check-in", "A 10-second mood pulse at the top of every day. Pick a word, add an optional note. Syncs across all your devices. No full session required."], ["📖", "Daily Verse", "A rotating scripture verse greets you each day at the top of the Session tab."], ["📊", "Mood Trend Chart", "See your last 14 days of check-ins and session moods visualized as a bar chart in Past Sessions."], ["🔍", "Cognitive Distortion Identifier", "During a session, tap + Pattern to name the thinking trap fueling your feelings - drawn from David Burns CBT framework."], ["⚡", "Action Steps", "Every session ends with one concrete, spiritually grounded action step from Sjal to carry into your week."], ["🗂", "Session History", "All completed sessions saved to your account, accessible on any device. Expand any session to see moods, opening words, summary, action step, and gratitude entries."], ["🚨", "Crisis Support", "If your words suggest you may be in crisis, Sjalavard automatically surfaces the 988 Lifeline before continuing."], ["⚙️", "Personalized Profile", "Set up once - your name, struggles, goals, and favorite authors shape how Sjal coaches you without ever referencing them by name."], ["🔒", "Cross-Device Sync", "Your sessions, profile, prayers, and check-ins all sync securely across all your devices. Pick up right where you left off on any device."], ["📋", "Legal & Privacy", "Full terms of use, privacy policy, and copyright information available in the Legal tab."]].map(function (f, i) {
     return /*#__PURE__*/React.createElement("div", {
       key: i,
       style: {
@@ -1957,7 +1880,7 @@ function AboutModal({
       marginBottom: 16,
       letterSpacing: 0.5
     }
-  }, "YOUR PRIVACY"), [["Your account", "Login is managed by Netlify Identity. Your password is known only to you and is never stored in plain text."], ["Your sessions", "Sessions and profile are stored in a secure database (Supabase) linked only to your account ID - not your name or email."], ["Your prayers", "Prayer journal is stored securely in your account on Supabase and syncs across all your devices. It is never processed by AI and is accessible only through your account."], ["The AI", "Your session messages are sent to Google Gemini to generate Sjal's responses. By using the coaching feature you consent to this. Google's privacy policy applies to data processed by Gemini."], ["No ads or tracking", "No advertising, no analytics trackers, no data selling. Sjalavard exists solely for your soul care."], ["Data deletion", "To request full deletion of your account and all associated data, contact info@fosterhope.org."], ["Full legal info", "See the Legal tab in the main app for complete terms of use, privacy policy, disclaimer, and third-party service disclosures."]].map(function (item, i) {
+  }, "YOUR PRIVACY"), [["Your account", "Login and your password are managed securely. Your credentials are never stored in plain text."], ["Your sessions", "Sessions and profile are stored in a secure database linked only to your account ID - not your name or email."], ["Your prayers", "Prayer journal is stored securely in your account and syncs across all your devices. It is never processed by AI and is accessible only through your account."], ["The AI", "Your session messages are sent to Google Gemini to generate Sjal's responses. By using the coaching feature you consent to this. Google's privacy policy applies to data processed by Gemini."], ["No ads or tracking", "No advertising, no analytics trackers, no data selling. Sjalavard exists solely for your soul care."], ["Data deletion", "To request full deletion of your account and all associated data, contact info@fosterhope.org."], ["Full legal info", "See the Legal tab in the main app for complete terms of use, privacy policy, disclaimer, and third-party service disclosures."]].map(function (item, i) {
     return /*#__PURE__*/React.createElement("div", {
       key: i,
       style: {
@@ -3959,7 +3882,7 @@ function App({
   }
   async function startSession() {
     if (!text.trim()) return;
-    if (hasCrisis(text)) setCrisis(true);
+    if (hasCrisis(text)) { send('feature', 'crisis_support_shown'); setCrisis(true); }
     var ms = moods.map(function (l, i) {
       return ["Primary", "Secondary", "Third"][i] + " mood: " + l;
     }).join(", ");
@@ -3978,7 +3901,7 @@ function App({
   // with Save-as-Pattern / Bank-the-truth / New-thought actions.
   async function runQuickSession() {
     if (!text.trim()) return;
-    if (hasCrisis(text)) setCrisis(true);
+    if (hasCrisis(text)) { send('feature', 'crisis_support_shown'); setCrisis(true); }
     setQuickLoading(true);
     setQuickErr(null);
     setQuickReply("");
@@ -4098,7 +4021,7 @@ function App({
   // Sjal returns 3-4 possible underlying causes from different angles.
   async function runRootsSession() {
     if (!text.trim()) return;
-    if (hasCrisis(text)) setCrisis(true);
+    if (hasCrisis(text)) { send('feature', 'crisis_support_shown'); setCrisis(true); }
     setRootsLoading(true);
     setRootsErr(null);
     setRootsReply("");
@@ -4253,7 +4176,7 @@ function App({
   }
   async function sendMsg() {
     if (!input.trim() || loading) return;
-    if (hasCrisis(input)) setCrisis(true);
+    if (hasCrisis(input)) { send('feature', 'crisis_support_shown'); setCrisis(true); }
     var m = input.trim();
     setInput("");
     setErr(null);
@@ -5138,6 +5061,7 @@ function App({
     }, opt[0]);
   }))), /*#__PURE__*/React.createElement("button", {
     onClick: saveCI,
+    "data-track": "Daily Check-In Saved",
     disabled: !ciMood,
     style: {
       padding: "8px 20px",
@@ -5649,6 +5573,7 @@ function App({
     }
   }, /*#__PURE__*/React.createElement("button", {
     onClick: startSession,
+    "data-track": "Begin Coaching Session",
     disabled: !text.trim(),
     style: {
       width: "100%",
@@ -6418,6 +6343,7 @@ function App({
     }
   }), /*#__PURE__*/React.createElement("button", {
     onClick: sendMsg,
+    "data-track": "Message Sent to Sjal",
     disabled: loading || !input.trim(),
     style: {
       padding: "11px 16px",
@@ -7073,6 +6999,7 @@ function App({
     }
   }, profile.focus.title)), /*#__PURE__*/React.createElement("button", {
     onClick: savePray,
+    "data-track": "Add Prayer",
     disabled: !prayText.trim(),
     style: {
       padding: "9px 20px",
@@ -8732,7 +8659,7 @@ function App({
       lineHeight: 1.6
     }
   }, "To reset your password visit ", /*#__PURE__*/React.createElement("a", {
-    href: "https://sjalavard.netlify.app/.netlify/identity/recover",
+    href: "https://sjalavard.com/.netlify/identity/recover",
     target: "_blank",
     rel: "noopener noreferrer",
     style: {
@@ -8949,7 +8876,7 @@ function App({
       fontWeight: 700,
       marginBottom: 10
     }
-  }, "Privacy Policy"), [["Account data", "Your email and user ID are stored securely via Netlify Identity. We do not sell or share your personal information with third parties."], ["Session data", "Your coaching sessions and profile are stored in a secure database linked to your account ID. Session content is used solely to provide personalized coaching within the app."], ["AI processing", "Your session messages are sent to Google Gemini to generate responses. By using the coaching feature you consent to this processing. Google privacy policy applies."], ["Prayer journal", "Stored securely in your Supabase account, accessible only through your login. Syncs across all your devices. Never processed by AI."], ["No advertising", "We do not display ads, use tracking cookies, or sell your data to advertisers."], ["Data deletion", "To request deletion of your account and all associated data, contact us at info@fosterhope.org."]].map(function (item, i) {
+  }, "Privacy Policy"), [["Account data", "Your email and user ID are stored securely. We do not sell or share your personal information with third parties."], ["Session data", "Your coaching sessions and profile are stored in a secure database linked to your account ID. Session content is used solely to provide personalized coaching within the app."], ["AI processing", "Your session messages are sent to Google Gemini to generate responses. By using the coaching feature you consent to this processing. Google privacy policy applies."], ["Prayer journal", "Stored securely in your account, accessible only through your login. Syncs across all your devices. Never processed by AI."], ["No advertising", "We do not display ads, use tracking cookies, or sell your data to advertisers."], ["Data deletion", "To request deletion of your account and all associated data, contact us at info@fosterhope.org."]].map(function (item, i) {
     return /*#__PURE__*/React.createElement("p", {
       key: i,
       style: {
@@ -9028,7 +8955,7 @@ function App({
       lineHeight: 1.8,
       marginBottom: 10
     }
-  }, "Sjalavard uses the following services, each governed by their own terms and privacy policies:"), [["Netlify", "Hosting and identity", "https://www.netlify.com/privacy/"], ["Supabase", "Secure data storage", "https://supabase.com/privacy"], ["Google Gemini", "AI coaching responses", "https://policies.google.com/privacy"]].map(function (s, i) {
+  }, "Sjalavard uses the following services, each governed by their own terms and privacy policies:"), [["Cloudflare", "Hosting and delivery", "https://www.cloudflare.com/privacypolicy/"], ["PocketBase", "Secure data storage", "https://pocketbase.io/docs/"], ["Google Gemini", "AI coaching responses", "https://policies.google.com/privacy"]].map(function (s, i) {
     return /*#__PURE__*/React.createElement("p", {
       key: i,
       style: {
@@ -9810,13 +9737,14 @@ function Root() {
           attempts++;
           if (realUser && realUser.id) {
             clearInterval(poll);
-            
+
             justLoggedInRef.current = true;
             if (justLoggedInTimer.current) clearTimeout(justLoggedInTimer.current);
             justLoggedInTimer.current = setTimeout(function () {
               justLoggedInRef.current = false;
             }, 5000);
             setNiUser(realUser);
+            send('account', 'login');
             setNiReady(true);
             try{ni.close();}catch(e){}
             setTimeout(function(){
@@ -9838,6 +9766,7 @@ function Root() {
       }, 5000);
       
       setNiUser(user);
+      send('account', 'login');
       setNiReady(true);
       try{ni.close();}catch(e){}
       setTimeout(function(){
@@ -9846,6 +9775,7 @@ function Root() {
         if(f) f.style.cssText="display:none!important";
       }, 200);
     });
+    ni.on("signup", function () { send('account', 'signup'); });
     ni.on("logout", function () {
       if (justLoggedInRef.current) {
         
@@ -9872,18 +9802,7 @@ function Root() {
       if (justLoggedInTimer.current) clearTimeout(justLoggedInTimer.current);
     };
   }, []);
-  // Mint a Supabase JWT whenever the NI user changes, then keep it fresh.
-  // Falls back gracefully if SUPABASE_JWT_SECRET is not set on the server.
-  useEffect(function () {
-    var uid = niUser && niUser.id;
-    if (!uid) {
-      clearSjToken();
-      return;
-    }
-    ensureSjToken(true).then(function (t) {
-      if (t) startSjTokenRefresh();
-    }).catch(function () {});
-  }, [niUser && niUser.id]);
+  // (PocketBase auth — no JWT minting needed)
   useEffect(function () {
     if (!niUser) return;
     // Netlify Identity user object: use .id (UUID), fall back to .sub
@@ -10155,13 +10074,12 @@ try {
     try{localStorage.setItem('fh-error-log',JSON.stringify(_errs.slice(0,20)));}catch(e){}
   }
   try{var _sv=localStorage.getItem('fh-error-log');if(_sv){var _pv=JSON.parse(_sv);if(Array.isArray(_pv))_errs=_pv.slice(0,20);}}catch(e){}
-  function detectSB(){var all=document.querySelectorAll('script');for(var i=0;i<all.length;i++){var m=(all[i].textContent||'').match(/["'`](https:\/\/[a-z0-9]+\.supabase\.co)["'`]/);if(m)return m[1];}return null;}
-  var _dot=null,_sbUrl=null;
+  var _dot=null;
   function setDot(color,tip){if(_dot){_dot.style.background=color;_dot.title=tip;}}
-  function checkSync(){if(!navigator.onLine){setDot('#e53e3e','Offline — not connected to internet');return;}var _k=typeof SB_KEY!=='undefined'?SB_KEY:'';fetch(_sbUrl+'/health',{headers:{'apikey':_k}}).then(function(r){if(r.ok)setDot('#48bb78','Synced — cloud reachable');else setDot('#f5c842','Online but cloud unreachable');}).catch(function(){setDot('#f5c842','Online but cloud unreachable');});}
-  window.addEventListener('online',function(){if(_sbUrl)checkSync();else if(_dot)setDot('#48bb78','Online');});
+  function checkSync(){if(!navigator.onLine){setDot('#e53e3e','Offline');return;}fetch('https://foster-hope-pb.fly.dev/api/health').then(function(r){if(r.ok)setDot('#48bb78','Synced');else setDot('#f5c842','Cloud unreachable');}).catch(function(){setDot('#f5c842','Cloud unreachable');});}
+  window.addEventListener('online',function(){checkSync();});
   window.addEventListener('offline',function(){setDot('#e53e3e','Offline');});
-  setInterval(function(){if(_dot&&_sbUrl)checkSync();},60000);
+  setInterval(function(){if(_dot)checkSync();},60000);
   function fmtReport(note){var lines=['Bug Report','Date: '+new Date().toLocaleString(),'URL: '+location.href,'Note: '+(note||'(none)'),''];var r=_errs.slice(0,5);if(!r.length){lines.push('No JS errors captured.');}else{lines.push('Errors:');r.forEach(function(e,i){lines.push('  ['+(i+1)+'] '+e.ts+'\n      '+e.msg+(e.src?' ('+e.src+' L'+e.line+')':''));});}return lines.join('\n');}
   function saveReport(note){var rec={ts:new Date().toISOString(),url:location.href,note:note,errors:_errs.slice(0,5)};try{var ex=[];try{var s=localStorage.getItem('fh-bug-reports');if(s)ex=JSON.parse(s);}catch(e){}ex.unshift(rec);if(ex.length>50)ex.length=50;localStorage.setItem('fh-bug-reports',JSON.stringify(ex));}catch(e){}}
   function openBugModal(){
