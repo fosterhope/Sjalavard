@@ -2013,6 +2013,7 @@ function Landing({
     onClick: function () {
       if (window.netlifyIdentity) window.netlifyIdentity.open();
     },
+    "data-track": "Sign In",
     style: {
       width: "100%",
       padding: "14px",
@@ -2028,6 +2029,7 @@ function Landing({
     }
   }, "Sign In or Create Account"), /*#__PURE__*/React.createElement("button", {
     onClick: function () { if (window._startSjTour) window._startSjTour(); },
+    "data-track": "Take a Tour",
     style: {
       width: "100%",
       padding: "12px",
@@ -3853,6 +3855,10 @@ function App({
       setActionStep("");
     }
   }, [sessionClosed]);
+  // Analytics: fire navigate event whenever the active tab changes
+  useEffect(function () {
+    if (window.send) window.send("navigate", tab);
+  }, [tab]);
   var moodObjs = moods.map(function (l) {
     return MOODS.find(function (m) {
       return m.l === l;
