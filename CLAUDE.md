@@ -15,25 +15,25 @@ The silent backbone of every session is David Burns' CBT framework from *Feeling
 
 ## Project Overview
 - **App:** Sjalavard Soul Care — AI-powered Christian life coaching
-- **Live URL:** https://sjalavard.netlify.app
+- **Live URL:** https://sjalavard.com
 - **GitHub:** https://github.com/fosterhope/sjalavard (private)
-- **Stack:** Single HTML file, React 18 (pre-compiled, NO Babel), Supabase, Netlify Identity
-- **Ministry:** Foster Hope Ministries — https://fosterhopewebsite.netlify.app
+- **Stack:** Single HTML file, React 18 (pre-compiled, NO Babel), PocketBase, Cloudflare Pages
+- **Ministry:** Foster Hope Ministries — https://fosterhopefamily.com
 
 ---
 
 ## Architecture
 
 ### Single File Rule
-The entire app lives in **one file: index.html**. No separate JS, CSS, or component files.
+The entire app lives in **one file: index.html**. No separate JS, CSS, or component files (except CF Pages Functions in `functions/api/`).
 
 ### CDNs (do not change these)
 ```html
-<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
 ```
+> NOTE: Supabase CDN is still loaded for legacy data reads. Auth is PocketBase only. Do NOT add the Netlify Identity widget script.
 
 ### NO BABEL — Pre-compiled Only
 - There is **no Babel CDN** and **no type="text/babel"** script tag
@@ -45,30 +45,38 @@ The entire app lives in **one file: index.html**. No separate JS, CSS, or compon
 
 ## Credentials
 
-### Supabase
-- **Project ID:** rlwdqrvosbbdwmnrohxd
+### PocketBase (Auth + primary data store)
+- **URL:** https://foster-hope-pb.fly.dev
+- **Admin panel:** https://foster-hope-pb.fly.io/_/
+- **Admin email:** fosterhopefamily@gmail.com
+- **Admin password:** Romans828!
+- **Auth:** Email/password via PocketBase `users` collection
+- **Collections:** `sja_user_data` (profile/checkins/prayers), `sja_sessions`
+- **Auth token:** stored in localStorage as `sj_pb_auth` (14-day expiry)
+- The `window.netlifyIdentity` object in code is a **PocketBase compatibility stub** — it wraps PocketBase auth with the same API surface so the rest of the app is unchanged
+
+### Supabase (legacy data — read-only migration path)
 - **URL:** https://rlwdqrvosbbdwmnrohxd.supabase.co
 - **Anon key:** eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJsd2RxcnZvc2JiZHdtbnJvaHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MjA1NjQsImV4cCI6MjA4ODk5NjU2NH0.x1FzJ-qYL-27a-CMABhNzOGlpCH3nbeH42Nls7XkQX8
 - **Tables:** profiles (id, email, data, updated_at), sessions (id, user_id, data, created_at)
-- **RLS:** DISABLED on both tables (do not re-enable — Netlify Identity JWT is incompatible)
+- **RLS:** DISABLED — do not re-enable
+- Supabase is legacy. New writes go to PocketBase. Do not expand Supabase usage.
 
-### Supabase Data Schema
-All user data stored in profiles.data JSON column:
-- firstName, bio, struggles, goals, authors, profile_done
+### Data Schema
+All user data stored in profiles.data JSON column (Supabase) / sja_user_data (PocketBase):
+- firstName, bio, struggles, goals, focus, focusHistory, authors, profile_done
 - checkins: { "4/7/2026": { mood, note, date } }
 - prayers: [{ id, title, text, date, answered }]
 
-### Netlify
-- **Site:** sjalavard.netlify.app
-- **Env var:** GEMINI_API_KEY (set in Netlify dashboard, never in code)
-- **Function:** netlify/functions/gemini.js proxies Gemini API
-- **Identity:** Enabled, registration open
-- **Forms:** sjalavard-weekly-report, sjalavard-backup-notification (email: fosterhopefamily@gmail.com)
+### Cloudflare Pages
+- **Project:** sjalavard-soul-care
+- **Env var:** GEMINI_API_KEY (set in CF Pages dashboard → Settings → Environment Variables)
+- **Function:** functions/api/gemini.js proxies Gemini API
 
 ### Gemini
 - **Model:** gemini-2.5-flash
-- **Route:** /api/gemini → Netlify function → Gemini API
-- **Key:** Stored as Netlify env var only, never in client code
+- **Route:** /api/gemini → CF Pages Function → Gemini API
+- **Key:** Stored as CF Pages env var only, never in client code
 
 ---
 
@@ -79,34 +87,36 @@ bg:#0f2d42, surf:#1a3d54, card:#1e4560, border:#2d6b8a, acc:#5bb8d4, white:#fff,
 
 ## Data Storage
 
-### Supabase (canonical — syncs across all devices)
-- Profile data (name, bio, struggles, goals, authors, profile_done)
+### PocketBase (canonical — syncs across all devices)
+- Profile data (name, bio, struggles, focus/focusHistory, authors, profile_done)
 - Sessions
-- Daily check-ins (inside profiles.data.checkins)
-- Prayer journal (inside profiles.data.prayers)
+- Daily check-ins
+- Prayer journal
 
 ### localStorage (device-only cache)
 - Draft sessions (in-progress, not yet saved)
-- profile_done flag cached for fast login (sj_{uid}_profile_done, sj_profile_done, sj_email_{email}_profile_done)
+- PocketBase auth token (`sj_pb_auth`)
+- profile_done flag cached for fast login
 - Weekly report/backup timestamps
 
-**Supabase is the source of truth. localStorage is a performance cache only.**
+**PocketBase is the source of truth. localStorage is a performance cache only.**
 
 ---
 
 ## Auth Flow (Root component)
-1. NI init fires — may receive config object (not real user). Only accept if user.id exists.
-2. NI login fires — may also receive config object. Poll ni.currentUser() until real user with .id found.
-3. justLoggedInRef set to true for 5 seconds after login — spurious logout events ignored.
-4. On valid niUser → fetch profile + sessions + checkins from Supabase in parallel → store in window._sjPreloadedData → set profileDone.
-5. Check localStorage first for profile_done (instant). If found, show app immediately.
-6. Root waits for profileDone !== null before rendering App (shows "One moment..." spinner).
+- `window.netlifyIdentity` is a PocketBase stub — same event API (`on`, `open`, `logout`, `currentUser`), backed by PocketBase
+- On init: restores session from `sj_pb_auth` in localStorage if token not expired
+- On login: fires `login` event with `{ id, email, user_metadata: {} }`
+- `justLoggedInRef` set to true for 5 seconds after login — spurious logout events ignored
+- On valid user → fetch profile + sessions + checkins from Supabase in parallel → store in window._sjPreloadedData → set profileDone
+- Check localStorage first for profile_done (instant). If found, show app immediately.
+- Root waits for profileDone !== null before rendering App (shows "One moment..." spinner)
 
 ## Profile Setup
 - NOT a forced gate — users go to App immediately, "Complete Setup" banner shown if profileDone===false
 - finish() saves localStorage FIRST, then Supabase with retry (2 attempts, 8s each)
 - Auto-repair: if localStorage says done but Supabase doesn't, silently re-saves
-- Steps: Welcome → Name + Bio → Struggles → Goals (max 2, or custom) → Authors (max 5)
+- Steps: Welcome → Name + Bio → What You're Working Through (free text) → Focused Goal (free text) → Authors (max 5)
 
 ## Session Arc (buildSys)
 - Response 1: CBT — David Burns, identify cognitive distortion, one question
@@ -125,14 +135,14 @@ bg:#0f2d42, surf:#1a3d54, card:#1e4560, border:#2d6b8a, acc:#5bb8d4, white:#fff,
 ### Code
 - DO NOT use Babel standalone CDN
 - DO NOT insert raw JSX into the script block — must pre-compile first
-- DO NOT re-enable RLS on Supabase tables
-- DO NOT use window.supabase.createClient — use _supabaseLib.createClient
 - DO NOT use const or let at module scope in JSX source — use var
 - DO NOT use template literals (backticks) in JSX source
 - DO NOT store Gemini API key in client code
 - DO NOT call window.location.reload() after profile setup — use setProfileDone(true)
 - DO NOT trust NI event payloads directly — always verify user.id exists
 - DO NOT ship [SJ] debug logs — remove before final build
+- DO NOT add Netlify Identity widget script — auth is PocketBase now
+- DO NOT use window.supabase.createClient — use _supabaseLib.createClient (legacy reads only)
 
 ### UX / Content
 - DO NOT have Sjal reference struggles/goals lists by name
@@ -155,8 +165,9 @@ python3 test_sjalavard.py
 
 ## Deployment
 1. Edit index.html
-2. Run python3 test_sjalavard.py — must be 100/100
-3. Push to GitHub → Netlify auto-deploys in ~30 seconds
+2. Run `python3 test_sjalavard.py` — must be 100/100
+3. `git add index.html && git commit -m "..." && git push` — triggers CF Pages auto-deploy
+4. OR: `wrangler pages deploy . --project-name sjalavard-soul-care` for immediate manual deploy
 
 ---
 
@@ -167,11 +178,4 @@ python3 test_sjalavard.py
 - Voices: Manning, Willard, Foster, Lewis, Nouwen, Leaf — naturally, never forced
 - Session arc: Response 1=CBT → Response 2=Leaf → Response 3=Author → Response 4=Summary+3Q → Gratitude
 - Crisis: Acknowledge pain, provide 988, don't proceed until safety addressed
-- Profile context: bio, struggles, goals as BACKGROUND only — never referenced directly
-
----
-
-## Other Apps (future)
-- Bibelgo — needs same upgrade
-- Foster Family app — needs same upgrade
-- Tables: bibelgo_profiles, bibelgo_sessions, fosterfamily_profiles, fosterfamily_sessions
+- Profile context: bio, struggles, focused goal as BACKGROUND only — never referenced directly
