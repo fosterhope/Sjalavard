@@ -68,7 +68,7 @@
    /version.txt in sync.
    ───────────────────────────────────────────────────────────────────────── */
 (function(){
-  var APP_VERSION = "sjalavard-2026-05-15-final-cleanup";
+  var APP_VERSION = "sjalavard-2026-05-26-auth-verified";
   var STORAGE_KEY = "sj_app_v";
   var LIVE_URL    = "https://sjalavard.com";
   var ADMIN_EMAILS = ["fosterhopefamily@gmail.com"];
@@ -2121,7 +2121,7 @@ function ProfileSetup({
       localStorage.setItem("sj_email_" + email + "_profile_done", "true");
     } catch (e) {}
 
-    // Try to save to Supabase - attempt twice with 8s timeout each
+    // Save to PocketBase - attempt twice with 8s timeout each
     var saved = false;
     for (var attempt = 0; attempt < 2; attempt++) {
       try {
@@ -2138,8 +2138,8 @@ function ProfileSetup({
       }
     }
     if (!saved) {
-      // Supabase failed both attempts - local cache is set so the banner will not reappear
-      console.warn("Profile saved locally only - will sync to Supabase next time");
+      // PocketBase save failed both attempts - local cache is set so the banner will not reappear
+      console.warn("Profile saved locally only - will sync to PocketBase next time");
     }
     setSaving(false);
     onDone(profile); // Pass profile so parent can update local state immediately
@@ -9857,13 +9857,13 @@ function Root() {
     // If localStorage says done, show app immediately
     if (lsDone) setProfileDone(true);
 
-    // Load all data from Supabase in parallel
-    var sbTimeout = new Promise(function (res) {
+    // Load all data from PocketBase in parallel
+    var pbTimeout = new Promise(function (res) {
       setTimeout(function () {
         res([null, null, null]);
       }, 8000);
     });
-    Promise.race([Promise.all([dbGetProfile(uid), dbGetSessions(uid), dbGetCheckIns(uid)]), sbTimeout]).then(function (results) {
+    Promise.race([Promise.all([dbGetProfile(uid), dbGetSessions(uid), dbGetCheckIns(uid)]), pbTimeout]).then(function (results) {
       var profileData = results[0] || {};
       var sessionsData = results[1] || [];
       var checkinsData = results[2] || {};
@@ -9879,8 +9879,8 @@ function Root() {
         } catch (e) {}
       }
 
-      // Auto-repair: localStorage says done but Supabase lost/never had it.
-      // Merge profile_done:true into whatever fields Supabase returned so we
+      // Auto-repair: localStorage says done but PocketBase lost/never had it.
+      // Merge profile_done:true into whatever fields PocketBase returned so we
       // don't lose any data. Update profileData so App sees the repaired state.
       if (lsDone && !sbDone) {
         profileData = Object.assign({}, profileData, { profile_done: true });
