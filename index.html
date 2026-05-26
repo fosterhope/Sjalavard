@@ -3,7 +3,7 @@
 <head>
 <script>
 /* Foster Hope Analytics */
-(function(){
+(function(){try{if(location.hostname==='localhost'||location.hostname.endsWith('.pages.dev'))return;if(document.referrer&&(document.referrer.includes('command.fosterhopefamily.com')||document.referrer.includes('fosterhopecommandcenter.pages.dev')))return;if(/[?&]staff/.test(location.search))localStorage.setItem('fh_staff','1');if(localStorage.getItem('fh_staff'))return;}catch(_){}
   var APP='Sjalavard',PROJ='sjalavard-soul-care',HUB='https://command.fosterhopefamily.com/api/analytics';
   var sid=sessionStorage.getItem('_fhsid');
   if(!sid){sid=(Math.random()*1e9|0).toString(36)+(Date.now()).toString(36);sessionStorage.setItem('_fhsid',sid);}
@@ -22,6 +22,11 @@
     var type=el.dataset&&el.dataset.track?'conversion':el.tagName==='A'?'link_click':'button_click';
     send(type,label);
   },true);
+  function sendErr(msg,src,line,err){try{navigator.sendBeacon('https://command.fosterhopefamily.com/api/errors',JSON.stringify({app:APP,project:PROJ,message:(msg||'').slice(0,500),source:src||'',line:line||0,stack:(err&&err.stack||'').slice(0,2000),url:location.href,ts:Date.now()}));}catch(_){}}
+  window.addEventListener('error',function(e){sendErr(e.message,e.filename,e.lineno,e.error);});
+  window.addEventListener('unhandledrejection',function(e){sendErr('Unhandled: '+(e.reason&&e.reason.message||String(e.reason||'')),location.href,0,e.reason);});
+  var _stuckTimer=setTimeout(function(){sendErr('[Stuck Loading] App did not become interactive within 30s',location.href,0,null);},30000);
+  window.markReady=function(){clearTimeout(_stuckTimer);send('app_ready',Math.round((Date.now()-t0)/1000)+'s');window.markReady=null;};
 })();
 </script>
 <script>
@@ -514,7 +519,10 @@
   async function _auth(email,password){
     var r=await fetch(PB+"/api/collections/users/auth-with-password",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({identity:email,password:password})});
     var d=await r.json();
-    if(!r.ok) throw new Error((d&&d.message)||"Login failed. Check your email and password.");
+    if(!r.ok){
+      var isInvalidCreds=r.status===400||r.status===404||(d&&d.message&&(d.message.toLowerCase().indexOf("invalid")!==-1||d.message.toLowerCase().indexOf("requested resource")!==-1));
+      throw new Error(isInvalidCreds?"Incorrect email or password. If you had a previous account, create a new one with the same email — your data will restore automatically.":((d&&d.message)||"Login failed. Check your email and password."));
+    }
     return {token:d.token,user:{id:d.record.id,email:d.record.email,user_metadata:{}}};
   }
   async function _register(email,password){
@@ -544,6 +552,14 @@
       +'<button id="pb-register" style="width:100%;padding:12px;background:transparent;border:1.5px solid #2d6b8a;border-radius:10px;color:#8ab8cc;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:8px;">Create New Account</button>'
       +'<button id="pb-reset" style="width:100%;padding:9px;background:transparent;border:none;color:#4a7a94;font-size:13px;cursor:pointer;margin-bottom:4px;">Forgot password?</button>'
       +'<button id="pb-cancel" style="width:100%;padding:9px;background:transparent;border:none;color:#4a7a94;font-size:13px;cursor:pointer;">Cancel</button>'
+      +'<div style="margin-top:6px;">'
+        +'<button id="pb-restore-toggle" style="width:100%;background:none;border:none;color:rgba(91,184,212,.5);font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;padding:6px 0;letter-spacing:.02em;text-align:center;">Used Sjalavard before? ›</button>'
+        +'<div id="pb-restore-notice" style="display:none;margin-top:4px;padding:14px 16px;background:rgba(91,184,212,.08);border:1.5px solid rgba(91,184,212,.22);border-radius:14px;text-align:left;">'
+          +'<p style="font-size:12.5px;color:rgba(91,184,212,.95);font-weight:800;margin:0 0 5px;">Your data is still here!</p>'
+          +'<p style="font-size:11.5px;color:rgba(255,255,255,.65);line-height:1.65;margin:0 0 12px;">We updated our login system. Create a new account with your same email — your sessions, prayers, profile, and check-ins will restore automatically.</p>'
+          +'<button id="pb-restore-btn" style="width:100%;padding:10px;background:rgba(91,184,212,.18);border:1.5px solid rgba(91,184,212,.4);border-radius:10px;color:#5bb8d4;font-size:12.5px;font-weight:800;cursor:pointer;font-family:inherit;letter-spacing:.03em;">Restore My Account →</button>'
+        +'</div>'
+      +'</div>'
       +'</div>';
     document.body.appendChild(_modal);
     var eEl=document.getElementById("pb-email"),pEl=document.getElementById("pb-pass"),errEl=document.getElementById("pb-err");
@@ -579,6 +595,22 @@
       setBusy(false);
     };
     document.getElementById("pb-cancel").onclick=_close;
+    document.getElementById("pb-restore-toggle").onclick=function(){
+      var notice=document.getElementById("pb-restore-notice");
+      var toggle=document.getElementById("pb-restore-toggle");
+      if(!notice) return;
+      var open=notice.style.display!=="none";
+      notice.style.display=open?"none":"block";
+      toggle.textContent=open?"Used Sjalavard before? ›":"Used Sjalavard before? ▾";
+    };
+    document.getElementById("pb-restore-btn").onclick=function(){
+      var notice=document.getElementById("pb-restore-notice");
+      var toggle=document.getElementById("pb-restore-toggle");
+      if(notice) notice.style.display="none";
+      if(toggle){toggle.textContent="Used Sjalavard before? ›";}
+      showErr("Create a new account below — enter your previous email and a new password. Your sessions, prayers, and profile will restore automatically.");
+      eEl.focus();
+    };
     pEl.onkeydown=function(e){if(e.key==="Enter")document.getElementById("pb-signin").click();};
     setTimeout(function(){try{eEl.focus();}catch(e){}},100);
   }
@@ -625,6 +657,7 @@ input:focus,textarea:focus,button:focus{outline:none;}
 .fi{animation:fadeIn 0.25s ease;}
 ::-webkit-scrollbar{width:4px;}
 ::-webkit-scrollbar-thumb{background:var(--sj-border);border-radius:2px;}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--sj-acc);outline-offset:2px;border-radius:6px;}
 </style>
 <script>
 
@@ -1305,9 +1338,9 @@ function buildSys(p, sessions, mode) {
   // Quick Session — single-shot CBT reframe. No session arc, no gratitude, no summary.
   // User hands over one caught thought; Sjal gives ONE focused response.
   if (mode === "quick") {
-    return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care. This is a QUICK SESSION — a single one-shot CBT reframe on ONE thought the person has caught.\n\n" + (p.firstName ? "Name: " + p.firstName + ".\n" : "") + patternsBlock + memoryBlock + counselorBlock + "\n\nRespond ONCE with exactly these four beats, in order, warm and direct:\n1. Validate the feeling underneath the thought in one short sentence. Meet them where they are.\n2. Gently name the cognitive distortion at work (the David Burns framework — use accessible language, e.g. \"mind reading,\" \"emotional reasoning,\" \"catastrophizing\"). One sentence.\n3. Offer a truer replacement thought in one or two sentences. Honest, grounded, Spirit-aware, not platitude. If the person already wrote their own truth in their message, build on it rather than override it.\n4. One small invitation they can carry into the next hour. One sentence. Something doable.\n\nRULES:\n- No questions. This is one-shot, not a conversation.\n- Keep the whole response under 6 sentences.\n- End with the invitation — do not wrap up with a blessing or flourish.\n- If the person expresses suicidal thoughts, stop the reframe, acknowledge their pain, provide 988 Lifeline, and encourage them to reach out now.\n- NEVER write prayers. You may invite them to pray in their own words.\nThis is holy ground. One truth, gently.";
+    return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care. This is a QUICK SESSION — a single one-shot CBT reframe on ONE thought the person has caught.\n\n" + (p.firstName ? "Name: " + p.firstName + ".\n" : "") + patternsBlock + memoryBlock + counselorBlock + "\n\nRespond ONCE with exactly these four beats, in order, warm and direct:\n1. Validate the feeling underneath the thought in one short sentence. Meet them where they are.\n2. Gently name the cognitive distortion at work (the David Burns framework — use accessible language, e.g. \"mind reading,\" \"emotional reasoning,\" \"catastrophizing\"). One sentence.\n3. Offer a truer replacement thought in one or two sentences. Honest, grounded, Spirit-aware, not platitude. If the person already wrote their own truth in their message, build on it rather than override it.\n4. One small invitation they can carry into the next hour. One sentence. Something doable.\n\nRULES:\n- No questions. This is one-shot, not a conversation.\n- Keep the whole response under 6 sentences.\n- End with the invitation — do not wrap up with a blessing or flourish.\n- If the person expresses suicidal thoughts, stop the reframe, acknowledge their pain, provide 988 Lifeline, and encourage them to reach out now.\n- NEVER write prayers. You may invite them to pray in their own words.\n- You are a spiritual companion, not a therapist or licensed professional. NEVER diagnose. NEVER promise healing or treatment. If the caught thought reflects clinical-level distress, ongoing trauma, or persistent mental health concerns, include one warm, brief line recommending they speak with a counselor or therapist.\nThis is holy ground. One truth, gently.";
   }
-  return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care.\nYou combine CBT (David Burns), neuroscience, biblical truth, and Spirit-led pastoral care.\nSjalavard\'s mission: walk with people through the thoughts that weigh them down — helping them catch the lies their mind tells them, replace them with what is actually true, and find their way back to freedom. All grounded in biblical truth and practical principles that work." + authLine + "\nPrioritize grace, identity in Christ, Spirit transformation.\n" + (p.firstName ? "Name: " + p.firstName + ".\n" : "") + (p.bio ? "About this person: " + p.bio + "\n" : "") + "BACKGROUND CONTEXT (do not bring up directly - use only as quiet background awareness):\nWhat they are working through: " + struggles + ".\nTheir Focused Goal: " + goals + "\n\nNEVER reference this directly by name. Let the person lead. Your job is to follow them.\nNEVER write prayers. Invite the person to pray in their own words instead.\nIf someone expresses suicidal thoughts, acknowledge their pain, show care, provide 988 Lifeline. Do not proceed until safety is addressed." + patternsBlock + memoryBlock + counselorBlock + focusBlock + "\n\nSession arc:\nResponse 1: Lead with CBT (David Burns). Validate their feelings. Gently identify the cognitive distortion at work. Ask one question.\nResponse 2: Bring in Dr. Caroline Leaf. Help them understand how this thought pattern affects the brain and how the mind can be rewired. Ask one question.\nResponse 3: Draw from the person\'s chosen author naturally and without forcing it. Offer spiritual grounding. Ask one question.\nResponse 4: Wrap up. Give a warm summary of the session. Offer 3 guided reflection questions for them to sit with. Invite them to bring what was discussed to God in their own prayer — do not write a prayer for them. Then transition to gratitude.\n\nKeep each response warm, direct, and focused. No flattery. This is holy ground." + mem;
+  return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care.\nYou combine CBT (David Burns), neuroscience, biblical truth, and Spirit-led pastoral care.\nSjalavard\'s mission: walk with people through the thoughts that weigh them down — helping them catch the lies their mind tells them, replace them with what is actually true, and find their way back to freedom. All grounded in biblical truth and practical principles that work." + authLine + "\nPrioritize grace, identity in Christ, Spirit transformation.\n" + (p.firstName ? "Name: " + p.firstName + ".\n" : "") + (p.bio ? "About this person: " + p.bio + "\n" : "") + "BACKGROUND CONTEXT (do not bring up directly - use only as quiet background awareness):\nWhat they are working through: " + struggles + ".\nTheir Focused Goal: " + goals + "\n\nNEVER reference this directly by name. Let the person lead. Your job is to follow them.\nNEVER write prayers. Invite the person to pray in their own words instead.\nIf someone expresses suicidal thoughts, acknowledge their pain, show care, provide 988 Lifeline. Do not proceed until safety is addressed." + patternsBlock + memoryBlock + counselorBlock + focusBlock + "\n\nHARD LIMITS — NON-NEGOTIABLE:\n- You are a spiritual companion and peer support tool. You are NOT a therapist, counselor, psychologist, psychiatrist, or licensed mental health professional. Never present yourself as one.\n- NEVER diagnose any mental health condition, disorder, or clinical presentation. You may name cognitive distortions (a CBT awareness tool), but never name clinical diagnoses.\n- NEVER promise or imply that any technique, session, or approach will heal, cure, fix, or treat anything. Offer presence and support — not guarantees or treatment outcomes.\n- NEVER overstate the effectiveness of CBT, neuroscience, or spiritual disciplines. These are helpful tools, not medical interventions.\n- When someone describes ongoing trauma, severe or persistent distress, or content that sounds clinical in nature — warmly and briefly recommend they speak with a licensed counselor or therapist. Use phrases like 'this sounds like something a professional counselor could really help with' or 'this might be worth bringing to a therapist.'\n- You supplement professional care; you never replace it.\n\nSession arc:\nResponse 1: Lead with CBT (David Burns). Validate their feelings. Gently identify the cognitive distortion at work. Ask one question.\nResponse 2: Bring in Dr. Caroline Leaf. Help them understand how this thought pattern affects the brain and how the mind can be rewired. Ask one question.\nResponse 3: Draw from the person\'s chosen author naturally and without forcing it. Offer spiritual grounding. Ask one question.\nResponse 4: Wrap up. Give a warm summary of the session. Offer 3 guided reflection questions for them to sit with. Invite them to bring what was discussed to God in their own prayer — do not write a prayer for them. Then transition to gratitude.\n\nKeep each response warm, direct, and focused. No flattery. This is holy ground." + mem;
 }
 function autoBackup(uid, email, profile, sessions, prayers, checkins) {
   try {
@@ -3857,7 +3890,8 @@ function App({
             };
           }),
           generationConfig: {
-            maxOutputTokens: 3000
+            maxOutputTokens: 3000,
+            temperature: 0.7
           }
         })
       });
@@ -3916,7 +3950,7 @@ function App({
             role: "user",
             parts: [{ text: "The thought I caught: " + text.trim() }]
           }],
-          generationConfig: { maxOutputTokens: 700 }
+          generationConfig: { maxOutputTokens: 700, temperature: 0.7 }
         })
       });
       if (!res.ok) {
@@ -4038,7 +4072,7 @@ function App({
             role: "user",
             parts: [{ text: "What could be causing this: " + text.trim() }]
           }],
-          generationConfig: { maxOutputTokens: 800 }
+          generationConfig: { maxOutputTokens: 800, temperature: 0.7 }
         })
       });
       if (!res.ok) {
@@ -4224,7 +4258,8 @@ function App({
             }]
           }],
           generationConfig: {
-            maxOutputTokens: 400
+            maxOutputTokens: 400,
+            temperature: 0.7
           }
         })
       });
@@ -8658,15 +8693,7 @@ function App({
       marginBottom: 14,
       lineHeight: 1.6
     }
-  }, "To reset your password visit ", /*#__PURE__*/React.createElement("a", {
-    href: "https://sjalavard.com/.netlify/identity/recover",
-    target: "_blank",
-    rel: "noopener noreferrer",
-    style: {
-      color: C.acc,
-      textDecoration: "none"
-    }
-  }, "password recovery"), "."), /*#__PURE__*/React.createElement("button", {
+  }, "To reset your password, sign out and use the “Forgot password?” link on the sign-in screen."), /*#__PURE__*/React.createElement("button", {
     onClick: function () {
       setLogoutConfirm(true);
     },
@@ -9796,7 +9823,7 @@ function Root() {
       setNiUser(existing);
       setNiReady(true);
     }
-    ni.init();
+    ni.init();if(window.markReady)window.markReady();
     return function () {
       clearTimeout(initTimeout);
       if (justLoggedInTimer.current) clearTimeout(justLoggedInTimer.current);
@@ -10074,7 +10101,7 @@ try {
     try{localStorage.setItem('fh-error-log',JSON.stringify(_errs.slice(0,20)));}catch(e){}
   }
   try{var _sv=localStorage.getItem('fh-error-log');if(_sv){var _pv=JSON.parse(_sv);if(Array.isArray(_pv))_errs=_pv.slice(0,20);}}catch(e){}
-  var _dot=null;
+  var _dot=null;var _sbUrl=null;
   function setDot(color,tip){if(_dot){_dot.style.background=color;_dot.title=tip;}}
   function checkSync(){if(!navigator.onLine){setDot('#e53e3e','Offline');return;}fetch('https://foster-hope-pb.fly.dev/api/health').then(function(r){if(r.ok)setDot('#48bb78','Synced');else setDot('#f5c842','Cloud unreachable');}).catch(function(){setDot('#f5c842','Cloud unreachable');});}
   window.addEventListener('online',function(){checkSync();});
@@ -10105,6 +10132,7 @@ try {
     document.getElementById('__bug-save').onclick=function(){saveReport((document.getElementById('__bug-note')||{}).value||'');ov.remove();var t=document.createElement('div');t.style.cssText='position:fixed;bottom:60px;right:14px;z-index:99999;background:#1a3028;color:#fff;padding:10px 16px;border-radius:10px;font-size:.78rem;font-weight:600;font-family:inherit;box-shadow:0 4px 16px rgba(0,0,0,.2);pointer-events:none;';t.textContent='Bug report saved!';document.body.appendChild(t);setTimeout(function(){t.remove();},3000);};
     setTimeout(function(){var n=document.getElementById('__bug-note');if(n)n.focus();},80);
   }
+  function detectSB(){try{return typeof SB_URL!=='undefined'?SB_URL:'https://rlwdqrvosbbdwmnrohxd.supabase.co';}catch(e){return null;}}
   function inject(){
     _sbUrl=detectSB();
     if(_sbUrl&&!document.getElementById('__sync-dot')){var d=document.createElement('div');d.id='__sync-dot';d.style.cssText='position:fixed;top:10px;right:10px;z-index:99990;width:10px;height:10px;border-radius:50%;background:#f5c842;box-shadow:0 1px 4px rgba(0,0,0,.3);cursor:pointer;transition:background .3s;';d.onclick=function(){alert(d.title);};document.body.appendChild(d);_dot=d;checkSync();}
@@ -10115,5 +10143,6 @@ try {
   setTimeout(inject,900);
 })();
 </script>
+<script>(function(){var q=new URLSearchParams(location.search).get('qr');if(q&&window.send)window.send('conversion','qr_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-'));})();</script>
 </body>
 </html>
