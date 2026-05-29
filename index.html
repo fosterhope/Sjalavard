@@ -106,105 +106,6 @@
     });
   }
 
-  window._sjClearAppCache = async function(){
-    try {
-      if (window.caches && caches.keys) {
-        var keys = await caches.keys();
-        await Promise.all(keys.map(function(k){ return caches.delete(k); }));
-      }
-      if ("serviceWorker" in navigator && navigator.serviceWorker.getRegistrations) {
-        var regs = await navigator.serviceWorker.getRegistrations();
-        await Promise.all(regs.map(function(r){ return r.unregister(); }));
-      }
-      try { localStorage.setItem(STORAGE_KEY, APP_VERSION); } catch(e){}
-    } catch(e){ console.warn("[Sjalavard] cache clear failed", e); }
-    setTimeout(function(){ window.location.reload(); }, 400);
-  };
-
-  // Supabase client removed — all storage now on PocketBase (see PB_URL below)
-
-  function _sjIsAdmin(){
-    try {
-      var u = (window.netlifyIdentity && window.netlifyIdentity.currentUser && window.netlifyIdentity.currentUser()) || null;
-      if (!u || !u.email) return false;
-      return ADMIN_EMAILS.indexOf(u.email) >= 0;
-    } catch(e){ return false; }
-  }
-
-  window._sjAdminForceCacheBust = async function(){
-    try {
-      if (!_sjIsAdmin()) { alert("Admin only."); return; }
-      // Write cache-bust token to PocketBase off_user_data
-      var bust = String(Date.now());
-      var KEY = "sj_app_config";
-      // Find existing record
-      var listR = await fetch(PB_URL + "/api/collections/off_user_data/records?filter=(user_id='" + KEY + "')&perPage=1");
-      var listD = await listR.json();
-      var existingId = (listD.items && listD.items[0]) ? listD.items[0].id : null;
-      var payload = JSON.stringify({ user_id: KEY, data: { cache_bust_version: bust } });
-      var method = existingId ? "PATCH" : "POST";
-      var url = PB_URL + "/api/collections/off_user_data/records" + (existingId ? "/" + existingId : "");
-      var r = await fetch(url, { method: method, headers: { "Content-Type": "application/json" }, body: payload });
-      if (!r.ok) { var t = await r.text(); throw new Error(t); }
-      alert("✓ Cache refresh queued for all users.");
-    } catch(e){ alert("Force refresh failed: " + (e && e.message || e)); }
-  };
-
-  window._sjCheckAdminCacheBust = async function(){
-    try {
-      var KEY = "sj_app_config";
-      var r = await fetch(PB_URL + "/api/collections/off_user_data/records?filter=(user_id='" + KEY + "')&perPage=1");
-      var d = await r.json();
-      if (!d.items || !d.items[0]) return;
-      var blob = d.items[0].data;
-      if (typeof blob === "string") { try { blob = JSON.parse(blob); } catch(e){ return; } }
-      var remoteV = blob && blob.cache_bust_version;
-      if (!remoteV) return;
-      var localV = localStorage.getItem("sj_admin_cache_bust_v") || "";
-      if (remoteV !== localV) {
-        localStorage.setItem("sj_admin_cache_bust_v", remoteV);
-        await window._sjClearAppCache();
-      }
-    } catch(e){ /* silent */ }
-  };
-
-  function _sjRenderAdminButton(){
-    try {
-      var isAdmin = _sjIsAdmin();
-      var btn = document.getElementById("sj-admin-cachebust");
-      if (isAdmin && !btn) {
-        btn = document.createElement("button");
-        btn.id = "sj-admin-cachebust";
-        btn.type = "button";
-        btn.title = "Force every user's app to refresh on their next load";
-        btn.textContent = "↻ Force refresh all users";
-        btn.style.cssText = "position:fixed;bottom:12px;right:12px;z-index:99998;background:#1e4e6d;color:#fff;border:1.5px solid #a8cde0;border-radius:999px;padding:8px 14px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.2)";
-        btn.addEventListener("click", function(){
-          if (confirm("Force a one-time silent refresh for every signed-in user? They won't lose any data.")) {
-            window._sjAdminForceCacheBust();
-          }
-        });
-        (document.body || document.documentElement).appendChild(btn);
-      } else if (!isAdmin && btn) {
-        btn.remove();
-      }
-    } catch(e){}
-  }
-  window._sjRenderAdminButton = _sjRenderAdminButton;
-
-  var _sjWireIdentity = function(){
-    try {
-      if (!window.netlifyIdentity || !window.netlifyIdentity.on) return false;
-      window.netlifyIdentity.on("init",   function(){ _sjRenderAdminButton(); window._sjCheckAdminCacheBust && window._sjCheckAdminCacheBust(); });
-      window.netlifyIdentity.on("login",  function(){ _sjRenderAdminButton(); window._sjCheckAdminCacheBust && window._sjCheckAdminCacheBust(); });
-      window.netlifyIdentity.on("logout", function(){ _sjRenderAdminButton(); });
-      return true;
-    } catch(e){ return false; }
-  };
-  var _sjWait = 0;
-  var _sjTimer = setInterval(function(){
-    if (_sjWireIdentity() || ++_sjWait > 50) clearInterval(_sjTimer);
-  }, 200);
 
   try {
     var origin = (window.location && window.location.origin) || "";
@@ -781,7 +682,37 @@ async function _pbReadProfile(uid) {
 }
 async function _pbWriteProfile(uid, email, data) {
   var cached = await _pbReadProfile(uid);
-  var payload = {netlify_user_id: uid, email: (email || ""), data: data, updated_at: new Date().toISOString()};
+
+  // FORT KNOX Guard 1 — Write guard: never wipe checkins or prayers that exist in cloud
+  var existingCheckins = Object.keys((cached.data && cached.data.checkins) || {}).length;
+  var existingPrayers = ((cached.data && cached.data.prayers) || []).length;
+  var incomingCheckins = Object.keys((data && data.checkins) || {}).length;
+  var incomingPrayers = ((data && data.prayers) || []).length;
+  if ((existingCheckins > 0 && incomingCheckins === 0) || (existingPrayers > 0 && incomingPrayers === 0)) {
+    console.warn("Sjalavard WRITE GUARD: blocked potential wipe-overwrite (checkins:" + existingCheckins + "→" + incomingCheckins + " prayers:" + existingPrayers + "→" + incomingPrayers + ")");
+    return false;
+  }
+
+  // FORT KNOX Guard 2 — localStorage ring buffer (3-deep) before cloud sync
+  try {
+    var _snapBase = "sja_snap__" + uid;
+    var _s1 = localStorage.getItem(_snapBase + "_1");
+    var _s0 = localStorage.getItem(_snapBase + "_0");
+    if (_s1) localStorage.setItem(_snapBase + "_2", _s1);
+    if (_s0) localStorage.setItem(_snapBase + "_1", _s0);
+    localStorage.setItem(_snapBase + "_0", JSON.stringify({data: data, ts: new Date().toISOString()}));
+  } catch(_snapErr) {}
+
+  // FORT KNOX Guard 3 — Before-write PB snapshot: read current cloud value → save as prev_data
+  var _prevData = null;
+  if (cached.pbId) {
+    try {
+      var _pr = await fetch(PB_PROFILES + "/" + cached.pbId + "?fields=data");
+      if (_pr.ok) { var _pd = await _pr.json(); if (_pd.data) _prevData = _pd.data; }
+    } catch(_) {}
+  }
+
+  var payload = {netlify_user_id: uid, email: (email || ""), data: data, prev_data: _prevData, updated_at: new Date().toISOString()};
   try {
     if (cached.pbId) {
       var r = await fetch(PB_PROFILES + "/" + cached.pbId, {method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
