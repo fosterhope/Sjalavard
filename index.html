@@ -5,8 +5,8 @@
 /* Foster Hope Analytics */
 (function(){try{if(location.hostname==='localhost'||location.hostname.endsWith('.pages.dev'))return;if(document.referrer&&(document.referrer.includes('command.fosterhopefamily.com')||document.referrer.includes('fosterhopecommandcenter.pages.dev')))return;if(/[?&]staff/.test(location.search))localStorage.setItem('fh_staff','1');if(localStorage.getItem('fh_staff'))return;}catch(_){}
   var APP='Sjalavard',PROJ='sjalavard-soul-care',HUB='https://command.fosterhopefamily.com/api/analytics';
-  var sid=sessionStorage.getItem('_fhsid');
-  if(!sid){sid=(Math.random()*1e9|0).toString(36)+(Date.now()).toString(36);sessionStorage.setItem('_fhsid',sid);}
+  var sid=localStorage.getItem('_fhsid');
+  if(!sid){sid=(Math.random()*1e9|0).toString(36)+(Date.now()).toString(36);localStorage.setItem('_fhsid',sid);}
   var ua=navigator.userAgent;
   var dev=/Mobi|Android/i.test(ua)?'mobile':/Tablet|iPad/i.test(ua)?'tablet':'desktop';
   var br=/Edg\//.test(ua)?'Edge':/OPR\/|Opera/.test(ua)?'Opera':/Chrome\//.test(ua)?'Chrome':/Firefox\//.test(ua)?'Firefox':/Safari\//.test(ua)?'Safari':'Other';
