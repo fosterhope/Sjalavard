@@ -845,6 +845,22 @@ async function dbAdminGetAllSessions() {
 }
 
 // Prayer Supabase functions
+var _sjaSyncPending = false;
+function _sjaToast(msg, kind) {
+  try {
+    var ex = document.getElementById('_sja_toast');
+    if (ex) ex.remove();
+    var bg = kind === 'error' ? '#c0454a' : '#2B6C6C';
+    var t = document.createElement('div');
+    t.id = '_sja_toast';
+    t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:' + bg + ';color:#fff;padding:11px 18px;border-radius:99px;font-family:inherit;font-size:13px;font-weight:500;z-index:9999;box-shadow:0 6px 20px rgba(0,0,0,.18);max-width:340px;opacity:0;transition:opacity .2s;pointer-events:none';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    requestAnimationFrame(function() { t.style.opacity = '1'; });
+    setTimeout(function() { t.style.opacity = '0'; setTimeout(function() { if (t.parentNode) t.remove(); }, 250); }, 3000);
+  } catch(e) {}
+}
+
 async function dbGetPrayers(uid) {
   var p = await dbGetProfile(uid); return (p && p.prayers) || [];
 }
@@ -852,7 +868,12 @@ async function dbSavePrayers(uid, prayers) {
   try {
     var c = await _pbReadProfile(uid); var d = Object.assign({}, c.data); d.prayers = prayers;
     await _pbWriteProfile(uid, window._pbCurrentEmail ? window._pbCurrentEmail() : "", d);
-  } catch(e) { console.error("dbSavePrayers error:", e.message); }
+    if (_sjaSyncPending) { _sjaSyncPending = false; _sjaToast('Prayers synced to cloud ☁', 'success'); }
+  } catch(e) {
+    console.error("dbSavePrayers error:", e.message);
+    if (!_sjaSyncPending) _sjaToast('⚠ Prayer not saved to cloud — will retry', 'error');
+    _sjaSyncPending = true;
+  }
 }
 
 // Check-in / Focus / Pattern / Counselor / MemoryBank — all use read-merge-write via _pbWriteProfile
