@@ -3777,12 +3777,13 @@ function App({
               return sp.id === lp.id;
             });
           }));
+          merged = _sjaPurgeDeleted(merged);
           if (merged.length > sbPrayers.length) {
             await dbSavePrayers(uid, merged);
             lsDel("prayers", uid);
             setPrayers(merged);
           } else {
-            setPrayers(sbPrayers);
+            setPrayers(_sjaPurgeDeleted(sbPrayers));
           }
         } else {
           setPrayers(sbPrayers);
@@ -4403,9 +4404,14 @@ function App({
     setPrayers(u);
     dbSavePrayers(uid, u);
   }
+  function _sjaPurgeDeleted(list) {
+    var cut = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    return list.filter(function (p) { return !p.deleted || p.deletedAt > cut; });
+  }
   function delPray(id) {
-    var u = prayers.filter(function (p) {
-      return p.id !== id;
+    var u = prayers.map(function (p) {
+      if (p.id !== id) return p;
+      return Object.assign({}, p, { deleted: true, deletedAt: new Date().toISOString() });
     });
     setPrayers(u);
     dbSavePrayers(uid, u);
@@ -6915,7 +6921,7 @@ function App({
     return /*#__PURE__*/React.createElement("span", null, count + " check-in" + (count === 1 ? "" : "s") + " where it showed up");
   })(), (function () {
     var count = (prayers || []).filter(function (p) {
-      return p.linkedFocus === profile.focus.id;
+      return !p.deleted && p.linkedFocus === profile.focus.id;
     }).length;
     return /*#__PURE__*/React.createElement("span", null, count + " linked prayer" + (count === 1 ? "" : "s"));
   })(), profile.focus.startedAt && /*#__PURE__*/React.createElement("span", null, "Started " + new Date(profile.focus.startedAt).toLocaleDateString("en-US", {
@@ -7110,7 +7116,7 @@ function App({
       cursor: prayText.trim() ? "pointer" : "default",
       fontWeight: 700
     }
-  }, "Add Prayer")), prayers.length === 0 ? /*#__PURE__*/React.createElement("div", {
+  }, "Add Prayer")), prayers.filter(function(p){return !p.deleted;}).length === 0 ? /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: "center",
       padding: "50px 20px",
@@ -7127,7 +7133,7 @@ function App({
       fontSize: 16,
       lineHeight: 1.7
     }
-  }, "Your prayers will be kept here.")) : prayers.map(function (p) {
+  }, "Your prayers will be kept here.")) : prayers.filter(function(p){return !p.deleted;}).map(function (p) {
     return /*#__PURE__*/React.createElement("div", {
       key: p.id,
       style: {
