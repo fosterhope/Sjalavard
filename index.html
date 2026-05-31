@@ -460,22 +460,22 @@
     _modal.innerHTML='<div style="background:#1e4560;border:1px solid #2d6b8a;border-radius:20px;padding:36px 32px;width:100%;max-width:380px;box-shadow:0 24px 64px rgba(0,0,0,.5);">'
       +'<div style="text-align:center;margin-bottom:22px;">'
         +'<svg width="48" height="48" viewBox="0 0 100 100" style="margin-bottom:8px;"><circle cx="50" cy="50" r="48" fill="#153a52" stroke="#5bb8d4" stroke-width="2"/><text x="50" y="66" text-anchor="middle" font-size="44" fill="#5bb8d4" font-family="Georgia,serif">&#9788;</text></svg>'
-        +'<h2 style="color:#fff;font-family:\'Playfair Display\',Georgia,serif;font-size:21px;margin:0 0 5px;font-weight:600;">Sjalavard Soul Care</h2>'
+        +'<h2 style="color:#fff;font-family:\'Playfair Display\',Georgia,serif;font-size:22px;margin:0 0 5px;font-weight:600;">Sjalavard Soul Care</h2>'
         +'<p style="color:#8ab8cc;font-size:13px;margin:0;">Sign in or create a free account</p>'
       +'</div>'
       +'<div id="pb-err" style="display:none;background:rgba(224,128,144,.15);border:1px solid #e08090;border-radius:8px;padding:10px 14px;color:#e08090;font-size:13px;margin-bottom:14px;line-height:1.5;"></div>'
-      +'<input id="pb-email" type="email" placeholder="Email address" autocomplete="email" style="width:100%;box-sizing:border-box;padding:12px 14px;background:#0f2d42;border:1.5px solid #2d6b8a;border-radius:10px;color:#fff;font-size:15px;margin-bottom:10px;outline:none;">'
-      +'<input id="pb-pass" type="password" placeholder="Password (8+ characters)" autocomplete="current-password" style="width:100%;box-sizing:border-box;padding:12px 14px;background:#0f2d42;border:1.5px solid #2d6b8a;border-radius:10px;color:#fff;font-size:15px;margin-bottom:16px;outline:none;">'
+      +'<input id="pb-email" type="email" placeholder="Email address" autocomplete="email" style="width:100%;box-sizing:border-box;padding:12px 14px;background:#0f2d42;border:1.5px solid #2d6b8a;border-radius:10px;color:#fff;font-size:16px;margin-bottom:10px;outline:none;">'
+      +'<input id="pb-pass" type="password" placeholder="Password (8+ characters)" autocomplete="current-password" style="width:100%;box-sizing:border-box;padding:12px 14px;background:#0f2d42;border:1.5px solid #2d6b8a;border-radius:10px;color:#fff;font-size:16px;margin-bottom:16px;outline:none;">'
       +'<button id="pb-signin" style="width:100%;padding:13px;background:#5bb8d4;border:none;border-radius:10px;color:#1e4560;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px;">Sign In</button>'
       +'<button id="pb-register" style="width:100%;padding:12px;background:transparent;border:1.5px solid #2d6b8a;border-radius:10px;color:#8ab8cc;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:8px;">Create New Account</button>'
       +'<button id="pb-reset" style="width:100%;padding:9px;background:transparent;border:none;color:#4a7a94;font-size:13px;cursor:pointer;margin-bottom:4px;">Forgot password?</button>'
       +'<button id="pb-cancel" style="width:100%;padding:9px;background:transparent;border:none;color:#4a7a94;font-size:13px;cursor:pointer;">Cancel</button>'
       +'<div style="margin-top:6px;">'
-        +'<button id="pb-restore-toggle" style="width:100%;background:none;border:none;color:rgba(91,184,212,.5);font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;padding:6px 0;letter-spacing:.02em;text-align:center;">Used Sjalavard before? ›</button>'
+        +'<button id="pb-restore-toggle" style="width:100%;background:none;border:none;color:rgba(91,184,212,.5);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;padding:6px 0;letter-spacing:.02em;text-align:center;">Used Sjalavard before? ›</button>'
         +'<div id="pb-restore-notice" style="display:none;margin-top:4px;padding:14px 16px;background:rgba(91,184,212,.08);border:1.5px solid rgba(91,184,212,.22);border-radius:14px;text-align:left;">'
-          +'<p style="font-size:12.5px;color:rgba(91,184,212,.95);font-weight:800;margin:0 0 5px;">Your data is still here!</p>'
-          +'<p style="font-size:11.5px;color:rgba(255,255,255,.65);line-height:1.65;margin:0 0 12px;">We updated our login system. Create a new account with your same email — your sessions, prayers, profile, and check-ins will restore automatically.</p>'
-          +'<button id="pb-restore-btn" style="width:100%;padding:10px;background:rgba(91,184,212,.18);border:1.5px solid rgba(91,184,212,.4);border-radius:10px;color:#5bb8d4;font-size:12.5px;font-weight:800;cursor:pointer;font-family:inherit;letter-spacing:.03em;">Restore My Account →</button>'
+          +'<p style="font-size:13px;color:rgba(91,184,212,.95);font-weight:800;margin:0 0 5px;">Your data is still here!</p>'
+          +'<p style="font-size:12px;color:rgba(255,255,255,.65);line-height:1.65;margin:0 0 12px;">We updated our login system. Create a new account with your same email — your sessions, prayers, profile, and check-ins will restore automatically.</p>'
+          +'<button id="pb-restore-btn" style="width:100%;padding:10px;background:rgba(91,184,212,.18);border:1.5px solid rgba(91,184,212,.4);border-radius:10px;color:#5bb8d4;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;letter-spacing:.03em;">Restore My Account →</button>'
         +'</div>'
       +'</div>'
       +'</div>';
@@ -642,6 +642,7 @@ if(IS_PWA && window.navigator.standalone === true){
 })();
 </script>
 <!-- Service worker not used: single-file deploy, blob SW blocked by browser security -->
+<style>@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}</style>
 </head>
 <body>
 <!-- Netlify form stubs removed — site now on Cloudflare Pages -->
@@ -10088,10 +10089,10 @@ try {
           '<span style="color:#3dc5e8;font-size:14px;letter-spacing:-2px;">⋮⋮</span>' +
           '<span style="font:700 10px/1 \'Inter\',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#3dc5e8;">Tour · ' + (idx+1) + ' of ' + steps.length + ' · drag to move</span>' +
         '</span>' +
-        '<button id="sj-tour-close" title="Close tour" style="background:none;border:none;color:#8ab8cc;font-size:20px;cursor:pointer;line-height:1;padding:0 4px;">×</button>' +
+        '<button id="sj-tour-close" title="Close tour" style="background:none;border:none;color:#8ab8cc;font-size:22px;cursor:pointer;line-height:1;padding:0 4px;">×</button>' +
       '</div>' +
       '<div style="height:3px;background:#1e4e6d;border-radius:2px;margin:0 0 12px;overflow:hidden;"><div style="height:100%;background:#3dc5e8;width:' + pct + '%;transition:width .25s;"></div></div>' +
-      '<h3 style="font-family:\'Playfair Display\',serif;font-size:20px;font-weight:600;color:#fff;margin:0 0 6px;line-height:1.25;">' + step.title + '</h3>' +
+      '<h3 style="font-family:\'Playfair Display\',serif;font-size:22px;font-weight:600;color:#fff;margin:0 0 6px;line-height:1.25;">' + step.title + '</h3>' +
       '<p style="margin:0 0 14px;font-size:13px;line-height:1.7;color:#8ab8cc;">' + step.body + '</p>' +
       '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">' +
         '<button id="sj-tour-back" ' + (idx===0?'disabled':'') + ' style="background:transparent;border:1px solid #84b3d0;color:' + (idx===0?'#a5c8db':'#eaf3f9') + ';border-radius:8px;padding:8px 14px;font:600 13px \'Inter\',sans-serif;cursor:' + (idx===0?'not-allowed':'pointer') + ';">← Back</button>' +
