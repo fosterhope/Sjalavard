@@ -412,11 +412,28 @@
     }catch(e){}
     return false;
   }
+  var _sjRefreshTimer = null;
+  function _scheduleRefresh(token){
+    if(_sjRefreshTimer) clearTimeout(_sjRefreshTimer);
+    try{
+      var exp=JSON.parse(atob(token.split(".")[1])).exp*1000;
+      var delay=exp-Date.now()-5*60*1000;
+      if(delay>0){
+        _sjRefreshTimer=setTimeout(function(){
+          fetch(PB+"/api/collections/users/auth-refresh",{method:"POST",headers:{"Authorization":"Bearer "+_tok}})
+            .then(function(r){return r.ok?r.json():null;})
+            .then(function(d){if(d&&d.token){_save(d.token,d.record||_user);}else{_clear();}})
+            .catch(function(){});
+        },delay);
+      }
+    }catch(e){}
+  }
   function _save(t,u){
     _tok=t; _user=u;
     try{ localStorage.setItem("sj_pb_auth",JSON.stringify({token:t,user:u,exp:Date.now()+14*24*3600*1000})); }catch(e){}
+    _scheduleRefresh(t);
   }
-  function _clear(){ _tok=null; _user=null; try{localStorage.removeItem("sj_pb_auth");}catch(e){} }
+  function _clear(){ _tok=null; _user=null; if(_sjRefreshTimer){clearTimeout(_sjRefreshTimer);_sjRefreshTimer=null;} try{localStorage.removeItem("sj_pb_auth");}catch(e){} }
   async function _auth(email,password){
     var r=await fetch(PB+"/api/collections/users/auth-with-password",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({identity:email,password:password})});
     var d=await r.json();
@@ -647,6 +664,11 @@ var PB_SESSIONS = PB_URL + "/api/collections/sja_sessions/records";
 var _pbProfileCache = {}; // uid → {pbId, data}
 var _sjOldUIDs = []; // old Netlify Identity UIDs found during email-fallback migration
 // ── Profile helpers ─────────────────────────────────────────────────────────
+var _sjSyncPending = false;
+window.addEventListener("online", function(){
+  if(_sjSyncPending){ _sjSyncPending=false; window._sjRetrySyncFn&&window._sjRetrySyncFn(); }
+});
+
 async function _pbReadProfile(uid) {
   if (_pbProfileCache[uid]) return _pbProfileCache[uid];
   try {
@@ -654,31 +676,27 @@ async function _pbReadProfile(uid) {
     var d = await r.json();
     var items = (d && d.items) ? d.items : [];
     if (items.length > 0) {
-      _pbProfileCache[uid] = {pbId: items[0].id, data: items[0].data || {}};
+      _pbProfileCache[uid] = {pbId: items[0].id, data: items[0].data || {}, updatedAt: items[0].updated_at || null};
+      if(items[0].updated_at){ try{localStorage.setItem("sja_last_sync_ts_"+uid, items[0].updated_at);}catch(_){} }
       return _pbProfileCache[uid];
     }
-    // Fallback: look up ALL profiles by email, sorted most-recent first.
-    // Handles first login after migration from Netlify Identity (where users may
-    // have accumulated multiple profile records under different Netlify UIDs).
     var email = window._pbCurrentEmail ? window._pbCurrentEmail() : null;
     if (email) {
       var r2 = await fetch(PB_PROFILES + "?filter=(email='" + encodeURIComponent(email) + "')&perPage=20&sort=-updated_at");
       var d2 = await r2.json();
       var items2 = (d2 && d2.items) ? d2.items : [];
       if (items2.length > 0) {
-        // Collect all old UIDs so dbGetSessions can recover sessions
         _sjOldUIDs = items2.map(function(i){ return i.netlify_user_id; }).filter(function(u){ return u && u !== uid; });
-        // Re-key ALL found records to the new PocketBase user ID (background)
         items2.forEach(function(rec) {
           fetch(PB_PROFILES + "/" + rec.id, {method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({netlify_user_id:uid})});
         });
-        // Use the most-recent record as canonical data source
-        _pbProfileCache[uid] = {pbId: items2[0].id, data: items2[0].data || {}};
+        _pbProfileCache[uid] = {pbId: items2[0].id, data: items2[0].data || {}, updatedAt: items2[0].updated_at || null};
+        if(items2[0].updated_at){ try{localStorage.setItem("sja_last_sync_ts_"+uid, items2[0].updated_at);}catch(_){} }
         return _pbProfileCache[uid];
       }
     }
-    return {pbId: null, data: {}};
-  } catch(e) { return {pbId: null, data: {}}; }
+    return {pbId: null, data: {}, updatedAt: null};
+  } catch(e) { return {pbId: null, data: {}, updatedAt: null}; }
 }
 async function _pbWriteProfile(uid, email, data) {
   var cached = await _pbReadProfile(uid);
@@ -703,26 +721,58 @@ async function _pbWriteProfile(uid, email, data) {
     localStorage.setItem(_snapBase + "_0", JSON.stringify({data: data, ts: new Date().toISOString()}));
   } catch(_snapErr) {}
 
-  // FORT KNOX Guard 3 — Before-write PB snapshot: read current cloud value → save as prev_data
+  // FORT KNOX Guard 3 — Before-write PB snapshot + conflict detection
   var _prevData = null;
+  var _serverUpdatedAt = null;
   if (cached.pbId) {
     try {
-      var _pr = await fetch(PB_PROFILES + "/" + cached.pbId + "?fields=data");
-      if (_pr.ok) { var _pd = await _pr.json(); if (_pd.data) _prevData = _pd.data; }
+      var _pr = await fetch(PB_PROFILES + "/" + cached.pbId + "?fields=data,updated_at");
+      if (_pr.ok) { var _pd = await _pr.json(); if (_pd.data) _prevData = _pd.data; _serverUpdatedAt = _pd.updated_at || null; }
     } catch(_) {}
   }
 
-  var payload = {netlify_user_id: uid, email: (email || ""), data: data, prev_data: _prevData, updated_at: new Date().toISOString()};
-  try {
-    if (cached.pbId) {
-      var r = await fetch(PB_PROFILES + "/" + cached.pbId, {method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
-      if (r.ok) { _pbProfileCache[uid] = {pbId: cached.pbId, data: data}; return true; }
-    } else {
-      var r2 = await fetch(PB_PROFILES, {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
-      if (r2.ok) { var d2=await r2.json(); _pbProfileCache[uid]={pbId:d2.id,data:data}; return true; }
+  // Conflict resolution — if server updated after our last sync, merge arrays
+  var _lastSyncTs = localStorage.getItem("sja_last_sync_ts_" + uid);
+  if (_serverUpdatedAt && _lastSyncTs && _serverUpdatedAt > _lastSyncTs && _prevData) {
+    var _arrFields = ["prayers","focusHistory","authors"];
+    _arrFields.forEach(function(f){
+      var srv = Array.isArray(_prevData[f]) ? _prevData[f] : [];
+      var loc = Array.isArray(data[f]) ? data[f] : [];
+      if(srv.length > loc.length){
+        var locIds = loc.map(function(x){ return JSON.stringify(x); });
+        srv.forEach(function(item){ if(locIds.indexOf(JSON.stringify(item))===-1) loc.push(item); });
+        data[f] = loc;
+      }
+    });
+    // checkins: merge by key (date string)
+    if(_prevData.checkins && typeof _prevData.checkins === "object"){
+      var merged = Object.assign({}, _prevData.checkins, data.checkins);
+      data.checkins = merged;
     }
-  } catch(e) { console.error("_pbWriteProfile:",e.message); }
-  return false;
+    console.info("Sjalavard CONFLICT MERGE: merged server data (updated", _serverUpdatedAt, ")");
+  }
+
+  var _nowTs = new Date().toISOString();
+  var payload = {netlify_user_id: uid, email: (email || ""), data: data, prev_data: _prevData, updated_at: _nowTs};
+
+  // Retry function stored globally for online-event replay
+  var _doWrite = async function() {
+    try {
+      if (cached.pbId) {
+        var r = await fetch(PB_PROFILES + "/" + cached.pbId, {method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+        if (r.ok) { _pbProfileCache[uid] = {pbId: cached.pbId, data: data, updatedAt: _nowTs}; try{localStorage.setItem("sja_last_sync_ts_"+uid,_nowTs);}catch(_){} return true; }
+      } else {
+        var r2 = await fetch(PB_PROFILES, {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+        if (r2.ok) { var d2=await r2.json(); _pbProfileCache[uid]={pbId:d2.id,data:data,updatedAt:_nowTs}; try{localStorage.setItem("sja_last_sync_ts_"+uid,_nowTs);}catch(_){} return true; }
+      }
+    } catch(e) {
+      console.error("_pbWriteProfile:",e.message);
+      _sjSyncPending = true;
+      window._sjRetrySyncFn = _doWrite;
+    }
+    return false;
+  };
+  return await _doWrite();
 }
 // ── Database functions (same signatures as original Supabase versions) ────────
 async function dbGetProfile(uid) {
@@ -1269,9 +1319,9 @@ function buildSys(p, sessions, mode) {
   // Quick Session — single-shot CBT reframe. No session arc, no gratitude, no summary.
   // User hands over one caught thought; Sjal gives ONE focused response.
   if (mode === "quick") {
-    return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care. This is a QUICK SESSION — a single one-shot CBT reframe on ONE thought the person has caught.\n\n" + (p.firstName ? "Name: " + p.firstName + ".\n" : "") + patternsBlock + memoryBlock + counselorBlock + "\n\nRespond ONCE with exactly these four beats, in order, warm and direct:\n1. Validate the feeling underneath the thought in one short sentence. Meet them where they are.\n2. Gently name the cognitive distortion at work (the David Burns framework — use accessible language, e.g. \"mind reading,\" \"emotional reasoning,\" \"catastrophizing\"). One sentence.\n3. Offer a truer replacement thought in one or two sentences. Honest, grounded, Spirit-aware, not platitude. If the person already wrote their own truth in their message, build on it rather than override it.\n4. One small invitation they can carry into the next hour. One sentence. Something doable.\n\nRULES:\n- No questions. This is one-shot, not a conversation.\n- Keep the whole response under 6 sentences.\n- End with the invitation — do not wrap up with a blessing or flourish.\n- If the person expresses suicidal thoughts, stop the reframe, acknowledge their pain, provide 988 Lifeline, and encourage them to reach out now.\n- NEVER write prayers. You may invite them to pray in their own words.\n- You are a spiritual companion, not a therapist or licensed professional. NEVER diagnose. NEVER promise healing or treatment. If the caught thought reflects clinical-level distress, ongoing trauma, or persistent mental health concerns, include one warm, brief line recommending they speak with a counselor or therapist.\nThis is holy ground. One truth, gently.";
+    return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care. This is a QUICK SESSION — a single one-shot CBT reframe on ONE thought the person has caught.\n\n" + (p.firstName ? "Name: " + p.firstName + ".\n" : "") + patternsBlock + memoryBlock + counselorBlock + "\n\nRespond ONCE with exactly these four beats, in order, warm and direct:\n1. Validate the feeling underneath the thought in one short sentence. Meet them where they are.\n2. Gently name the cognitive distortion at work (the David Burns framework — use accessible language, e.g. \"mind reading,\" \"emotional reasoning,\" \"catastrophizing\"). One sentence.\n3. Offer a truer replacement thought in one or two sentences. Honest, grounded, Spirit-aware, not platitude. If the person already wrote their own truth in their message, build on it rather than override it.\n4. One small invitation they can carry into the next hour. One sentence. Something doable.\n\nRULES:\n- No questions. This is one-shot, not a conversation.\n- Keep the whole response under 6 sentences.\n- End with the invitation — do not wrap up with a blessing or flourish.\n- If the person expresses suicidal thoughts, stop the reframe, acknowledge their pain, provide 988 Lifeline, and encourage them to reach out now.\n- NEVER write prayers. You may invite them to pray in their own words.\n- You are a spiritual companion, not a therapist or licensed professional. NEVER diagnose. NEVER promise healing or treatment. If the caught thought reflects clinical-level distress, ongoing trauma, or persistent mental health concerns, include one warm, brief line recommending they speak with a counselor or therapist.\n- Do not state any statistic, number, date, organization name, or factual claim unless it was explicitly provided to you in this prompt. If asked for a specific fact or resource you were not given, respond: 'I don't have a verified source for that — please check with a licensed counselor or therapist.'\n- Never fabricate organization names, phone numbers, websites, or research findings.\n- You are inspired by David Burns' CBT framework — never quote him directly or attribute specific positions you cannot verify from his published work.\nThis is holy ground. One truth, gently.";
   }
-  return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care.\nYou combine CBT (David Burns), neuroscience, biblical truth, and Spirit-led pastoral care.\nSjalavard\'s mission: walk with people through the thoughts that weigh them down — helping them catch the lies their mind tells them, replace them with what is actually true, and find their way back to freedom. All grounded in biblical truth and practical principles that work." + authLine + "\nPrioritize grace, identity in Christ, Spirit transformation.\n" + (p.firstName ? "Name: " + p.firstName + ".\n" : "") + (p.bio ? "About this person: " + p.bio + "\n" : "") + "BACKGROUND CONTEXT (do not bring up directly - use only as quiet background awareness):\nWhat they are working through: " + struggles + ".\nTheir Focused Goal: " + goals + "\n\nNEVER reference this directly by name. Let the person lead. Your job is to follow them.\nNEVER write prayers. Invite the person to pray in their own words instead.\nIf someone expresses suicidal thoughts, acknowledge their pain, show care, provide 988 Lifeline. Do not proceed until safety is addressed." + patternsBlock + memoryBlock + counselorBlock + focusBlock + "\n\nHARD LIMITS — NON-NEGOTIABLE:\n- You are a spiritual companion and peer support tool. You are NOT a therapist, counselor, psychologist, psychiatrist, or licensed mental health professional. Never present yourself as one.\n- NEVER diagnose any mental health condition, disorder, or clinical presentation. You may name cognitive distortions (a CBT awareness tool), but never name clinical diagnoses.\n- NEVER promise or imply that any technique, session, or approach will heal, cure, fix, or treat anything. Offer presence and support — not guarantees or treatment outcomes.\n- NEVER overstate the effectiveness of CBT, neuroscience, or spiritual disciplines. These are helpful tools, not medical interventions.\n- When someone describes ongoing trauma, severe or persistent distress, or content that sounds clinical in nature — warmly and briefly recommend they speak with a licensed counselor or therapist. Use phrases like 'this sounds like something a professional counselor could really help with' or 'this might be worth bringing to a therapist.'\n- You supplement professional care; you never replace it.\n\nSession arc:\nResponse 1: Lead with CBT (David Burns). Validate their feelings. Gently identify the cognitive distortion at work. Ask one question.\nResponse 2: Bring in Dr. Caroline Leaf. Help them understand how this thought pattern affects the brain and how the mind can be rewired. Ask one question.\nResponse 3: Draw from the person\'s chosen author naturally and without forcing it. Offer spiritual grounding. Ask one question.\nResponse 4: Wrap up. Give a warm summary of the session. Offer 3 guided reflection questions for them to sit with. Invite them to bring what was discussed to God in their own prayer — do not write a prayer for them. Then transition to gratitude.\n\nKeep each response warm, direct, and focused. No flattery. This is holy ground." + mem;
+  return "You are Sjal, a wise Christian life coach inside Sjalavard Soul Care.\nYou combine CBT (David Burns), neuroscience, biblical truth, and Spirit-led pastoral care.\nSjalavard\'s mission: walk with people through the thoughts that weigh them down — helping them catch the lies their mind tells them, replace them with what is actually true, and find their way back to freedom. All grounded in biblical truth and practical principles that work." + authLine + "\nPrioritize grace, identity in Christ, Spirit transformation.\n" + (p.firstName ? "Name: " + p.firstName + ".\n" : "") + (p.bio ? "About this person: " + p.bio + "\n" : "") + "BACKGROUND CONTEXT (do not bring up directly - use only as quiet background awareness):\nWhat they are working through: " + struggles + ".\nTheir Focused Goal: " + goals + "\n\nNEVER reference this directly by name. Let the person lead. Your job is to follow them.\nNEVER write prayers. Invite the person to pray in their own words instead.\nIf someone expresses suicidal thoughts, acknowledge their pain, show care, provide 988 Lifeline. Do not proceed until safety is addressed." + patternsBlock + memoryBlock + counselorBlock + focusBlock + "\n\nHARD LIMITS — NON-NEGOTIABLE:\n- You are a spiritual companion and peer support tool. You are NOT a therapist, counselor, psychologist, psychiatrist, or licensed mental health professional. Never present yourself as one.\n- NEVER diagnose any mental health condition, disorder, or clinical presentation. You may name cognitive distortions (a CBT awareness tool), but never name clinical diagnoses.\n- NEVER promise or imply that any technique, session, or approach will heal, cure, fix, or treat anything. Offer presence and support — not guarantees or treatment outcomes.\n- NEVER overstate the effectiveness of CBT, neuroscience, or spiritual disciplines. These are helpful tools, not medical interventions.\n- When someone describes ongoing trauma, severe or persistent distress, or content that sounds clinical in nature — warmly and briefly recommend they speak with a licensed counselor or therapist. Use phrases like 'this sounds like something a professional counselor could really help with' or 'this might be worth bringing to a therapist.'\n- You supplement professional care; you never replace it.\n- Do not state any statistic, number, date, organization name, or factual claim unless it was explicitly provided to you in this prompt. If asked for a specific fact, resource, or number you were not given, respond: 'I don't have a verified source for that — please check with a licensed counselor or therapist.'\n- Never fabricate organization names, phone numbers, websites, policy details, or research findings.\n- You are inspired by David Burns' CBT framework and Dr. Caroline Leaf's neuroscience work — never quote them directly or attribute specific positions you cannot verify from their published work. Represent their frameworks in your own words only.\n\nSession arc:\nResponse 1: Lead with CBT (David Burns). Validate their feelings. Gently identify the cognitive distortion at work. Ask one question.\nResponse 2: Bring in Dr. Caroline Leaf. Help them understand how this thought pattern affects the brain and how the mind can be rewired. Ask one question.\nResponse 3: Draw from the person\'s chosen author naturally and without forcing it. Offer spiritual grounding. Ask one question.\nResponse 4: Wrap up. Give a warm summary of the session. Offer 3 guided reflection questions for them to sit with. Invite them to bring what was discussed to God in their own prayer — do not write a prayer for them. Then transition to gratitude.\n\nKeep each response warm, direct, and focused. No flattery. This is holy ground." + mem;
 }
 function autoBackup(uid, email, profile, sessions, prayers, checkins) {
   try {
@@ -3840,10 +3890,12 @@ function App({
       }
       var data = await res.json();
       var reply = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text || "I am here with you. Take your time.";
+      var _coachAudit = data.audit_flag || null;
       setMsgs(function (prev) {
         return [...prev, {
           role: "coach",
-          content: reply
+          content: reply,
+          audit_flag: _coachAudit
         }];
       });
     } catch (e) {
@@ -3896,6 +3948,7 @@ function App({
       }
       var data = await res.json();
       var reply = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text || "I am here. Take a slow breath, and let us hold this thought together with truth.";
+      window._sjaLastAuditFlag = data.audit_flag || null;
       setQuickReply(reply.trim());
       setPhase("quickResult");
       // Also save as a lightweight "quick" session row so it appears in history.
@@ -4018,6 +4071,7 @@ function App({
       }
       var data = await res.json();
       var reply = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text || "I am with you. Let us hold this together.";
+      window._sjaLastAuditFlag = data.audit_flag || null;
       setRootsReply(reply.trim());
       setPhase("rootsResult");
       try {
@@ -4802,13 +4856,35 @@ function App({
     style: {
       fontSize: 15,
       color: C.muted,
-      marginBottom: 4
+      marginBottom: 10
     }
   }, "Call or text ", /*#__PURE__*/React.createElement("strong", {
     style: {
       color: C.white
     }
-  }, "988"), " - available 24/7, free and confidential.")), /*#__PURE__*/React.createElement("button", {
+  }, "988"), " - available 24/7, free and confidential."), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 15,
+      color: C.white,
+      fontWeight: 600,
+      marginBottom: 4,
+      marginTop: 10
+    }
+  }, "Crisis Text Line"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 15,
+      color: C.muted,
+      marginBottom: 4
+    }
+  }, "Text ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: C.white
+    }
+  }, "HOME"), " to ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: C.white
+    }
+  }, "741741"), " - free, confidential, 24/7.")), /*#__PURE__*/React.createElement("button", {
     onClick: function () {
       setCrisis(false);
     },
@@ -5699,7 +5775,21 @@ function App({
       color: C.white,
       fontFamily: "'Playfair Display',Georgia,serif"
     }
-  }, quickReply), quickSaved && /*#__PURE__*/React.createElement("p", {
+  }, quickReply), window._sjaLastAuditFlag && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 10,
+      padding: "6px 10px",
+      background: "#fef9c3",
+      border: "1px solid #fbbf24",
+      borderRadius: 6,
+      fontSize: 11,
+      color: "#92400e",
+      display: "flex",
+      gap: 6,
+      alignItems: "flex-start",
+      fontFamily: "'Inter',sans-serif"
+    }
+  }, /*#__PURE__*/React.createElement("span", {style: {fontSize: 13, lineHeight: "1.2"}}, "⚠"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Verify: "), window._sjaLastAuditFlag)), quickSaved && /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 13,
       color: C.success,
@@ -6040,6 +6130,18 @@ function App({
     }
   }, "End Session"))), /*#__PURE__*/React.createElement("div", {
     style: {
+      background: "rgba(255,255,255,0.04)",
+      border: "1px solid rgba(255,255,255,0.08)",
+      borderRadius: 8,
+      padding: "8px 13px",
+      marginBottom: 14,
+      fontSize: 11,
+      color: C.dim,
+      lineHeight: 1.6,
+      textAlign: "center"
+    }
+  }, "Spiritual companion tool. Not therapy, not a clinical assessment, and not a substitute for professional mental health care. If you are struggling, please reach out to a licensed counselor or therapist."), /*#__PURE__*/React.createElement("div", {
+    style: {
       minHeight: 280,
       marginBottom: 16
     }
@@ -6083,7 +6185,31 @@ function App({
         fontFamily: m.role === "coach" ? "'Playfair Display',Georgia,serif" : "'Inter',sans-serif",
         whiteSpace: "pre-wrap"
       }
-    }, m.content, m.role === "coach" && /*#__PURE__*/React.createElement("div", {
+    }, m.content, m.role === "coach" && /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 10,
+        opacity: 0.45,
+        display: "block",
+        marginTop: 6,
+        fontFamily: "'Inter',sans-serif",
+        fontStyle: "normal",
+        lineHeight: 1.4
+      }
+    }, "AI-generated — spiritual companion, not a therapist"), m.role === "coach" && m.audit_flag && /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: 8,
+        padding: "6px 10px",
+        background: "#fef9c3",
+        border: "1px solid #fbbf24",
+        borderRadius: 6,
+        fontSize: 11,
+        color: "#92400e",
+        display: "flex",
+        gap: 6,
+        alignItems: "flex-start",
+        fontFamily: "'Inter',sans-serif"
+      }
+    }, /*#__PURE__*/React.createElement("span", {style: {fontSize: 13, lineHeight: "1.2"}}, "⚠"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Verify: "), m.audit_flag)), m.role === "coach" && /*#__PURE__*/React.createElement("div", {
       style: {
         marginTop: 10,
         paddingTop: 8,
@@ -6645,7 +6771,7 @@ function App({
       marginBottom: 20,
       lineHeight: 1.7
     }
-  }, "Awareness is the first step toward freedom."), DISTORTIONS.map(function (d) {
+  }, 'Awareness is the first step toward freedom.'), DISTORTIONS.map(function (d) {
     var on = distortion === d.l;
     return /*#__PURE__*/React.createElement("button", {
       key: d.l,
