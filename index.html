@@ -699,6 +699,7 @@ async function _pbReadProfile(uid) {
     return {pbId: null, data: {}, updatedAt: null};
   } catch(e) { return {pbId: null, data: {}, updatedAt: null}; }
 }
+var _idb=(function(){var _d,_N='sjalavard_idb_v1',_S='kv';function _o(){return new Promise(function(res,rej){if(_d)return res(_d);var r=indexedDB.open(_N,1);r.onupgradeneeded=function(e){e.target.result.createObjectStore(_S);};r.onsuccess=function(e){_d=e.target.result;res(_d);};r.onerror=function(){rej();};});}return{put:function(k,v){_o().then(function(db){var t=db.transaction(_S,'readwrite');t.objectStore(_S).put(v,k);}).catch(function(){});},get:function(k){return _o().then(function(db){return new Promise(function(res,rej){var t=db.transaction(_S,'readonly'),r=t.objectStore(_S).get(k);r.onsuccess=function(){res(r.result);};r.onerror=rej;});}).catch(function(){return null;});}};})();
 async function _pbWriteProfile(uid, email, data) {
   var cached = await _pbReadProfile(uid);
 
@@ -721,6 +722,8 @@ async function _pbWriteProfile(uid, email, data) {
     if (_s0) localStorage.setItem(_snapBase + "_1", _s0);
     localStorage.setItem(_snapBase + "_0", JSON.stringify({data: data, ts: new Date().toISOString()}));
   } catch(_snapErr) {}
+
+  _idb.put('sja_'+uid, data);
 
   // FORT KNOX Guard 3 — Before-write PB snapshot + conflict detection
   var _prevData = null;
