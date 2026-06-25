@@ -1,0 +1,186 @@
+═══════════════════════════════════════════════════════════════
+SJALAVARD SOUL CARE — STORE COMPLIANCE ANSWERS
+Use these when filling out App Store Connect and Google Play Console
+═══════════════════════════════════════════════════════════════
+
+
+─────────────────────────────────────────────────────────────
+APPLE — PRIVACY NUTRITION LABEL
+(App Store Connect → App Privacy → Data Types)
+─────────────────────────────────────────────────────────────
+
+DATA COLLECTED AND LINKED TO IDENTITY:
+
+  Contact Info
+  └─ Email Address
+     • Used for: App Functionality (account creation/login)
+     • Linked to identity: YES
+     • Used for tracking: NO
+
+  Identifiers
+  └─ User ID
+     • Used for: App Functionality (PocketBase account ID)
+     • Linked to identity: YES
+     • Used for tracking: NO
+
+DATA COLLECTED AND LINKED TO IDENTITY (User Content):
+
+  User Content
+  └─ Other User Content
+     • Includes: coaching session messages, prayer journal text,
+       daily check-in mood/notes
+     • Used for: App Functionality
+     • Linked to identity: YES
+     • Used for tracking: NO
+     NOTE: Session content is sent to Google Gemini to generate
+     responses. Prayer journal content is NEVER sent to AI.
+
+DATA NOT LINKED TO IDENTITY:
+
+  Usage Data
+  └─ Other Usage Data
+     • Includes: page views, button clicks, time on page
+       (sent to your own Command Center analytics — no name/email)
+     • Used for: Analytics (first-party only)
+     • Linked to identity: NO
+     • Used for tracking: NO
+
+  Diagnostics
+  └─ Crash Data
+     • Includes: error messages, stack traces (no personal content)
+     • Used for: App Functionality / crash reporting
+     • Linked to identity: NO
+
+DATA NOT COLLECTED:
+  ✗ Location
+  ✗ Health & Fitness
+  ✗ Financial Info
+  ✗ Browsing History
+  ✗ Search History
+  ✗ Sensitive Info
+  ✗ Contacts
+  ✗ Photos/Videos
+  ✗ Audio
+  ✗ Purchases
+
+
+─────────────────────────────────────────────────────────────
+GOOGLE PLAY — DATA SAFETY FORM
+(Play Console → Store Presence → Data Safety)
+─────────────────────────────────────────────────────────────
+
+SECTION 1 — Does your app collect or share any of the required
+user data types?
+  Answer: YES
+
+SECTION 2 — Is all of the user data collected by your app
+encrypted in transit?
+  Answer: YES (all connections use HTTPS/TLS)
+
+SECTION 3 — Do you provide a way for users to request that
+their data is deleted?
+  Answer: YES
+  Deletion URL: https://sjalavard.com/support
+
+DATA TYPES — COLLECTED:
+
+  Personal info
+  ├─ Email address — collected, required, not shared with 3rd parties for ads
+  └─ (no name, phone, address collected)
+
+  App activity
+  ├─ App interactions (session usage, button taps)
+  └─ Other actions (daily check-ins, prayer journal entries, session content)
+
+  App info and performance
+  └─ Crash logs (error/stack traces, no personal content)
+
+  Identifiers
+  └─ User IDs (PocketBase account ID)
+
+DATA TYPES — SHARED WITH THIRD PARTIES:
+
+  User Content (session messages only — NOT prayer journal)
+  └─ Shared with: Google Gemini API
+     Purpose: AI coaching responses
+     Note: Governed by Google's privacy policy
+
+DATA TYPES — NOT COLLECTED:
+  Location, Financial info, Health info, Contacts, Photos/Files,
+  Audio/Video, SMS/MMS, Calendar, Web browsing, Device info beyond
+  crash data.
+
+
+─────────────────────────────────────────────────────────────
+GOOGLE PLAY — IARC CONTENT RATING QUESTIONNAIRE
+(Play Console → Store Presence → Content Rating)
+─────────────────────────────────────────────────────────────
+
+App type: App (not game)
+Category: Lifestyle / Health & Fitness
+
+Q: Does this app contain violence or reference to violence?
+A: NO
+
+Q: Does this app contain sexual content or nudity?
+A: NO
+
+Q: Does this app contain profanity or crude humor?
+A: NO
+
+Q: Does this app contain references to alcohol, tobacco, or drugs?
+A: NO
+
+Q: Does this app allow users to communicate with each other?
+A: NO (one-way: user talks to AI only — no peer-to-peer chat)
+
+Q: Does this app share user location with other users?
+A: NO
+
+Q: Does this app contain digital purchases?
+A: NO
+
+Q: Does this app contain content not suitable for children
+   (mental health, mature themes)?
+A: YES — the app addresses mental/emotional health topics
+   (anxiety, cognitive distortions, spiritual struggles).
+   Not designed for children under 13.
+
+EXPECTED RATING:
+  IARC: Teen (13+) or Everyone 10+
+  Google Play: Teen
+  Apple: 4+ (parental guidance notes: mild mature themes acceptable)
+
+CONTENT DESCRIPTOR (suggested for Google Play listing):
+  "Mild mature themes — addresses mental and emotional health topics
+   including anxiety, cognitive distortions, and spiritual struggle.
+   Not suitable for children under 13. Crisis detection built in
+   with automatic 988 Lifeline referral."
+
+
+─────────────────────────────────────────────────────────────
+APPLE APP STORE CONNECT — OTHER FIELDS
+─────────────────────────────────────────────────────────────
+
+Support URL:         https://sjalavard.com/support
+Marketing URL:       https://sjalavard.com
+Privacy Policy URL:  https://sjalavard.com  (privacy policy is in
+                     the Legal tab inside the app; if Apple requires
+                     a standalone URL, add /privacy as a CF Pages
+                     Function using the same pattern as /support)
+
+Age Rating: 4+
+  Unrestricted Web Access: NO
+  Gambling: NO
+  Contests: NO
+  Alcohol/Tobacco/Drugs: NO
+  Medical/Treatment Info: NO (spiritual care ≠ medical)
+  Horror/Fear: NO
+  Prolonged Graphic Violence: NO
+  Profanity: NO
+  Sexual Content: NO
+  Nudity: NO
+
+Copyright:  © 2026 Foster Hope Ministries
+
+Primary Language: English

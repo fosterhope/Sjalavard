@@ -1,0 +1,94 @@
+═══════════════════════════════════════════════════════════════
+SJALAVARD SOUL CARE — STORE COPY
+═══════════════════════════════════════════════════════════════
+
+APP NAME
+────────
+Sjalavard Soul Care
+
+
+SUBTITLE (Apple — 30 chars max)
+────────────────────────────────
+AI Christian Life Coaching
+[26 chars ✓]
+
+
+SHORT DESCRIPTION (Google Play — 80 chars max)
+───────────────────────────────────────────────
+AI soul care grounded in CBT, scripture, and Spirit-led coaching.
+[65 chars ✓]
+
+
+KEYWORDS (Apple — 100 chars max, comma-separated, no spaces after commas)
+──────────────────────────────────────────────────────────────────────────
+soul care,christian,CBT,coaching,prayer,mental health,spiritual,journal,anxiety,faith,devotional
+[96 chars ✓]
+
+
+LONG DESCRIPTION (both stores — under 4000 chars)
+──────────────────────────────────────────────────
+Sjalavard (Swedish for "soul care") is an AI-powered Christian life coaching app that walks with you through the thoughts that weigh you down — helping you catch the lies your mind tells you, replace them with what is actually true, and find your way back to freedom.
+
+WHAT SJALAVARD DOES
+
+When you open a session, you talk to Sjal — your personal spiritual coach. Sjal listens, asks the right questions, and guides you through a structured arc grounded in three proven frameworks:
+
+• CBT (David Burns) — identify the thinking trap fueling your feelings
+• Neuroscience (Dr. Caroline Leaf) — understand how thoughts shape your brain
+• Christian wisdom — voices like Brennan Manning, Dallas Willard, and Richard Foster woven in naturally
+
+Every session closes with a personalized summary, one concrete action step, and a moment of gratitude.
+
+FEATURES
+
+✦ AI Soul Care Sessions — 4–6 exchange coaching conversations with Sjal, tailored to your profile and focused goal. No two sessions are the same.
+
+🙏 Prayer Journal — A private, AI-free space to write and keep your prayers. Mark them answered over time. Never processed by AI.
+
+💙 Daily Check-In — A 10-second mood pulse at the top of every day. One word, one optional note. Builds a picture of your emotional health over time.
+
+📖 Daily Verse — A rotating scripture verse greets you each day.
+
+📊 Mood Trend Chart — See your last 14 days of check-ins and session moods visualized at a glance.
+
+🔍 Cognitive Distortion Identifier — Tap to name the thinking trap fueling your feelings, drawn from David Burns' framework in Feeling Good.
+
+⚡ Action Steps — Every session ends with one spiritually grounded action step to carry into your week.
+
+🗂 Session History — All completed sessions saved and accessible on any device.
+
+🚨 Crisis Support — If your words suggest you may be in crisis, Sjalavard automatically surfaces the 988 Lifeline before continuing.
+
+⚙️ Personalized Profile — Set up once. Your name, what you're working through, your focused goal, and your favorite Christian authors shape how Sjal coaches you.
+
+🔒 Cross-Device Sync — Your sessions, prayers, and check-ins sync securely across all your devices.
+
+PRIVACY
+
+No ads. No tracking. No data selling. Your prayer journal is never processed by AI. Session content is used only to power your coaching responses. Full privacy policy is in the Legal tab.
+
+Sjalavard is not a replacement for therapy. If you are in a mental health crisis, please contact the 988 Suicide & Crisis Lifeline (call or text 988) or seek care from a qualified professional.
+
+Built by Foster Hope Ministries — a Christian nonprofit supporting foster and adoptive families.
+Renew your mind. Reclaim your life. — Romans 12:2
+
+[Character count: ~2,350 ✓ well under 4,000]
+
+
+CATEGORY
+────────
+Apple App Store:  Health & Fitness
+Google Play:      Health & Fitness
+
+
+CONTENT RATING
+──────────────
+Apple:        4+
+Google Play:  Teen (13+) — mild mental/emotional health themes
+
+
+WHAT'S NEW (version notes — first release)
+───────────────────────────────────────────
+First release of Sjalavard Soul Care on the App Store.
+
+Sjalavard is an AI Christian life coaching app built on CBT, neuroscience, and Spirit-led care. Create an account to start your first session, keep a prayer journal, and track your daily emotional health — all synced privately across your devices.
