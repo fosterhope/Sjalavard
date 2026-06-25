@@ -164,10 +164,8 @@ APPLE APP STORE CONNECT — OTHER FIELDS
 
 Support URL:         https://sjalavard.com/support
 Marketing URL:       https://sjalavard.com
-Privacy Policy URL:  https://sjalavard.com  (privacy policy is in
-                     the Legal tab inside the app; if Apple requires
-                     a standalone URL, add /privacy as a CF Pages
-                     Function using the same pattern as /support)
+Privacy Policy URL:  https://sjalavard.com/privacy  (standalone page,
+                     live — same content as the Legal tab inside the app)
 
 Age Rating: 4+
   Unrestricted Web Access: NO
