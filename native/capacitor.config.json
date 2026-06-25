@@ -1,0 +1,12 @@
+{
+  "appId": "com.fosterhope.sjalavard",
+  "appName": "Sjalavard Soul Care",
+  "webDir": "www",
+  "ios": {
+    "contentInset": "automatic",
+    "allowsLinkPreview": false
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}
