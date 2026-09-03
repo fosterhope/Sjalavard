@@ -616,6 +616,7 @@ if(IS_PWA && window.navigator.standalone === true){
 
 </script>
 
+<link rel="manifest" href="/manifest.json">
 <script>
 (function(){
   var icons = [
@@ -623,22 +624,6 @@ if(IS_PWA && window.navigator.standalone === true){
     {"src":"data:image/png;base64,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","sizes":"512x512","type":"image/png"},
     {"src":"data:image/png;base64,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","sizes":"512x512","type":"image/png","purpose":"maskable"}
   ];
-  var manifest = {
-    name:"Sjalavard Soul Care",
-    short_name:"Sjalavard",
-    description:"AI-powered Christian life coaching from Foster Hope Ministries",
-    start_url:"/",
-    display:"standalone",
-    background_color:"#1e4e6d",
-    theme_color:"#1e4e6d",
-    icons:icons
-  };
-  var blob = new Blob([JSON.stringify(manifest)],{type:"application/json"});
-  var url = URL.createObjectURL(blob);
-  var link = document.createElement("link");
-  link.rel = "manifest";
-  link.href = url;
-  document.head.appendChild(link);
 })();
 </script>
 <!-- Service worker not used: single-file deploy, blob SW blocked by browser security -->
@@ -6158,7 +6143,7 @@ function App({
       fontWeight: distortion ? 600 : 400
     }
   }, distortion ? distortion.split(" ").slice(0, 2).join(" ") + "..." : "+ Pattern"), /*#__PURE__*/React.createElement("button", {
-    onClick: genSummary,
+    onClick: function() { genSummary(); },
     style: {
       background: C.acc,
       border: "none",
@@ -6511,7 +6496,7 @@ function App({
       zIndex: 200
     }
   }, /*#__PURE__*/React.createElement("button", {
-    onClick: genSummary,
+    onClick: function() { genSummary(); },
     style: {
       background: C.acc,
       border: "none",
@@ -10193,60 +10178,6 @@ try {
 })();
 </script>
 
-<script>
-/* Foster Hope — Sync health dot + Bug report */
-(function(){
-  var _errs=[];
-  window.addEventListener('error',function(e){_cap(e.message,e.filename,e.lineno,e.error);});
-  window.addEventListener('unhandledrejection',function(e){var r=e.reason;_cap((r instanceof Error)?r.message:String(r||''),'',0,(r instanceof Error)?r:null);});
-  function _cap(msg,src,line,err){
-    _errs.unshift({ts:new Date().toISOString(),msg:String(msg||'').slice(0,400),src:String(src||'').replace(/^.*\//,'').slice(0,80),line:line||0,stack:err&&err.stack?String(err.stack).slice(0,500):null});
-    if(_errs.length>20)_errs.length=20;
-    try{localStorage.setItem('fh-error-log',JSON.stringify(_errs.slice(0,20)));}catch(e){}
-  }
-  try{var _sv=localStorage.getItem('fh-error-log');if(_sv){var _pv=JSON.parse(_sv);if(Array.isArray(_pv))_errs=_pv.slice(0,20);}}catch(e){}
-  var _dot=null;var _sbUrl=null;
-  function setDot(color,tip){if(_dot){_dot.style.background=color;_dot.title=tip;}}
-  function checkSync(){if(!navigator.onLine){setDot('#e53e3e','Offline');return;}fetch('https://foster-hope-pb.fly.dev/api/health').then(function(r){if(r.ok)setDot('#48bb78','Synced');else setDot('#f5c842','Cloud unreachable');}).catch(function(){setDot('#f5c842','Cloud unreachable');});}
-  window.addEventListener('online',function(){checkSync();});
-  window.addEventListener('offline',function(){setDot('#e53e3e','Offline');});
-  setInterval(function(){if(_dot)checkSync();},60000);
-  function fmtReport(note){var lines=['Bug Report','Date: '+new Date().toLocaleString(),'URL: '+location.href,'Note: '+(note||'(none)'),''];var r=_errs.slice(0,5);if(!r.length){lines.push('No JS errors captured.');}else{lines.push('Errors:');r.forEach(function(e,i){lines.push('  ['+(i+1)+'] '+e.ts+'\n      '+e.msg+(e.src?' ('+e.src+' L'+e.line+')':''));});}return lines.join('\n');}
-  function saveReport(note){var rec={ts:new Date().toISOString(),url:location.href,note:note,errors:_errs.slice(0,5)};try{var ex=[];try{var s=localStorage.getItem('fh-bug-reports');if(s)ex=JSON.parse(s);}catch(e){}ex.unshift(rec);if(ex.length>50)ex.length=50;localStorage.setItem('fh-bug-reports',JSON.stringify(ex));}catch(e){}}
-  function openBugModal(){
-    if(document.getElementById('__bug-modal'))return;
-    var ov=document.createElement('div');ov.id='__bug-modal';
-    ov.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;';
-    var r=_errs.slice(0,3);
-    var errHtml=r.length?'<div style="background:#fff8f0;border:1px solid #f0b96b;border-radius:8px;padding:9px;margin-bottom:10px;max-height:110px;overflow-y:auto;font-size:.68rem;font-family:monospace;color:#5a3200;white-space:pre-wrap">'+r.map(function(e){return'['+e.ts.slice(11,19)+'] '+e.msg;}).join('\n')+'</div>':'<p style="font-size:.75rem;color:#6b7280;margin:0 0 10px">No JS errors recorded — good!</p>';
-    ov.innerHTML='<div style="background:#fff;border-radius:14px;padding:22px 24px;width:min(440px,90vw);box-shadow:0 12px 40px rgba(0,0,0,.25);">'
-      +'<div style="display:flex;justify-content:space-between;margin-bottom:12px;"><div><b style="font-size:.95rem;">Report a Bug</b><div style="font-size:.72rem;color:#6b7280;margin-top:2px;">Page info &amp; errors are captured automatically.</div></div>'
-      +'<button id="__bug-x" style="all:unset;cursor:pointer;font-size:1.3rem;color:#9ca3af;">&times;</button></div>'
-      +'<label style="font-size:.73rem;font-weight:600;color:#374151;display:block;margin-bottom:3px;">What happened? <span style="font-weight:400;color:#9ca3af">(optional)</span></label>'
-      +'<textarea id="__bug-note" placeholder="e.g. I clicked Save and got a blank screen" style="width:100%;box-sizing:border-box;border:1.5px solid #d1d5db;border-radius:8px;padding:8px;font-size:.8rem;font-family:inherit;resize:vertical;height:60px;outline:none;margin-bottom:10px;"></textarea>'
-      +'<div style="font-size:.73rem;font-weight:600;color:#374151;margin-bottom:5px;">Auto-captured errors:</div>'+errHtml
-      +'<div style="display:flex;gap:8px;justify-content:flex-end;">'
-      +'<button id="__bug-copy" style="all:unset;cursor:pointer;padding:7px 14px;border-radius:8px;font-size:.75rem;font-weight:600;border:1.5px solid #333;color:#333;">Copy report</button>'
-      +'<button id="__bug-save" style="all:unset;cursor:pointer;padding:7px 16px;border-radius:8px;font-size:.75rem;font-weight:700;background:#1a3028;color:#fff;">Save &amp; Close</button>'
-      +'</div></div>';
-    document.body.appendChild(ov);
-    ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
-    document.getElementById('__bug-x').onclick=function(){ov.remove();};
-    document.getElementById('__bug-copy').onclick=function(){var note=(document.getElementById('__bug-note')||{}).value||'';var btn=document.getElementById('__bug-copy');if(navigator.clipboard){navigator.clipboard.writeText(fmtReport(note)).then(function(){if(btn){btn.textContent='Copied!';setTimeout(function(){btn.textContent='Copy report';},2200);}}).catch(function(){prompt('Copy:',fmtReport(note));});}else{prompt('Copy:',fmtReport(note));}};
-    document.getElementById('__bug-save').onclick=function(){saveReport((document.getElementById('__bug-note')||{}).value||'');ov.remove();var t=document.createElement('div');t.style.cssText='position:fixed;bottom:60px;right:14px;z-index:99999;background:#1a3028;color:#fff;padding:10px 16px;border-radius:10px;font-size:.78rem;font-weight:600;font-family:inherit;box-shadow:0 4px 16px rgba(0,0,0,.2);pointer-events:none;';t.textContent='Bug report saved!';document.body.appendChild(t);setTimeout(function(){t.remove();},3000);};
-    setTimeout(function(){var n=document.getElementById('__bug-note');if(n)n.focus();},80);
-  }
-  function detectSB(){try{return typeof SB_URL!=='undefined'?SB_URL:'https://rlwdqrvosbbdwmnrohxd.supabase.co';}catch(e){return null;}}
-  function inject(){
-    _sbUrl=detectSB();
-    if(_sbUrl&&!document.getElementById('__sync-dot')){var d=document.createElement('div');d.id='__sync-dot';d.style.cssText='position:fixed;top:10px;right:10px;z-index:99990;width:10px;height:10px;border-radius:50%;background:#f5c842;box-shadow:0 1px 4px rgba(0,0,0,.3);cursor:pointer;transition:background .3s;';d.onclick=function(){var _t=document.createElement('div');_t.style.cssText='position:fixed;top:28px;right:10px;z-index:99991;background:#0f2d42;color:#5bb8d4;font-size:11px;font-weight:600;padding:6px 12px;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.3);pointer-events:none;';_t.textContent=d.title||'Sync status';document.body.appendChild(_t);setTimeout(function(){_t.remove();},3000);};document.body.appendChild(d);_dot=d;checkSync();}
-    if(!document.getElementById('__bug-btn')){var btn=document.createElement('button');btn.id='__bug-btn';btn.title='Report a bug';btn.style.cssText='position:fixed;bottom:14px;right:14px;z-index:99990;background:#1a3028;color:#fff;border:none;border-radius:20px;padding:7px 13px;font-size:.7rem;font-weight:700;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.25);';btn.innerHTML='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Bug?';btn.onclick=openBugModal;document.body.appendChild(btn);}
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',inject);
-  else inject();
-  setTimeout(inject,900);
-})();
-</script>
 <script>(function(){var q=new URLSearchParams(location.search).get('qr');if(q&&window.send)window.send('conversion','qr_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-'));})();</script>
 <script>(function(){var WN_VER='sj_wn_v1';try{if(localStorage.getItem('sj_whats_new')===WN_VER)return;}catch(e){}var items=['<strong>Secure new auth system</strong> — Sjalavard now uses a dedicated private auth server. Your account and session history are more secure and more reliable than ever.','<strong>Offline support</strong> — your sessions, prayers, and daily check-ins are protected in three storage layers. Sjal works without internet and syncs when you reconnect.','<strong>Cross-device sync</strong> — start a session on your phone, continue on your tablet. Everything stays perfectly in sync.','<strong>Installable PWA</strong> — add Sjalavard to your home screen for instant, full-screen access with no browser chrome in the way.','<strong>Faster sessions</strong> — significant performance improvements across login, session loading, and AI response time.'];function show(){if(document.getElementById('sj-wn-ov'))return;var ov=document.createElement('div');ov.id='sj-wn-ov';ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99998;display:flex;align-items:center;justify-content:center;padding:20px;';ov.innerHTML='<div style="background:#1a3d54;border-radius:16px;max-width:400px;width:100%;padding:28px 24px;box-shadow:0 8px 40px rgba(0,0,0,.4);font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;max-height:90vh;overflow-y:auto;"><div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;"><div style="background:#5bb8d4;color:#0f2d42;border-radius:10px;padding:8px;line-height:1;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div><div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#5bb8d4;">What\'s New</div><div style="font-size:1.15rem;font-weight:700;color:#fff;">Sjalavard Updates</div></div></div><ul style="list-style:none;padding:0;margin:0 0 20px;display:flex;flex-direction:column;gap:10px;">'+items.map(function(i){return'<li style="display:flex;gap:10px;align-items:flex-start;"><span style="color:#5bb8d4;font-size:1.1rem;line-height:1.4;flex-shrink:0;">&#10003;</span><span style="font-size:.88rem;color:rgba(255,255,255,.85);line-height:1.55;">'+i+'</span></li>';}).join('')+'</ul><button onclick="document.getElementById(\'sj-wn-ov\').remove();try{localStorage.setItem(\'sj_whats_new\',\'sj_wn_v1\');}catch(e){}" style="width:100%;background:#5bb8d4;color:#0f2d42;border:none;border-radius:10px;padding:13px;font-size:.95rem;font-weight:700;cursor:pointer;font-family:inherit;">Got it →</button></div>';document.body.appendChild(ov);}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',function(){setTimeout(show,1000);});}else{setTimeout(show,1000);}})();</script>
 <div style="text-align:center;padding:10px 16px 14px;font-size:11px;color:rgba(138,184,204,0.5);font-family:system-ui,sans-serif;letter-spacing:.02em;">Foster Hope Ministries &middot; Verified data &middot; AI guardrailed &middot; Your information is protected</div>
